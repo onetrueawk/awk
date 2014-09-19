@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 	/*signal(SIGSEGV, segvcatch); experiment */
 
 	srand_seed = 1;
-	srand(srand_seed);
+	srandom((unsigned long) srand_seed);
 
 	yyin = NULL;
 	symtab = makesymtab(NSYMTAB/NSYMTAB);
