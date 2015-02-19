@@ -1,0 +1,13 @@
+#!/bin/bash
+# test 1: count down from 3 to 0; no braces
+./a.out '
+BEGIN {
+    n = 3   // a comment in the new syntax
+    repeat
+        print n
+    until (--n <= 0)
+}' >temp1
+echo '3
+2
+1' >temp2
+cmp temp1 temp2 >/dev/null 2>&1 || echo 'Error: test 1 failed' 2>&1

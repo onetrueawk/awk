@@ -1557,6 +1557,8 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 		else
 			u = fflush(fp);
 		break;
+	case HTOI: 
+		u = strtol(getsval(x), 0, 0); break;
 	default:	/* can't happen */
 		FATAL("illegal function type %d", t);
 		break;
@@ -1644,6 +1646,7 @@ void stdinit(void)	/* in case stdin, etc., are not constants */
         files[2].fp = stderr;
 	files[2].fname = "/dev/stderr";
 	files[2].mode = GT;
+
 }
 
 FILE *openfile(int a, const char *us)
