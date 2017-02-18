@@ -1,0 +1,7 @@
+#!/bin/bash
+# test 1: count down from 3 to 0; no braces
+./a.out '
+// this is a comment
+{print htoi("0xab")}'
+#echo '3' >temp2
+#cmp temp1 temp2 >/dev/null 2>&1 || echo 'Error: test 1 failed' 2>&1

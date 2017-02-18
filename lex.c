@@ -63,6 +63,7 @@ Keyword keywords[] ={	/* keep sorted: binary searched */
 	{ "function",	FUNC,		FUNC },
 	{ "getline",	GETLINE,	GETLINE },
 	{ "gsub",	GSUB,		GSUB },
+	{ "htoi",	HTOI, 		BLTIN },
 	{ "if",		IF,		IF },
 	{ "in",		IN,		IN },
 	{ "index",	INDEX,		INDEX },
@@ -203,6 +204,14 @@ int yylex(void)
 		case ' ':	/* {WS}+ */
 		case '\t':
 			break;
+		case '/':
+			if (peek() == '/') {
+				while ((c = input()) != '\n' && c != 0)
+					;
+				unput(c);
+				break;
+			}
+			else RET('/');
 		case '#':	/* #.* strip comments */
 			while ((c = input()) != '\n' && c != 0)
 				;
@@ -286,8 +295,6 @@ int yylex(void)
 				}
 			} else
 				RET('*');
-		case '/':
-			RET('/');
 		case '%':
 			if (peek() == '=') {
 				input(); yylval.i = MODEQ; RET(ASGNOP);
