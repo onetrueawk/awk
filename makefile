@@ -27,12 +27,12 @@ CFLAGS = -O2
 CFLAGS =
 
 CC = gcc -Wall -g -Wwrite-strings
-CC = gcc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
 CC = gcc -g -Wall -pedantic 
 CC = gcc -O4 -Wall -pedantic -fno-strict-aliasing
+CC = gcc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
 
 YACC = bison -d -y
-YACC = yacc -d -S
+YACC = yacc -d
 #YFLAGS = -d -S
 		# -S uses sprintf in yacc parser instead of sprint
 
@@ -80,13 +80,14 @@ tar:
 	ls -l awk.zip
 
 gitadd:
-	git add README LICENSE \
+	git add README LICENSE FIXES \
            awk.h proto.h awkgram.y lex.c b.c main.c maketab.c parse.c \
 	   lib.c run.c tran.c \
 	   makefile awk.1 awktest.a
 
 gitpush:
-	git remote add origin https://github.com/onetrueawk/awk.git
+	# only do this once: 
+	# git remote add origin https://github.com/onetrueawk/awk.git
 	git push -u origin master
 
 names:
@@ -94,3 +95,6 @@ names:
 
 clean:
 	rm -f a.out *.o *.obj maketab maketab.exe *.bb *.bbg *.da *.gcov *.gcno *.gcda # proctab.c
+
+cleaner:
+	rm -f a.out *.o *.obj maketab maketab.exe *.bb *.bbg *.da *.gcov *.gcno *.gcda proctab.c ytab*

@@ -618,6 +618,8 @@ void eprint(void)	/* try to print context around error */
 
 	if (compile_time == 2 || compile_time == 0 || been_here++ > 0)
 		return;
+	if (ebuf == ep)
+		return;
 	p = ep - 1;
 	if (p > ebuf && *p == '\n')
 		p--;
