@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+Aug 15, 2018:
+	fixed mangled awktest.tar (thanks, Arnold), posted all
+	current (very minor) fixes to github / onetrueawk
+
 Jun 7, 2018:
 	(yes, a long layoff)
 	Updated some broken tests (beebe.tar, T.lilly)

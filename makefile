@@ -83,7 +83,7 @@ gitadd:
 	git add README LICENSE FIXES \
            awk.h proto.h awkgram.y lex.c b.c main.c maketab.c parse.c \
 	   lib.c run.c tran.c \
-	   makefile awk.1 awktest.a
+	   makefile awk.1 awktest.tar
 
 gitpush:
 	# only do this once: 
