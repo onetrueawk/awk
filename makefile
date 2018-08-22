@@ -26,13 +26,13 @@ CFLAGS = -g
 CFLAGS = -O2
 CFLAGS =
 
-CC = gcc -Wall -g -Wwrite-strings
+#CC = gcc -Wall -g -Wwrite-strings
 CC = gcc -g -Wall -pedantic 
-CC = gcc -O4 -Wall -pedantic -fno-strict-aliasing
-CC = gcc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
+#CC = gcc -O4 -Wall -pedantic -fno-strict-aliasing
+#CC = gcc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
 
 YACC = bison -d -y
-YACC = yacc -d
+# YACC = yacc -d
 #YFLAGS = -d -S
 		# -S uses sprintf in yacc parser instead of sprint
 

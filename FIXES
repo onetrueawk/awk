@@ -514,6 +514,8 @@ May 12, 1998:
 Mar 12, 1998:
 	added -V to print version number and die.
 
+[notify dave kerns, dkerns@dacsoup.ih.lucent.com]
+
 Feb 11, 1998:
 	subtle silent bug in lex.c: if the program ended with a number
 	longer than 1 digit, part of the input would be pushed back and

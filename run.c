@@ -31,6 +31,8 @@ THIS SOFTWARE.
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "awk.h"
 #include "ytab.h"
 
@@ -323,14 +325,18 @@ Cell *copycell(Cell *x)	/* make a copy of a cell in a temp */
 {
 	Cell *y;
 
+	/* copy is not constant or field */
+
 	y = gettemp();
+	y->tval = x->tval & ~(CON|FLD|REC);
 	y->csub = CCOPY;	/* prevents freeing until call is over */
 	y->nval = x->nval;	/* BUG? */
-	if (isstr(x))
+	if (isstr(x) /* || x->ctype == OCELL */) {
 		y->sval = tostring(x->sval);
+		y->tval &= ~DONTFREE;
+	} else
+		y->tval |= DONTFREE;
 	y->fval = x->fval;
-	y->tval = x->tval & ~(CON|FLD|REC|DONTFREE);	/* copy is not constant or field */
-							/* is DONTFREE right? */
 	return y;
 }
 
@@ -817,6 +823,17 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 	char *buf = *pbuf;
 	int bufsize = *pbufsize;
 
+	static int first = 1;
+	static int have_a_format = 0;
+
+	if (first) {
+		char buf[100];
+
+		sprintf(buf, "%a", 42.0);
+		have_a_format = (strcmp(buf, "0x1.5p+5") == 0);
+		first = 0;
+	}
+
 	os = s;
 	p = buf;
 	if ((fmt = (char *) malloc(fmtsz)) == NULL)
@@ -859,6 +876,12 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		adjbuf(&buf, &bufsize, fmtwd+1+p-buf, recsize, &p, "format4");
 
 		switch (*s) {
+		case 'a': case 'A':
+			if (have_a_format)
+				flag = *s;
+			else
+				flag = 'f';
+			break;
 		case 'f': case 'e': case 'g': case 'E': case 'G':
 			flag = 'f';
 			break;
@@ -901,6 +924,8 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			p += strlen(p);
 			sprintf(p, "%s", t);
 			break;
+		case 'a':
+		case 'A':
 		case 'f':	sprintf(p, fmt, getfval(x)); break;
 		case 'd':	sprintf(p, fmt, (long) getfval(x)); break;
 		case 'u':	sprintf(p, fmt, (int) getfval(x)); break;
@@ -1003,7 +1028,7 @@ Cell *arith(Node **a, int n)	/* a[0] + a[1], etc.  also -a[0] */
 	x = execute(a[0]);
 	i = getfval(x);
 	tempfree(x);
-	if (n != UMINUS) {
+	if (n != UMINUS && n != UPLUS) {
 		y = execute(a[1]);
 		j = getfval(y);
 		tempfree(y);
@@ -1032,6 +1057,8 @@ Cell *arith(Node **a, int n)	/* a[0] + a[1], etc.  also -a[0] */
 		break;
 	case UMINUS:
 		i = -i;
+		break;
+    case UPLUS: /* handled by getfval(), above */
 		break;
 	case POWER:
 		if (j >= 0 && modf(j, &v) == 0.0)	/* pos integer exponent */
@@ -1479,6 +1506,7 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 	Node *nextarg;
 	FILE *fp;
 	void flush_all(void);
+	int status = 0;
 
 	t = ptoi(a[0]);
 	x = execute(a[1]);
@@ -1515,7 +1543,20 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 		break;
 	case FSYSTEM:
 		fflush(stdout);		/* in case something is buffered already */
-		u = (Awkfloat) system(getsval(x)) / 256;   /* 256 is unix-dep */
+		status = system(getsval(x));
+		u = status;
+		if (status != -1) {
+			if (WIFEXITED(status)) {
+				u = WEXITSTATUS(status);
+			} else if (WIFSIGNALED(status)) {
+				u = WTERMSIG(status) + 256;
+#ifdef WCOREDUMP
+				if (WCOREDUMP(status))
+					u += 256;
+#endif
+			} else	/* something else?!? */
+				u = 0;
+		}
 		break;
 	case FRAND:
 		/* in principle, rand() returns something in 0..RAND_MAX */

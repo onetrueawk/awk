@@ -1,3 +1,20 @@
+#! /bin/sh
+
+if [ -d testdir ]
+then
+	true	# do nothing
+elif [ -f awktest.tar ]
+then
+	echo extracting testdir
+	tar -xpf awktest.tar
+else
+	echo $0: No testdir directory and no awktest.tar to extract it from! >&2
+	exit 1
+fi
+
 cd testdir
 pwd
+PATH=.:$PATH
+export PATH
+
 REGRESS
