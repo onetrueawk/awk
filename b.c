@@ -749,7 +749,7 @@ struct charclass {
 	{ "alnum",	5,	isalnum },
 	{ "alpha",	5,	isalpha },
 #ifndef HAS_ISBLANK
-	{ "blank",	5,	isspace }, /* was isblank */
+	{ "blank",	5,	xisblank },
 #else
 	{ "blank",	5,	isblank },
 #endif
