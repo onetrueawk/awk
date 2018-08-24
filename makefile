@@ -23,17 +23,19 @@
 # ****************************************************************/
 
 CFLAGS = -g
-CFLAGS = -O2
 CFLAGS =
+CFLAGS = -O2
 
+# compiler options
 #CC = gcc -Wall -g -Wwrite-strings
-CC = gcc -g -Wall -pedantic 
 #CC = gcc -O4 -Wall -pedantic -fno-strict-aliasing
 #CC = gcc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
+CC = gcc -g -Wall -pedantic 
 
-YACC = bison -d -y
-# YACC = yacc -d
+# yacc options.  pick one; this varies a lot by system.
 #YFLAGS = -d -S
+#YACC = bison -d -y
+YACC = yacc -d
 		# -S uses sprintf in yacc parser instead of sprint
 
 OFILES = b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o
