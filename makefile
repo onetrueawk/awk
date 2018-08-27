@@ -54,11 +54,12 @@ a.out:	ytab.o $(OFILES)
 
 $(OFILES):	awk.h ytab.h proto.h
 
-ytab.o:	awk.h proto.h awkgram.y
+ytab.c:	awk.h proto.h awkgram.y
 	$(YACC) $(YFLAGS) awkgram.y
 	mv y.tab.c ytab.c
 	mv y.tab.h ytab.h
-	$(CC) $(CFLAGS) -c ytab.c
+
+ytab.h:	ytab.c
 
 proctab.c:	maketab
 	./maketab >proctab.c
