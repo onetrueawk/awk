@@ -36,7 +36,7 @@ CC = gcc -g -Wall -pedantic
 #YFLAGS = -d -S
 #YACC = bison -d -y
 YACC = yacc -d
-		# -S uses sprintf in yacc parser instead of sprint
+#		-S uses sprintf in yacc parser instead of sprint
 
 OFILES = b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o
 
