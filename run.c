@@ -114,7 +114,7 @@ int adjbuf(char **pbuf, int *psiz, int minlen, int quantum, char **pbptr,
 		if (rminlen)
 			minlen += quantum - rminlen;
 		tbuf = (char *) realloc(*pbuf, minlen);
-		dprintf( ("adjbuf %s: %d %d (pbuf=%p, tbuf=%p)\n", whatrtn, *psiz, minlen, *pbuf, tbuf) );
+		dprintf( ("adjbuf %s: %d %d (pbuf=%p, tbuf=%p)\n", whatrtn, *psiz, minlen, (void *) *pbuf, (void *) tbuf) );
 		if (tbuf == NULL) {
 			if (whatrtn)
 				FATAL("out of memory in %s", whatrtn);
@@ -859,6 +859,9 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				FATAL("format item %.30s... ran format() out of memory", os);
 			if (isalpha((uschar)*s) && *s != 'l' && *s != 'h' && *s != 'L')
 				break;	/* the ansi panoply */
+			if (*s == '$') {
+				FATAL("'$' not permitted in awk formats");
+			}
 			if (*s == '*') {
 				x = execute(a);
 				a = a->nnext;
@@ -874,7 +877,6 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		if (fmtwd < 0)
 			fmtwd = -fmtwd;
 		adjbuf(&buf, &bufsize, fmtwd+1+p-buf, recsize, &p, "format4");
-
 		switch (*s) {
 		case 'a': case 'A':
 			if (have_a_format)
@@ -1641,8 +1643,6 @@ Cell *printstat(Node **a, int n)	/* print a[0] */
 
 Cell *nullproc(Node **a, int n)
 {
-	n = n;
-	a = a;
 	return 0;
 }
 
@@ -1756,7 +1756,6 @@ Cell *closefile(Node **a, int n)
 	Cell *x;
 	int i, stat;
 
-	n = n;
 	x = execute(a[0]);
 	getsval(x);
 	stat = -1;
