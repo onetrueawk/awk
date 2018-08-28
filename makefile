@@ -36,7 +36,7 @@ CC = gcc -g -Wall -pedantic
 #YFLAGS = -d -S
 #YACC = bison -d -y
 YACC = yacc -d
-		# -S uses sprintf in yacc parser instead of sprint
+#		-S uses sprintf in yacc parser instead of sprint
 
 OFILES = b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o
 
@@ -54,11 +54,12 @@ a.out:	ytab.o $(OFILES)
 
 $(OFILES):	awk.h ytab.h proto.h
 
-ytab.o:	awk.h proto.h awkgram.y
+ytab.c:	awk.h proto.h awkgram.y
 	$(YACC) $(YFLAGS) awkgram.y
 	mv y.tab.c ytab.c
 	mv y.tab.h ytab.h
-	$(CC) $(CFLAGS) -c ytab.c
+
+ytab.h:	ytab.c
 
 proctab.c:	maketab
 	./maketab >proctab.c
