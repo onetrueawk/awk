@@ -23,3 +23,7 @@ and also if CONVFMT changed.
 
 7. unary-plus: Unary plus on a string constant returned the string.
 Instead, it should convert the value to numeric and give that value.
+
+X. fmt-overflow: The buffer used for OFMT/CONVFMT conversions was written
+to with sprintf(), which meant that some conversions could write past the
+end.
