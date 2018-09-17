@@ -59,6 +59,7 @@ Array	*ARGVtab;	/* symbol table containing ARGV[...] */
 Array	*ENVtab;	/* symbol table containing ENVIRON[...] */
 Cell	*rstartloc;	/* RSTART */
 Cell	*rlengthloc;	/* RLENGTH */
+Cell	*subseploc;	/* SUBSEP */
 Cell	*symtabloc;	/* SYMTAB */
 
 Cell	*nullloc;	/* a guaranteed empty cell */
@@ -100,7 +101,8 @@ void syminit(void)	/* initialize symbol table with builtin vars */
 	NR = &nrloc->fval;
 	fnrloc = setsymtab("FNR", "", 0.0, NUM, symtab);
 	FNR = &fnrloc->fval;
-	SUBSEP = &setsymtab("SUBSEP", "\034", 0.0, STR|DONTFREE, symtab)->sval;
+	subseploc = setsymtab("SUBSEP", "\034", 0.0, STR|DONTFREE, symtab);
+	SUBSEP = &subseploc->sval;
 	rstartloc = setsymtab("RSTART", "", 0.0, NUM, symtab);
 	RSTART = &rstartloc->fval;
 	rlengthloc = setsymtab("RLENGTH", "", 0.0, NUM, symtab);

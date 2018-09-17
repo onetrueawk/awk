@@ -100,6 +100,7 @@ extern Cell	*fnrloc;	/* FNR */
 extern Cell	*nfloc;		/* NF */
 extern Cell	*rstartloc;	/* RSTART */
 extern Cell	*rlengthloc;	/* RLENGTH */
+extern Cell	*subseploc;	/* SUBSEP */
 
 /* Cell.tval values: */
 #define	NUM	01	/* number value is valid */
