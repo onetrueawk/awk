@@ -189,12 +189,13 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 	int sep, c;
 	char *rr, *buf = *pbuf;
 	int bufsize = *pbufsize;
+	char *rs = getsval(rsloc);
 
-	if (strlen(*FS) >= sizeof(inputFS))
+	if (strlen(getsval(fsloc)) >= sizeof (inputFS))
 		FATAL("field separator %.10s... is too long", *FS);
 	/*fflush(stdout); avoids some buffering problem but makes it 25% slower*/
 	strcpy(inputFS, *FS);	/* for subsequent field splitting */
-	if ((sep = **RS) == 0) {
+	if ((sep = *rs) == 0) {
 		sep = '\n';
 		while ((c=getc(inf)) == '\n' && c != EOF)	/* skip leading \n's */
 			;
@@ -208,7 +209,7 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 					FATAL("input record `%.30s...' too long", buf);
 			*rr++ = c;
 		}
-		if (**RS == sep || c == EOF)
+		if (*rs == sep || c == EOF)
 			break;
 		if ((c = getc(inf)) == '\n' || c == EOF) /* 2 in a row */
 			break;
@@ -283,6 +284,8 @@ void fldbld(void)	/* create fields from current record */
 	}
 	fr = fields;
 	i = 0;	/* number of fields accumulated here */
+	if (strlen(getsval(fsloc)) >= sizeof (inputFS))
+		FATAL("field separator %.10s... is too long", *FS);
 	strcpy(inputFS, *FS);
 	if (strlen(inputFS) > 1) {	/* it's a regular expression */
 		i = refldbld(r, inputFS);
@@ -479,6 +482,7 @@ void recbld(void)	/* create $0 from $1..$NF if necessary */
 {
 	int i;
 	char *r, *p;
+	char *sep = getsval(ofsloc);
 
 	if (donerec == 1)
 		return;
@@ -490,9 +494,9 @@ void recbld(void)	/* create $0 from $1..$NF if necessary */
 		while ((*r = *p++) != 0)
 			r++;
 		if (i < *NF) {
-			if (!adjbuf(&record, &recsize, 2+strlen(*OFS)+r-record, recsize, &r, "recbld 2"))
+			if (!adjbuf(&record, &recsize, 2+strlen(sep)+r-record, recsize, &r, "recbld 2"))
 				FATAL("created $0 `%.30s...' too long", record);
-			for (p = *OFS; (*r = *p++) != 0; )
+			for (p = sep; (*r = *p++) != 0; )
 				r++;
 		}
 	}

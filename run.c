@@ -1251,7 +1251,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	origs = s = strdup(getsval(y));
 	arg3type = ptoi(a[3]);
 	if (a[2] == 0)		/* fs string */
-		fs = *FS;
+		fs = getsval(fsloc);
 	else if (arg3type == STRING) {	/* split(str,arr,"string") */
 		x = execute(a[2]);
 		fs = getsval(x);
@@ -1633,9 +1633,9 @@ Cell *printstat(Node **a, int n)	/* print a[0] */
 		fputs(getpssval(y), fp);
 		tempfree(y);
 		if (x->nnext == NULL)
-			fputs(*ORS, fp);
+			fputs(getsval(orsloc), fp);
 		else
-			fputs(*OFS, fp);
+			fputs(getsval(ofsloc), fp);
 	}
 	if (a[1] != 0)
 		fflush(fp);

@@ -55,6 +55,9 @@ Cell	*fsloc;		/* FS */
 Cell	*nrloc;		/* NR */
 Cell	*nfloc;		/* NF */
 Cell	*fnrloc;	/* FNR */
+Cell	*ofsloc;	/* OFS */
+Cell	*orsloc;	/* ORS */
+Cell	*rsloc;		/* RS */
 Array	*ARGVtab;	/* symbol table containing ARGV[...] */
 Array	*ENVtab;	/* symbol table containing ENVIRON[...] */
 Cell	*rstartloc;	/* RSTART */
@@ -89,9 +92,12 @@ void syminit(void)	/* initialize symbol table with builtin vars */
 
 	fsloc = setsymtab("FS", " ", 0.0, STR|DONTFREE, symtab);
 	FS = &fsloc->sval;
-	RS = &setsymtab("RS", "\n", 0.0, STR|DONTFREE, symtab)->sval;
-	OFS = &setsymtab("OFS", " ", 0.0, STR|DONTFREE, symtab)->sval;
-	ORS = &setsymtab("ORS", "\n", 0.0, STR|DONTFREE, symtab)->sval;
+	rsloc = setsymtab("RS", "\n", 0.0, STR|DONTFREE, symtab);
+	RS = &rsloc->sval;
+	ofsloc = setsymtab("OFS", " ", 0.0, STR|DONTFREE, symtab);
+	OFS = &ofsloc->sval;
+	orsloc = setsymtab("ORS", "\n", 0.0, STR|DONTFREE, symtab);
+	ORS = &orsloc->sval;
 	OFMT = &setsymtab("OFMT", "%.6g", 0.0, STR|DONTFREE, symtab)->sval;
 	CONVFMT = &setsymtab("CONVFMT", "%.6g", 0.0, STR|DONTFREE, symtab)->sval;
 	FILENAME = &setsymtab("FILENAME", "", 0.0, STR|DONTFREE, symtab)->sval;
@@ -312,6 +318,9 @@ Awkfloat setfval(Cell *vp, Awkfloat f)	/* set float val of a Cell */
 	} else if (isrec(vp)) {
 		donefld = 0;	/* mark $1... invalid */
 		donerec = 1;
+	} else if (vp == ofsloc) {
+		if (donerec == 0)
+			recbld();
 	}
 	if (freeable(vp))
 		xfree(vp->sval); /* free any previous string */
@@ -353,7 +362,7 @@ char *setsval(Cell *vp, const char *s)	/* set string val of a Cell */
 	} else if (isrec(vp)) {
 		donefld = 0;	/* mark $1... invalid */
 		donerec = 1;
-	} else if (&vp->sval == OFS) {
+	} else if (vp == ofsloc) {
 		if (donerec == 0)
 			recbld();
 	}
