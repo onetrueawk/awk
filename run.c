@@ -1240,8 +1240,9 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 {
 	Cell *x = 0, *y, *ap;
 	char *s, *origs;
+	char *fs, *origfs = NULL;
 	int sep;
-	char *t, temp, num[50], *fs = 0;
+	char *t, temp, num[50];
 	int n, tempstat, arg3type;
 
 	y = execute(a[0]);	/* source string */
@@ -1251,7 +1252,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		fs = *FS;
 	else if (arg3type == STRING) {	/* split(str,arr,"string") */
 		x = execute(a[2]);
-		fs = getsval(x);
+		origfs = fs = strdup(getsval(x));
+		tempfree(x);
 	} else if (arg3type == REGEXPR)
 		fs = "(regexpr)";	/* split(str,arr,/regexpr/) */
 	else
@@ -1366,9 +1368,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	tempfree(ap);
 	tempfree(y);
 	free(origs);
-	if (a[2] != 0 && arg3type == STRING) {
-		tempfree(x);
-	}
+	free(origfs);
 	x = gettemp();
 	x->tval = NUM;
 	x->fval = n;
