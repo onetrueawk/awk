@@ -23,3 +23,5 @@ and also if CONVFMT changed.
 
 7. unary-plus: Unary plus on a string constant returned the string.
 Instead, it should convert the value to numeric and give that value.
+
+X. nf-self-assign: "NF = NF" wouldn't force the record to be rebuilt.
