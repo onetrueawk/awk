@@ -25,3 +25,5 @@ and also if CONVFMT changed.
 Instead, it should convert the value to numeric and give that value.
 
 X. nf-self-assign: "NF = NF" wouldn't force the record to be rebuilt.
+
+X. negative-nf: Setting NF to a negative value caused a segmentation fault.

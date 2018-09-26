@@ -390,6 +390,8 @@ void newfld(int n)	/* add field n after end of existing lastfld */
 
 void setlastfld(int n)	/* set lastfld cleaning fldtab cells if necessary */
 {
+	if (n < 0)
+		FATAL("cannot set NF to a negative value");
 	if (n > nfields)
 		growfldtab(n);
 
