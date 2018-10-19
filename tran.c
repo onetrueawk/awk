@@ -318,6 +318,7 @@ Awkfloat setfval(Cell *vp, Awkfloat f)	/* set float val of a Cell */
 	} else if (isrec(vp)) {
 		donefld = 0;	/* mark $1... invalid */
 		donerec = 1;
+		savefs();
 	} else if (vp == ofsloc) {
 		if (donerec == 0)
 			recbld();
@@ -362,6 +363,7 @@ char *setsval(Cell *vp, const char *s)	/* set string val of a Cell */
 	} else if (isrec(vp)) {
 		donefld = 0;	/* mark $1... invalid */
 		donerec = 1;
+		savefs();
 	} else if (vp == ofsloc) {
 		if (donerec == 0)
 			recbld();

@@ -116,6 +116,7 @@ extern	void	recinit(unsigned int);
 extern	void	initgetrec(void);
 extern	void	makefields(int, int);
 extern	void	growfldtab(int n);
+extern	void	savefs(void);
 extern	int	getrec(char **, int *, int);
 extern	void	nextfile(void);
 extern	int	readrec(char **buf, int *bufsize, FILE *inf);
