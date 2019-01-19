@@ -1178,25 +1178,26 @@ Cell *cat(Node **a, int q)	/* a[0] cat a[1] */
 {
 	Cell *x, *y, *z;
 	int n1, n2;
-	char *s;
+	char *s = NULL;
+	int ssz = 0;
 
 	x = execute(a[0]);
+	n1 = strlen(getsval(x));
+	adjbuf(&s, &ssz, n1 + 1, recsize, 0, "cat1");
+	(void) strncpy(s, x->sval, ssz);
+
 	y = execute(a[1]);
-	getsval(x);
-	getsval(y);
-	n1 = strlen(x->sval);
-	n2 = strlen(y->sval);
-	s = (char *) malloc(n1 + n2 + 1);
-	if (s == NULL)
-		FATAL("out of space concatenating %.15s... and %.15s...",
-			x->sval, y->sval);
-	strcpy(s, x->sval);
-	strcpy(s+n1, y->sval);
+	n2 = strlen(getsval(y));
+	adjbuf(&s, &ssz, n1 + n2 + 1, recsize, 0, "cat2");
+	(void) strncpy(s + n1, y->sval, ssz - n1);
+
 	tempfree(x);
 	tempfree(y);
+
 	z = gettemp();
 	z->sval = s;
 	z->tval = STR;
+
 	return(z);
 }
 
