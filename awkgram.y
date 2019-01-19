@@ -349,8 +349,7 @@ subop:
 	;
 
 term:
- 	  term '/' ASGNOP term		{ $$ = op2(DIVEQ, $1, $4); }
- 	| term '+' term			{ $$ = op2(ADD, $1, $3); }
+ 	  term '+' term			{ $$ = op2(ADD, $1, $3); }
 	| term '-' term			{ $$ = op2(MINUS, $1, $3); }
 	| term '*' term			{ $$ = op2(MULT, $1, $3); }
 	| term '/' term			{ $$ = op2(DIVIDE, $1, $3); }

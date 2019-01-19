@@ -289,7 +289,10 @@ int yylex(void)
 			} else
 				RET('*');
 		case '/':
-			RET('/');
+			if (peek() == '=') {
+				input(); yylval.i = DIVEQ; RET(ASGNOP);
+			} else
+        RET('/');
 		case '%':
 			if (peek() == '=') {
 				input(); yylval.i = MODEQ; RET(ASGNOP);
