@@ -35,3 +35,10 @@ end.
 expression before doing its work, which, since assign() evaluates to the cell
 being assigned to, meant that expressions like "print (a = 1) (a = 2)" would
 print "22" rather than "12".
+
+11. numeric-subsep, numeric-fs, numeric-output-seps, numerics-rs: If SUBSEP,
+FS, RS, OFS, or ORS were set to a numeric value, then their string values
+wouldn't always be generated before being needed.
+
+12. subsep-overflow: The length of SUBSEP needs to be rechecked after
+calling execute(), in case SUBSEP itself has been changed.
