@@ -30,3 +30,8 @@ argument was used without checking if it was present first.
 9. fmt-overflow: The buffer used for OFMT/CONVFMT conversions was written
 to with sprintf(), which meant that some conversions could write past the
 end.
+
+10. concat-assign-same: Concatenation previously evaluated both sides of the
+expression before doing its work, which, since assign() evaluates to the cell
+being assigned to, meant that expressions like "print (a = 1) (a = 2)" would
+print "22" rather than "12".
