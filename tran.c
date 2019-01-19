@@ -395,7 +395,7 @@ Awkfloat getfval(Cell *vp)	/* get float val of a Cell */
 
 static char *get_str_val(Cell *vp, char **fmt)        /* get string val of a Cell */
 {
-	char s[100];	/* BUG: unchecked */
+	char s[256];
 	double dtemp;
 
 	if ((vp->tval & (NUM | STR)) == 0)
@@ -434,9 +434,9 @@ static char *get_str_val(Cell *vp, char **fmt)        /* get string val of a Cel
 		if (freeable(vp)) \
 			xfree(vp->sval); \
 		if (modf(vp->fval, &dtemp) == 0)	/* it's integral */ \
-			sprintf(s, "%.30g", vp->fval); \
+			snprintf(s, sizeof (s), "%.30g", vp->fval); \
 		else \
-			sprintf(s, *fmt, vp->fval); \
+			snprintf(s, sizeof (s), *fmt, vp->fval); \
 		vp->sval = tostring(s); \
 		vp->tval &= ~DONTFREE; \
 		vp->tval |= STR; \
