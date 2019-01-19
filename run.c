@@ -1123,8 +1123,8 @@ Cell *assign(Node **a, int n)	/* a[0] = a[1], a[0] += a[1], etc. */
 	y = execute(a[1]);
 	x = execute(a[0]);
 	if (n == ASSIGN) {	/* ordinary assignment */
-		if (x == y && !(x->tval & (FLD|REC)))	/* self-assignment: */
-			;		/* leave alone unless it's a field */
+		if (x == y && !(x->tval & (FLD|REC)) && x != nfloc)
+			;	/* self-assignment: leave alone unless it's a field or NF */
 		else if ((y->tval & (STR|NUM)) == (STR|NUM)) {
 			setsval(x, getsval(y));
 			x->fval = getfval(y);
