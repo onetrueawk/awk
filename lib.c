@@ -59,7 +59,7 @@ void recinit(unsigned int n)
 {
 	if ( (record = (char *) malloc(n)) == NULL
 	  || (fields = (char *) malloc(n+1)) == NULL
-	  || (fldtab = (Cell **) malloc((nfields+1) * sizeof(Cell *))) == NULL
+	  || (fldtab = (Cell **) malloc((nfields+2) * sizeof(Cell *))) == NULL
 	  || (fldtab[0] = (Cell *) malloc(sizeof(Cell))) == NULL )
 		FATAL("out of space for $0 and fields");
 	*fldtab[0] = dollar0;
