@@ -24,6 +24,14 @@ and also if CONVFMT changed.
 7. unary-plus: Unary plus on a string constant returned the string.
 Instead, it should convert the value to numeric and give that value.
 
+8. missing-precision: When using the format string "%*s", the precision
+argument was used without checking if it was present first.
+
+9. fmt-overflow: The buffer used for OFMT/CONVFMT conversions was written
+to with sprintf(), which meant that some conversions could write past the
+end.
+
 X. nf-self-assign: "NF = NF" wouldn't force the record to be rebuilt.
 
 X. negative-nf: Setting NF to a negative value caused a segmentation fault.
+

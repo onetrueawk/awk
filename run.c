@@ -863,6 +863,9 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				FATAL("'$' not permitted in awk formats");
 			}
 			if (*s == '*') {
+				if (a == NULL) {
+					FATAL("not enough args in printf(%s)", os);
+				}
 				x = execute(a);
 				a = a->nnext;
 				sprintf(t-1, "%d", fmtwd=(int) getfval(x));
