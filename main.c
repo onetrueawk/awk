@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 			exit(0);
 			break;
 		}
-		if (strncmp(argv[1], "--", 2) == 0) {	/* explicit end of args */
+		if (strcmp(argv[1], "--") == 0) {	/* explicit end of args */
 			argc--;
 			argv++;
 			break;
