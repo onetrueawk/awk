@@ -24,11 +24,18 @@ and also if CONVFMT changed.
 7. unary-plus: Unary plus on a string constant returned the string.
 Instead, it should convert the value to numeric and give that value.
 
-8. missing-precision: When using the format string "%*s", the precision
+8. concat-assign-same: Concatenation previously evaluated both sides of the
+expression before doing its work, which, since assign() evaluates to the cell
+being assigned to, meant that expressions like "print (a = 1) (a = 2)" would
+print "22" rather than "12".
+
+9. missing-precision: When using the format string "%*s", the precision
 argument was used without checking if it was present first.
 
-9. fmt-overflow: The buffer used for OFMT/CONVFMT conversions was written
+10. missing-precision: When using the format string "%*s", the precision
+argument was used without checking if it was present first.
+
+11. fmt-overflow: The buffer used for OFMT/CONVFMT conversions was written
 to with sprintf(), which meant that some conversions could write past the
 end.
-
 
