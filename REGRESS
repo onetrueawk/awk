@@ -1,5 +1,15 @@
 #! /bin/sh
 
+case `uname` in
+CYGWIN)	EXE=a.exe ;;
+*)	EXE=a.out ;;
+esac
+
+if [ ! -f $EXE ]
+then
+	make || exit 1
+fi
+
 if [ -d testdir ]
 then
 	true	# do nothing
@@ -16,5 +26,10 @@ cd testdir
 pwd
 PATH=.:$PATH
 export PATH
+if (ulimit -c unlimited > /dev/null 2>&1)
+then
+	# Workaround broken default on MacOS X
+	ulimit -c unlimited
+fi
 
 REGRESS
