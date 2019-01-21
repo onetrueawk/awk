@@ -31,3 +31,11 @@ print "22" rather than "12".
 
 9. missing-precision: When using the format string "%*s", the precision
 argument was used without checking if it was present first.
+
+10. missing-precision: When using the format string "%*s", the precision
+argument was used without checking if it was present first.
+
+11. fmt-overflow: The buffer used for OFMT/CONVFMT conversions was written
+to with sprintf(), which meant that some conversions could write past the
+end.
+
