@@ -39,3 +39,10 @@ argument was used without checking if it was present first.
 to with sprintf(), which meant that some conversions could write past the
 end.
 
+12. numeric-subsep, numeric-fs, numeric-output-seps, numerics-rs: If SUBSEP,
+FS, RS, OFS, or ORS were set to a numeric value, then their string values
+wouldn't always be generated before being needed.
+
+13. subsep-overflow: The length of SUBSEP needs to be rechecked after
+calling execute(), in case SUBSEP itself has been changed.
+
