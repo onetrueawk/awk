@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+Oct 25, 2018:
+	Added test in maketab.c to prevent generating a proctab entry
+	for YYSTYPE_IS_DEFINED.  It was harmless but some gcc settings
+	generated a warning message.  Thanks to Nan Xiao for report.
+
 Aug 27, 2018:
 	Disallow '$' in printf formats; arguments evaluated in order
 	and printed in order.

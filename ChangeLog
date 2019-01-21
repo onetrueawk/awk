@@ -1,3 +1,9 @@
+2018-08-29         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* REGRESS: Check for existence of a.out. If not there, run
+	make.  Enable core dumps for T.arnold system status test
+	to work on MacOS X.
+
 2018-08-22         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* awktest.tar (testdir/T.expr): Fix test for unary plus.
