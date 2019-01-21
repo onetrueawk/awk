@@ -46,3 +46,8 @@ wouldn't always be generated before being needed.
 13. subsep-overflow: The length of SUBSEP needs to be rechecked after
 calling execute(), in case SUBSEP itself has been changed.
 
+14. split-fs-from-array: If the third argument to split() comes from the
+array passed as the second argument, then split() would previously read
+from the freed memory and possibly produce incorrect results (depending
+on the system's malloc()/free() behaviour.)
+
