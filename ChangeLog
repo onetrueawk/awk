@@ -1,3 +1,7 @@
+2019-01-26         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* main.c (version): Updated.
+
 2019-01-25         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* run.c (awkgetline): Check for numeric value in all getline
