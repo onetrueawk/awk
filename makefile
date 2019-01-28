@@ -34,8 +34,8 @@ CC = gcc -g -Wall -pedantic
 
 # yacc options.  pick one; this varies a lot by system.
 #YFLAGS = -d -S
-#YACC = bison -d -y
-YACC = yacc -d
+YACC = bison -d -y
+#YACC = yacc -d
 #		-S uses sprintf in yacc parser instead of sprint
 
 OFILES = b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o
@@ -54,10 +54,15 @@ a.out:	ytab.o $(OFILES)
 
 $(OFILES):	awk.h ytab.h proto.h
 
-ytab.c:	awk.h proto.h awkgram.y
+#Clear dependency for parallel build: (make -j)
+#YACC generated y.tab.c and y.tab.h at the same time
+#this needs to be a static pattern rules otherwise multiple target
+#are mapped onto multiple executions of yacc, which overwrite 
+#each others outputs.
+y%.c y%.h:	awk.h proto.h awkgram.y
 	$(YACC) $(YFLAGS) awkgram.y
-	mv y.tab.c ytab.c
-	mv y.tab.h ytab.h
+	mv y.$*.c y$*.c
+	mv y.$*.h y$*.h
 
 ytab.h:	ytab.c
 

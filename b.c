@@ -824,7 +824,15 @@ int relex(void)		/* lexical analyzer for reparse */
 				if (cc->cc_name != NULL && prestr[1 + cc->cc_namelen] == ':' &&
 				    prestr[2 + cc->cc_namelen] == ']') {
 					prestr += cc->cc_namelen + 3;
-					for (i = 0; i <= UCHAR_MAX; i++) {
+					/*
+					 * BUG: We begin at 1, instead of 0, since we
+					 * would otherwise prematurely terminate the
+					 * string for classes like [[:cntrl:]]. This
+					 * means that we can't match the NUL character,
+					 * not without first adapting the entire
+					 * program to track each string's length.
+					 */
+					for (i = 1; i <= UCHAR_MAX; i++) {
 						if (!adjbuf((char **) &buf, &bufsz, bp-buf+1, 100, (char **) &bp, "relex2"))
 						    FATAL("out of space for reg expr %.10s...", lastre);
 						if (cc->cc_func(i)) {
