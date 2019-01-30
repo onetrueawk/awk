@@ -67,7 +67,7 @@ y%.c y%.h:	awk.h proto.h awkgram.y
 ytab.h:	ytab.c
 
 proctab.c:	maketab
-	./maketab >proctab.c
+	./maketab ytab.h >proctab.c
 
 maketab:	ytab.h maketab.c
 	$(CC) $(CFLAGS) maketab.c -o maketab
