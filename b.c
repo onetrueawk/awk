@@ -874,6 +874,7 @@ static int repeat(const uschar *reptok, int reptoklen, const uschar *atom,
 	if (secondnum < 0) {	/* means {n,} -> repeat n-1 times followed by PLUS */
 		if (firstnum < 2) {
 			/* 0 or 1: should be handled before you get here */
+			FATAL("internal error");
 		} else {
 			return replace_repeat(reptok, reptoklen, atom, atomlen,
 				firstnum, secondnum, REPEAT_PLUS_APPENDED);
@@ -894,6 +895,7 @@ static int repeat(const uschar *reptok, int reptoklen, const uschar *atom,
 		return replace_repeat(reptok, reptoklen, atom, atomlen,
 					firstnum, secondnum, REPEAT_WITH_Q);
 	} else {	/* Error - shouldn't be here (n>m) */
+		FATAL("internal error");
 	}
 	return 0;
 }
