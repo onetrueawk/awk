@@ -31,6 +31,7 @@ CFLAGS = -O2
 #CC = gcc -O4 -Wall -pedantic -fno-strict-aliasing
 #CC = gcc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
 CC = gcc -g -Wall -pedantic 
+HOSTCC = gcc -g -Wall -pedantic
 
 # yacc options.  pick one; this varies a lot by system.
 #YFLAGS = -d -S
@@ -70,7 +71,7 @@ proctab.c:	maketab
 	./maketab ytab.h >proctab.c
 
 maketab:	ytab.h maketab.c
-	$(CC) $(CFLAGS) maketab.c -o maketab
+	$(HOSTCC) $(CFLAGS) maketab.c -o maketab
 
 bundle:
 	@cp ytab.h ytabh.bak
