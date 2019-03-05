@@ -51,4 +51,7 @@ array passed as the second argument, then split() would previously read
 from the freed memory and possibly produce incorrect results (depending
 on the system's malloc()/free() behaviour.)
 
-
+15. getline-numeric: The `getline xx < file' syntax did not check if
+values were numeric, in discordance from POSIX. Test case adapted from
+one posted by Ben Bacarisse <ben.usenet@bsb.me.uk> in comp.lang.awk,
+January 2019.

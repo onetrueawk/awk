@@ -25,10 +25,20 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
-Jan 23, 2019:
+Mar 5, 2019:
 	Added support for POSIX-standard interval expressions (a.k.a.
 	bounds, a.k.a. repetition expressions) in regular expressions,
 	backported (via NetBSD) from Apple awk-24 (20070501).
+
+Jan 25, 2019:
+	Make getline handle numeric strings properly in all cases.
+	(Thanks, Arnold.)
+
+Jan 21, 2019:
+	Merged a number of small fixes from GitHub pull requests.
+	Thanks to GitHub users Arnold Robbins (arnoldrobbins),
+	Cody Mello (melloc) and Christoph Junghans (junghans).
+	PR numbers: 13-21, 23, 24, 27.
 
 Oct 25, 2018:
 	Added test in maketab.c to prevent generating a proctab entry

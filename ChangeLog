@@ -1,3 +1,12 @@
+2019-01-26         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* main.c (version): Updated.
+
+2019-01-25         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* run.c (awkgetline): Check for numeric value in all getline
+	variants. See the numeric-getline.* files in bugs-fixed directory.
+
 2018-08-29         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* REGRESS: Check for existence of a.out. If not there, run
