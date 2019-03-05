@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+Mar 5, 2019:
+	Added support for POSIX-standard interval expressions (a.k.a.
+	bounds, a.k.a. repetition expressions) in regular expressions,
+	backported (via NetBSD) from Apple awk-24 (20070501).
+
 Jan 25, 2019:
 	Make getline handle numeric strings properly in all cases.
 	(Thanks, Arnold.)
