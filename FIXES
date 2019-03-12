@@ -25,6 +25,12 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+Mar 12, 2019:
+	Added very simplistic support for cross-compiling in the
+	makefile.  We are NOT going to go in the direction of the
+	autotools, though.  Thanks to GitHub user nee-san for
+	the basic change. (Merged from PR #34.)
+
 Mar 5, 2019:
 	Added support for POSIX-standard interval expressions (a.k.a.
 	bounds, a.k.a. repetition expressions) in regular expressions,
