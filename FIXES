@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+Apr 7, 2019:
+	Update awktest.tar(p.50) to use modern options to sort. Needed
+	for Android development. Thanks to GitHub user mohd-akram (Mohamed
+	Akram).  From Comment #33.
+
 Mar 12, 2019:
 	Added very simplistic support for cross-compiling in the
 	makefile.  We are NOT going to go in the direction of the
