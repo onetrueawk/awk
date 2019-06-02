@@ -647,7 +647,7 @@ void eprint(void)	/* try to print context around error */
 	static int been_here = 0;
 	extern char ebuf[], *ep;
 
-	if (compile_time == 2 || compile_time == 0 || been_here++ > 0)
+	if (compile_time == 2 || compile_time == 0 || been_here++ > 0 || ebuf == ep)
 		return;
 	if (ebuf == ep)
 		return;
