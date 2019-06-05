@@ -912,6 +912,7 @@ int relex(void)		/* lexical analyzer for reparse */
 	int i;
 	int num, m, commafound, digitfound;
 	const uschar *startreptok;
+	static int parens = 0;
 
 rescan:
 	starttok = prestr;
@@ -925,9 +926,18 @@ rescan:
 	case '\0': prestr--; return '\0';
 	case '^':
 	case '$':
-	case '(':
-	case ')':
 		return c;
+	case '(':
+		parens++;
+		return c;
+	case ')':
+		if (parens) {
+			parens--;
+			return c;
+		}
+		/* unmatched close parenthesis; per POSIX, treat as literal */
+		rlxval = c;
+		return CHAR;
 	case '\\':
 		rlxval = quoted(&prestr);
 		return CHAR;

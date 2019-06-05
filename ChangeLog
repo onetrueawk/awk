@@ -1,3 +1,10 @@
+2019-06-05         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* b.c (relex): Count parentheses and treat umatched right paren
+	as a literal character.
+	* awktest.tar (testdir/T.re): Added a test case.
+	* main.c (version): Upated.
+
 2019-05-29         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* lib.c (isclvar): Remove check for additional '=' after
