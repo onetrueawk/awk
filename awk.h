@@ -105,6 +105,7 @@ extern Cell	*rsloc;		/* RS */
 extern Cell	*rstartloc;	/* RSTART */
 extern Cell	*rlengthloc;	/* RLENGTH */
 extern Cell	*subseploc;	/* SUBSEP */
+extern Cell	*symtabloc;	/* SYMTAB */
 
 /* Cell.tval values: */
 #define	NUM	01	/* number value is valid */

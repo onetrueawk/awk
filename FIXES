@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+June 17, 2019:
+	Disallow deleting SYMTAB and its elements, which creates
+	use-after-free bugs. Thanks to GitHub user Cody Mello (melloc)
+	for the fix. (Merged from PR #43.)
+
 June 5, 2019:
 	Allow unmatched right parenthesis in a regular expression to
 	be treated literally. Fixes Issue #40. Thanks to GitHub user
