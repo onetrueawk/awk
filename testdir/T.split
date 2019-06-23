@@ -1,0 +1,136 @@
+echo T.split: misc tests of field splitting and split command
+
+awk=${awk-../a.out}
+
+echo a:bc:def >foo0
+echo a >foo1
+$awk '{ FS = ":"; print $1 }' foo0 >foo2
+diff foo1 foo2 || echo 'BAD: T.split 0.1'
+
+echo a:bc:def >foo0
+echo 3 >foo1
+$awk '{ FS = ":"; print NF }' foo0 >foo2
+diff foo1 foo2 || echo 'BAD: T.split 0.2'
+
+echo '
+a
+a:b
+c:d:e
+e:f:g:h' >foo0
+$awk 'BEGIN {
+	FS = ":"
+	while (getline <"foo0" > 0) 
+		print NF
+}' >foo1
+echo '0
+1
+2
+3
+4' >foo2
+diff foo1 foo2 || echo 'BAD: T.split 0.3'
+
+echo 'abc
+de
+f
+
+     ' >foo0
+who | sed 10q  >> foo0
+sed 10q /etc/passwd >> foo0
+
+$awk '
+{	n = split($0, x, "")
+	m = length($0)
+	if (m != n) print "error 1", NR
+	s = ""
+	for (i = 1; i <= m; i++)
+		s = s x[i]
+	if (s != $0) print "error 2", NR
+	print s
+}' foo0 >foo1
+
+diff foo0 foo1 || echo 'BAD: T.split 1'
+
+# assumes same foo0!  bad design
+
+
+$awk '
+{	n = split($0, x, //)
+	m = length($0)
+	if (m != n) print "error 1", NR
+	s = ""
+	for (i = 1; i <= m; i++)
+		s = s x[i]
+	if (s != $0) print "error 2", NR
+	print s
+}' foo0 >foo1
+
+diff foo0 foo1 || echo 'BAD: T.split //'
+
+$awk '
+BEGIN { FS = "" }
+{	n = split($0, x)	# will be split with FS
+	m = length($0)
+	if (m != n) print "error 1", NR
+	s = ""
+	for (i = 1; i <= m; i++)
+		s = s x[i]
+	if (s != $0) print "error 2", NR
+	print s
+}' foo0 >foo2
+
+diff foo0 foo2 || echo 'BAD: T.split 2'
+
+# assumes same foo0!
+
+$awk '
+BEGIN { FS = "" }
+{	n = NF
+	m = length($0)
+	if (m != n) print "error 1", NR
+	s = ""
+	for (i = 1; i <= m; i++)
+		s = s $i
+	if (s != $0) print "error 2", NR
+	print s
+}' foo0 >foo3
+
+diff foo0 foo3 || echo 'BAD: T.split 3'
+
+
+$awk '
+{ n = split( $0, temp, /^@@@ +/ )
+  print n
+}' >foo1 <<XXX
+@@@ xxx
+@@@ xxx
+@@@ xxx
+XXX
+echo '2
+2
+2' >foo2
+diff foo1 foo2 || echo 'BAD: T.split 4'
+
+rm foo*
+
+echo '
+a
+bc
+def' >foo0
+$awk '
+{ print split($0, x, "")
+}' foo0 >foo1
+echo '0
+1
+2
+3' >foo2
+diff foo1 foo2 || echo 'BAD: T.split null 3rd arg'
+
+rm foo*
+$awk 'BEGIN {
+  a[1]="a b"
+  print split(a[1],a),a[1],a[2]
+}' >foo1
+
+echo '2 a b' >foo2
+diff foo1 foo2 || echo 'BAD: T.split(a[1],a)'
+
