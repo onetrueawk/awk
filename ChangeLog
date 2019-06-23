@@ -1,6 +1,7 @@
 2019-06-23         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* testdir: Extracted from awktest.tar and added to Git.
+	* awktest.tar: Removed.
 
 2019-06-06         Arnold D. Robbins     <arnold@skeeve.com>
 
