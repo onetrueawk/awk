@@ -1,3 +1,9 @@
+2019-06-24         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* makefile: Revise to take into account there is no more awktest.tar,
+	add targets 'check' and 'test', and also 'testclean' to clean up
+	after test run.  Have 'clean' and 'cleaner' depend upon 'testclean'.
+
 2019-06-23         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* testdir: Extracted from awktest.tar and added to Git.

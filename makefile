@@ -92,7 +92,7 @@ gitadd:
 	git add README LICENSE FIXES \
            awk.h proto.h awkgram.y lex.c b.c main.c maketab.c parse.c \
 	   lib.c run.c tran.c \
-	   makefile awk.1 awktest.tar
+	   makefile awk.1 testdir
 
 gitpush:
 	# only do this once: 
@@ -102,8 +102,18 @@ gitpush:
 names:
 	@echo $(LISTING)
 
-clean:
+test check:
+	./REGRESS
+
+clean: testclean
 	rm -f a.out *.o *.obj maketab maketab.exe *.bb *.bbg *.da *.gcov *.gcno *.gcda # proctab.c
 
-cleaner:
+cleaner: testclean
 	rm -f a.out *.o *.obj maketab maketab.exe *.bb *.bbg *.da *.gcov *.gcno *.gcda proctab.c ytab*
+
+# This is a bit of a band-aid until we can invest some more time
+# in the test suite.
+testclean:
+	cd testdir; rm -fr arnold-fixes beebe echo foo foo.td foo1 \
+		foo1t foo2 foo2t footot glop glop1 glop2 lilly.diff \
+		tempbig tempsmall time
