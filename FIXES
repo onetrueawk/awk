@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+June 24, 2019:
+	Extract awktest.tar into testdir directory. Add some very
+	simple mechanics to the makefile for running the tests and
+	for cleaning up. No changes to awk itself.
+
 June 17, 2019:
 	Disallow deleting SYMTAB and its elements, which creates
 	use-after-free bugs. Thanks to GitHub user Cody Mello (melloc)
