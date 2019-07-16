@@ -3,12 +3,12 @@ echo T.split: misc tests of field splitting and split command
 awk=${awk-../a.out}
 
 echo a:bc:def >foo0
-echo a >foo1
+echo a:bc:def >foo1
 $awk '{ FS = ":"; print $1 }' foo0 >foo2
 diff foo1 foo2 || echo 'BAD: T.split 0.1'
 
 echo a:bc:def >foo0
-echo 3 >foo1
+echo 1 >foo1
 $awk '{ FS = ":"; print NF }' foo0 >foo2
 diff foo1 foo2 || echo 'BAD: T.split 0.2'
 
