@@ -25,6 +25,13 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+July 17, 2019:
+	Pull in a number of code cleanups and minor fixes from
+	Warner Losh's bsd-ota branch.  The only user visible change
+	is the use of random(3) as the random number generator.
+	Thanks to Warner Losh for collecting all these fixes in
+	one easy place to get them from.
+
 July 16, 2019:
 	Fix field splitting to use FS value as of the time a record
 	was read or assigned to.  Thanks to GitHub user Cody Mello (melloc)
