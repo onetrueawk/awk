@@ -279,6 +279,10 @@ int quoted(uschar **pp)	/* pick up next thing after a \\ */
 		c = '\r';
 	else if (c == 'b')
 		c = '\b';
+	else if (c == 'v')
+		c = '\v';
+	else if (c == 'a')
+		c = '\a';
 	else if (c == '\\')
 		c = '\\';
 	else if (c == 'x') {	/* hexadecimal goo follows */
