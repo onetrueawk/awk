@@ -543,6 +543,8 @@ char *qstring(const char *is, int delim)	/* collect string up to next delim */
 			case 'b':	*bp++ = '\b'; break;
 			case 'f':	*bp++ = '\f'; break;
 			case 'r':	*bp++ = '\r'; break;
+			case 'v':	*bp++ = '\v'; break;
+			case 'a':	*bp++ = '\a'; break;
 			default:
 				if (!isdigit(c)) {
 					*bp++ = c;
