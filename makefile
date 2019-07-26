@@ -114,6 +114,5 @@ cleaner: testclean
 # This is a bit of a band-aid until we can invest some more time
 # in the test suite.
 testclean:
-	cd testdir; rm -fr arnold-fixes beebe echo foo foo.td foo1 \
-		foo1t foo2 foo2t footot glop glop1 glop2 lilly.diff \
-		tempbig tempsmall time
+	cd testdir; rm -fr arnold-fixes beebe echo foo* \
+		glop glop1 glop2 lilly.diff tempbig tempsmall time
