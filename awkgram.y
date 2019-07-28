@@ -71,6 +71,7 @@ Node	*arglist = 0;	/* list of args for current function */
 %type	<i>	do st
 %type	<i>	pst opt_pst lbrace rbrace rparen comma nl opt_nl and bor
 %type	<i>	subop print
+%type	<cp>	string
 
 %right	ASGNOP
 %right	'?'
@@ -348,6 +349,11 @@ subop:
 	  SUB | GSUB
 	;
 
+string:
+	  STRING
+	| string STRING		{ $$ = catstr($1, $2); }
+	;
+
 term:
  	  term '/' ASGNOP term		{ $$ = op2(DIVEQ, $1, $4); }
  	| term '+' term			{ $$ = op2(ADD, $1, $3); }
@@ -394,7 +400,7 @@ term:
 	| SPLIT '(' pattern comma varname ')'
 		{ $$ = op4(SPLIT, $3, makearr($5), NIL, (Node*)STRING); }  /* default */
 	| SPRINTF '(' patlist ')'	{ $$ = op1($1, $3); }
-	| STRING	 		{ $$ = celltonode($1, CCON); }
+	| string	 		{ $$ = celltonode($1, CCON); }
 	| subop '(' reg_expr comma pattern ')'
 		{ $$ = op4($1, NIL, (Node*)makedfa($3, 1), $5, rectonode()); }
 	| subop '(' pattern comma pattern ')'

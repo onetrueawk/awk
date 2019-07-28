@@ -516,6 +516,22 @@ char *tostring(const char *s)	/* make a copy of string s */
 	return(p);
 }
 
+Cell *catstr(Cell *a, Cell *b) /* concatenate a and b */
+{
+	Cell *c;
+	char *p;
+	char *sa = getsval(a);
+	char *sb = getsval(b);
+	size_t l = strlen(sa) + strlen(sb) + 1;
+	p = malloc(l);
+	if (p == NULL)
+		FATAL("out of space concatenating %s and %s", sa, sb);
+	snprintf(p, l, "%s%s", sa, sb);
+	c = setsymtab(p, p, 0.0, CON|STR|DONTFREE, symtab);
+	free(p);
+	return c;
+}
+
 char *qstring(const char *is, int delim)	/* collect string up to next delim */
 {
 	const char *os = is;

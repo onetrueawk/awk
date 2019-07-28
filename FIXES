@@ -25,12 +25,17 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+July 28, 2019:
+	Import grammar optimization from NetBSD: Two string constants
+	concatenated together get turned into a single string.
+
 July 26, 2019:
 	Support POSIX-specified C-style escape sequences "\a" (alarm)
 	and "\v" (vertical tab) in command line arguments and regular
 	expressions, further to the support for them in strings added on
 	Apr 9, 1989. These now no longer match as literal "a" and "v"
 	characters (as they don't on other awk implementations).
+	Thanks to Martijn Dekker.
 
 July 17, 2019:
 	Pull in a number of code cleanups and minor fixes from
