@@ -488,7 +488,7 @@ int refldbld(const char *rec, const char *fs)	/* build fields from reg expr in F
 			break;
 		}
 	}
-	return i;		
+	return i;
 }
 
 void recbld(void)	/* create $0 from $1..$NF if necessary */

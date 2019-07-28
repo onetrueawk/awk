@@ -1,7 +1,7 @@
 # /****************************************************************
 # Copyright (C) Lucent Technologies 1997
 # All Rights Reserved
-# 
+#
 # Permission to use, copy, modify, and distribute this software and
 # its documentation for any purpose and without fee is hereby
 # granted, provided that the above copyright notice appear in all
@@ -11,7 +11,7 @@
 # its entities not be used in advertising or publicity pertaining
 # to distribution of the software without specific, written prior
 # permission.
-# 
+#
 # LUCENT DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
 # INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
 # IN NO EVENT SHALL LUCENT OR ANY OF ITS ENTITIES BE LIABLE FOR ANY
@@ -30,7 +30,7 @@ CFLAGS = -O2
 #CC = gcc -Wall -g -Wwrite-strings
 #CC = gcc -O4 -Wall -pedantic -fno-strict-aliasing
 #CC = gcc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
-HOSTCC = gcc -g -Wall -pedantic 
+HOSTCC = gcc -g -Wall -pedantic
 CC = $(HOSTCC)  # change this is cross-compiling.
 
 # yacc options.  pick one; this varies a lot by system.
@@ -42,10 +42,10 @@ YACC = bison -d -y
 OFILES = b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o
 
 SOURCE = awk.h ytab.c ytab.h proto.h awkgram.y lex.c b.c main.c \
-	maketab.c parse.c lib.c run.c tran.c proctab.c 
+	maketab.c parse.c lib.c run.c tran.c proctab.c
 
 LISTING = awk.h proto.h awkgram.y lex.c b.c main.c maketab.c parse.c \
-	lib.c run.c tran.c 
+	lib.c run.c tran.c
 
 SHIP = README LICENSE FIXES $(SOURCE) ytab[ch].bak makefile  \
 	 awk.1
@@ -58,7 +58,7 @@ $(OFILES):	awk.h ytab.h proto.h
 #Clear dependency for parallel build: (make -j)
 #YACC generated y.tab.c and y.tab.h at the same time
 #this needs to be a static pattern rules otherwise multiple target
-#are mapped onto multiple executions of yacc, which overwrite 
+#are mapped onto multiple executions of yacc, which overwrite
 #each others outputs.
 y%.c y%.h:	awk.h proto.h awkgram.y
 	$(YACC) $(YFLAGS) awkgram.y
@@ -95,7 +95,7 @@ gitadd:
 	   makefile awk.1 testdir
 
 gitpush:
-	# only do this once: 
+	# only do this once:
 	# git remote add origin https://github.com/onetrueawk/awk.git
 	git push -u origin master
 

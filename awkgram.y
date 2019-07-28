@@ -52,7 +52,7 @@ Node	*arglist = 0;	/* list of args for current function */
 %token	<i>	MATCH NOTMATCH MATCHOP
 %token	<i>	FINAL DOT ALL CCL NCCL CHAR OR STAR QUEST PLUS EMPTYRE
 %token	<i>	AND BOR APPEND EQ GE GT LE LT NE IN
-%token	<i>	ARG BLTIN BREAK CLOSE CONTINUE DELETE DO EXIT FOR FUNC 
+%token	<i>	ARG BLTIN BREAK CLOSE CONTINUE DELETE DO EXIT FOR FUNC
 %token	<i>	SUB GSUB IF INDEX LSUBSTR MATCHFCN NEXT NEXTFILE
 %token	<i>	ADD MINUS MULT DIVIDE MOD
 %token	<i>	ASSIGN ASGNOP ADDEQ SUBEQ MULTEQ DIVEQ MODEQ POWEQ
@@ -79,7 +79,7 @@ Node	*arglist = 0;	/* list of args for current function */
 %left	AND
 %left	GETLINE
 %nonassoc APPEND EQ GE GT LE LT NE MATCHOP IN '|'
-%left	ARG BLTIN BREAK CALL CLOSE CONTINUE DELETE DO EXIT FOR FUNC 
+%left	ARG BLTIN BREAK CALL CLOSE CONTINUE DELETE DO EXIT FOR FUNC
 %left	GSUB IF INDEX LSUBSTR MATCHFCN NEXT NUMBER
 %left	PRINT PRINTF RETURN SPLIT SPRINTF STRING SUB SUBSTR
 %left	REGEXPR VAR VARNF IVAR WHILE '('
@@ -238,10 +238,10 @@ pattern:
 			$$ = op3($2, (Node *)1, $1, $3); }
 	| pattern IN varname		{ $$ = op2(INTEST, $1, makearr($3)); }
 	| '(' plist ')' IN varname	{ $$ = op2(INTEST, $2, makearr($5)); }
-	| pattern '|' GETLINE var	{ 
+	| pattern '|' GETLINE var	{
 			if (safe) SYNTAX("cmd | getline is unsafe");
 			else $$ = op3(GETLINE, $4, itonp($2), $1); }
-	| pattern '|' GETLINE		{ 
+	| pattern '|' GETLINE		{
 			if (safe) SYNTAX("cmd | getline is unsafe");
 			else $$ = op3(GETLINE, (Node*)0, itonp($2), $1); }
 	| pattern term %prec CAT	{ $$ = op2(CAT, $1, $2); }
@@ -292,7 +292,7 @@ rparen:
 	;
 
 simple_stmt:
-	  print prarg '|' term		{ 
+	  print prarg '|' term		{
 			if (safe) SYNTAX("print | is unsafe");
 			else $$ = stat3($1, $2, itonp($3), $4); }
 	| print prarg APPEND term	{
@@ -421,7 +421,7 @@ var:
 	| varname '[' patlist ']'	{ $$ = op2(ARRAY, makearr($1), $3); }
 	| IVAR				{ $$ = op1(INDIRECT, celltonode($1, CVAR)); }
 	| INDIRECT term	 		{ $$ = op1(INDIRECT, $2); }
-	;	
+	;
 
 varlist:
 	  /* nothing */		{ arglist = $$ = 0; }
