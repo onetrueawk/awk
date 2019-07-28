@@ -616,6 +616,94 @@ int nematch(fa *f, const char *p0)	/* non-empty match, for sub */
 	return (0);
 }
 
+
+/*
+ * NAME
+ *     fnematch
+ *
+ * DESCRIPTION
+ *     A stream-fed version of nematch which transfers characters to a
+ *     null-terminated buffer. All characters up to and including the last
+ *     character of the matching text or EOF are placed in the buffer. If
+ *     a match is found, patbeg and patlen are set appropriately.
+ *
+ * RETURN VALUES
+ *     0    No match found.
+ *     1    Match found.
+ */
+
+int fnematch(fa *pfa, FILE *f, uschar **pbuf, int *pbufsize, int quantum)
+{
+	uschar *buf = *pbuf;
+	int bufsize = *pbufsize;
+	int c, i, j, k, ns, s;
+
+	s = pfa->initstat;
+	patlen = 0;
+
+	/*
+	 * All indices relative to buf.
+	 * i <= j <= k <= bufsize
+	 *
+	 * i: origin of active substring
+	 * j: current character
+	 * k: destination of next getc()
+	 */
+	i = -1, k = 0;
+        do {
+		j = i++;
+		do {
+			if (++j == k) {
+				if (k == bufsize)
+					if (!adjbuf((char **) &buf, &bufsize, bufsize+1, quantum, 0, "fnematch"))
+						FATAL("stream '%.30s...' too long", buf);
+				buf[k++] = (c = getc(f)) != EOF ? c : 0;
+			}
+			c = buf[j];
+			/* assert(c < NCHARS); */
+
+			if ((ns = pfa->gototab[s][c]) != 0)
+				s = ns;
+			else
+				s = cgoto(pfa, s, c);
+
+			if (pfa->out[s]) {	/* final state */
+				patlen = j - i + 1;
+				if (c == 0)	/* don't count $ */
+					patlen--;
+			}
+		} while (buf[j] && s != 1);
+		s = 2;
+	} while (buf[i] && !patlen);
+
+	/* adjbuf() may have relocated a resized buffer. Inform the world. */
+	*pbuf = buf;
+	*pbufsize = bufsize;
+
+	if (patlen) {
+		patbeg = (char *) buf + i;
+		/*
+		 * Under no circumstances is the last character fed to
+		 * the automaton part of the match. It is EOF's nullbyte,
+		 * or it sent the automaton into a state with no further
+		 * transitions available (s==1), or both. Room for a
+		 * terminating nullbyte is guaranteed.
+		 *
+		 * ungetc any chars after the end of matching text
+		 * (except for EOF's nullbyte, if present) and null
+		 * terminate the buffer.
+		 */
+		do
+			if (buf[--k] && ungetc(buf[k], f) == EOF)
+				FATAL("unable to ungetc '%c'", buf[k]);
+		while (k > i + patlen);
+		buf[k] = 0;
+		return 1;
+	}
+	else
+		return 0;
+}
+
 Node *reparse(const char *p)	/* parses regular expression pointed to by p */
 {			/* uses relex() to scan regular expression */
 	Node *np;

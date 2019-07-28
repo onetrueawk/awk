@@ -204,41 +204,57 @@ void nextfile(void)
 
 int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf */
 {
-	int sep, c;
+	int sep, c, isrec;
 	char *rr, *buf = *pbuf;
 	int bufsize = *pbufsize;
 	char *rs = getsval(rsloc);
 
-	if ((sep = *rs) == 0) {
-		sep = '\n';
-		while ((c=getc(inf)) == '\n' && c != EOF)	/* skip leading \n's */
-			;
-		if (c != EOF)
-			ungetc(c, inf);
-	}
-	for (rr = buf; ; ) {
-		for (; (c=getc(inf)) != sep && c != EOF; ) {
-			if (rr-buf+1 > bufsize)
-				if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readrec 1"))
-					FATAL("input record `%.30s...' too long", buf);
+#ifdef RS_AS_REGEXP
+	if (*rs && rs[1]) {
+		int found;
+
+		fa *pfa = makedfa(rs, 1);
+		found = fnematch(pfa, inf, &buf, &bufsize, recsize);
+		if (found)
+			*patbeg = 0;
+	} else {
+#endif
+		if ((sep = *rs) == 0) {
+			sep = '\n';
+			while ((c=getc(inf)) == '\n' && c != EOF)	/* skip leading \n's */
+				;
+			if (c != EOF)
+				ungetc(c, inf);
+		}
+		for (rr = buf; ; ) {
+			for (; (c=getc(inf)) != sep && c != EOF; ) {
+				if (rr-buf+1 > bufsize)
+					if (!adjbuf(&buf, &bufsize, 1+rr-buf,
+					    recsize, &rr, "readrec 1"))
+						FATAL("input record `%.30s...' too long", buf);
+				*rr++ = c;
+			}
+			if (*rs == sep || c == EOF)
+				break;
+			if ((c = getc(inf)) == '\n' || c == EOF)	/* 2 in a row */
+				break;
+			if (!adjbuf(&buf, &bufsize, 2+rr-buf, recsize, &rr,
+			    "readrec 2"))
+				FATAL("input record `%.30s...' too long", buf);
+			*rr++ = '\n';
 			*rr++ = c;
 		}
-		if (*rs == sep || c == EOF)
-			break;
-		if ((c = getc(inf)) == '\n' || c == EOF) /* 2 in a row */
-			break;
-		if (!adjbuf(&buf, &bufsize, 2+rr-buf, recsize, &rr, "readrec 2"))
+		if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readrec 3"))
 			FATAL("input record `%.30s...' too long", buf);
-		*rr++ = '\n';
-		*rr++ = c;
+		*rr = 0;
+#ifdef RS_AS_REGEXP
 	}
-	if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readrec 3"))
-		FATAL("input record `%.30s...' too long", buf);
-	*rr = 0;
-	   dprintf( ("readrec saw <%s>, returns %d\n", buf, c == EOF && rr == buf ? 0 : 1) );
+#endif
 	*pbuf = buf;
 	*pbufsize = bufsize;
-	return c == EOF && rr == buf ? 0 : 1;
+	isrec = *buf || !feof(inf);
+	   dprintf( ("readrec saw <%s>, returns %d\n", buf, isrec) );
+	return isrec;
 }
 
 char *getargv(int n)	/* get ARGV[n] */
