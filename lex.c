@@ -61,6 +61,7 @@ Keyword keywords[] ={	/* keep sorted: binary searched */
 	{ "for",	FOR,		FOR },
 	{ "func",	FUNC,		FUNC },
 	{ "function",	FUNC,		FUNC },
+	{ "gensub",	GENSUB,		GENSUB },
 	{ "getline",	GETLINE,	GETLINE },
 	{ "gsub",	GSUB,		GSUB },
 	{ "if",		IF,		IF },
