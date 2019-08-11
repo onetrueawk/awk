@@ -293,6 +293,25 @@ and
 .B gsub
 return the number of replacements.
 .TP
+\fBgensub(\fIpat\fB, \fIrepl\fB, \fIhow\fR [\fB, \fItarget\fR]\fB)\fR
+replaces instances of
+.I pat
+in
+.I target
+with
+.IR repl .
+If
+.I how
+is \fB"g"\fR or \fB"G"\fR, do so globally. Otherwise,
+.I how
+is a number indicating which occurrence to replace.  If no
+.IR target ,
+use
+.BR $0 .
+Return the resulting string;
+.I target
+is not modified.
+.TP
 .BI sprintf( fmt , " expr" , " ...\fB)
 the string resulting from formatting
 .I expr ...
@@ -359,6 +378,17 @@ In all cases,
 .B getline
 returns 1 for a successful input,
 0 for end of file, and \-1 for an error.
+.PP
+The functions
+.BR compl ,
+.BR and ,
+.BR or ,
+.BR xor ,
+.BR lshift ,
+and
+.B rshift
+peform the corresponding bitwise functions on their
+operands, which are first truncated to integer.
 .PP
 Patterns are arbitrary Boolean combinations
 (with
