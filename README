@@ -84,10 +84,6 @@ interpreted within double quotes.
 This compiles without change on Macintosh OS X using gcc and
 the standard developer tools.
 
-This is also said to compile on Macintosh OS 9 systems, using the
-file "buildmac" provided by Dan Allen (danallen@microsoft.com),
-to whom many thanks.
-
 The version of malloc that comes with some systems is sometimes
 astonishly slow.  If awk seems slow, you might try fixing that.
 More generally, turning on optimization can significantly improve
