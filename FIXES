@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+September 10, 2019:
+	Fixes for various array / memory overruns found via gcc's
+	-fsanitize=unknown. Thanks to Alexander Richardson (Github
+	user arichardson). Merges PRs 47 and 48.
+
 July 28, 2019:
 	Import grammar optimization from NetBSD: Two string constants
 	concatenated together get turned into a single string.
