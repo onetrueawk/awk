@@ -183,7 +183,7 @@ Node *op5(int a, Node *b, Node *c, Node *d, Node *e, Node *f)
 {
 	Node *x;
 
-	x = node5(a,b,c,d,e, f);
+	x = node5(a,b,c,d,e,f);
 	x->ntype = NEXPR;
 	return(x);
 }
