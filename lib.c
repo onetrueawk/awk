@@ -209,7 +209,6 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 	int bufsize = *pbufsize;
 	char *rs = getsval(rsloc);
 
-#ifdef RS_AS_REGEXP
 	if (*rs && rs[1]) {
 		int found;
 
@@ -218,7 +217,6 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 		if (found)
 			*patbeg = 0;
 	} else {
-#endif
 		if ((sep = *rs) == 0) {
 			sep = '\n';
 			while ((c=getc(inf)) == '\n' && c != EOF)	/* skip leading \n's */
@@ -247,9 +245,7 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 		if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readrec 3"))
 			FATAL("input record `%.30s...' too long", buf);
 		*rr = 0;
-#ifdef RS_AS_REGEXP
 	}
-#endif
 	*pbuf = buf;
 	*pbufsize = bufsize;
 	isrec = *buf || !feof(inf);

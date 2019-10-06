@@ -478,6 +478,11 @@ the length of a string matched by
 .TP
 .B RS
 input record separator (default newline).
+If empty, blank lines separate records.
+If more than one character long,
+.B RS
+is treated as a regular expression, and records are
+separated by text matching the expression.
 .TP
 .B RSTART
 the start position of a string matched by

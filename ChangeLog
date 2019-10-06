@@ -1,3 +1,11 @@
+2019-10-06         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* lib.c (readrec): Allow RS a regular expression. Imported
+	the code from the NetBSD awk.
+	* b.c (fnematch): New function for implementing the feature.
+	* awk.1: Updated.
+	* main.c (version): Updated.
+
 2019-06-24         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* makefile: Revise to take into account there is no more awktest.tar,
@@ -18,7 +26,7 @@
 	* b.c (relex): Count parentheses and treat umatched right paren
 	as a literal character.
 	* awktest.tar (testdir/T.re): Added a test case.
-	* main.c (version): Upated.
+	* main.c (version): Updated.
 
 2019-05-29         Arnold D. Robbins     <arnold@skeeve.com>
 

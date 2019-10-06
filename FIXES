@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+October 6, 2019:
+	Import code from NetBSD awk that implements RS as a regular
+	expression.
+
 September 10, 2019:
 	Fixes for various array / memory overruns found via gcc's
 	-fsanitize=unknown. Thanks to Alexander Richardson (Github
