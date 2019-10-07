@@ -1,5 +1,20 @@
 2019-10-07         Arnold D. Robbins     <arnold@skeeve.com>
 
+	Integrate features from different *BSD versions of awk.
+	Gensub support from NetBSD. Bitwise functions from OpenBSD.
+
+	* awk.h: Add defines for and, or, xor, compl, lshift and rshift.
+	* awkgram.y: Add support gensub.
+	* maketab.c: Ditto.
+	* lex.c: Add support gensub and bitwise functions.
+	* parse.c (node5, op5): New functions.
+	* proto.h (node5, op5): New declarations.
+	* run.c (bltin): Implement the bitwise functions.
+	(gensub): New function.
+	* awk.1: Document additional functions.
+
+2019-10-07         Arnold D. Robbins     <arnold@skeeve.com>
+
 	* b.c (fnematch): Change type of pbuf from unsigned char to char.
 	* proto.h (fnematch): Ditto.
 
