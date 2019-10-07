@@ -4,9 +4,9 @@
 	Gensub support from NetBSD. Bitwise functions from OpenBSD.
 
 	* awk.h: Add defines for and, or, xor, compl, lshift and rshift.
-	* awkgram.y: Add support gensub.
+	* awkgram.y: Add support for gensub.
 	* maketab.c: Ditto.
-	* lex.c: Add support gensub and bitwise functions.
+	* lex.c: Add support for gensub and bitwise functions.
 	* parse.c (node5, op5): New functions.
 	* proto.h (node5, op5): New declarations.
 	* run.c (bltin): Implement the bitwise functions.
