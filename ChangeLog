@@ -1,3 +1,8 @@
+2019-10-07         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* b.c (fnematch): Change type of pbuf from unsigned char to char.
+	* proto.h (fnematch): Ditto.
+
 2019-10-06         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* lib.c (readrec): Allow RS a regular expression. Imported

@@ -632,9 +632,9 @@ int nematch(fa *f, const char *p0)	/* non-empty match, for sub */
  *     1    Match found.
  */
 
-int fnematch(fa *pfa, FILE *f, uschar **pbuf, int *pbufsize, int quantum)
+int fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 {
-	uschar *buf = *pbuf;
+	char *buf = *pbuf;
 	int bufsize = *pbufsize;
 	int c, i, j, k, ns, s;
 
