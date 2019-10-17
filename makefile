@@ -30,7 +30,7 @@ CFLAGS = -O2
 #CC = gcc -Wall -g -Wwrite-strings
 #CC = gcc -O4 -Wall -pedantic -fno-strict-aliasing
 #CC = gcc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
-HOSTCC = gcc -g -Wall -pedantic
+HOSTCC = gcc -g -Wall -pedantic -Wcast-qual
 CC = $(HOSTCC)  # change this is cross-compiling.
 
 # yacc options.  pick one; this varies a lot by system.

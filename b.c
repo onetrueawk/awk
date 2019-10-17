@@ -61,19 +61,19 @@ int	maxsetvec = 0;
 
 int	rtok;		/* next token in current re */
 int	rlxval;
-static uschar	*rlxstr;
-static uschar	*prestr;	/* current position in current re */
-static uschar	*lastre;	/* origin of last re */
-static uschar	*lastatom;	/* origin of last Atom */
-static uschar	*starttok;
-static uschar 	*basestr;	/* starts with original, replaced during
+static const uschar	*rlxstr;
+static const uschar	*prestr;	/* current position in current re */
+static const uschar	*lastre;	/* origin of last re */
+static const uschar	*lastatom;	/* origin of last Atom */
+static const uschar	*starttok;
+static const uschar 	*basestr;	/* starts with original, replaced during
 				   repetition processing */
-static uschar 	*firstbasestr;
+static const uschar 	*firstbasestr;
 
 static	int setcnt;
 static	int poscnt;
 
-char	*patbeg;
+const char	*patbeg;
 int	patlen;
 
 #define	NFA	128	/* cache this many dynamic fa's */
@@ -185,7 +185,7 @@ fa *mkdfa(const char *s, int anchor)	/* does the real work of making a dfa */
 	Node *p, *p1;
 	fa *f;
 
-	firstbasestr = (uschar *) s;
+	firstbasestr = (const uschar *) s;
 	basestr = firstbasestr;
 	p = reparse(s);
 	p1 = op2(CAT, op2(STAR, op2(ALL, NIL, NIL), NIL), p);
@@ -195,7 +195,7 @@ fa *mkdfa(const char *s, int anchor)	/* does the real work of making a dfa */
 
 	poscnt = 0;
 	penter(p1);	/* enter parent pointers and leaf indices */
-	if ((f = (fa *) calloc(1, sizeof(fa) + poscnt*sizeof(rrow))) == NULL)
+	if ((f = calloc(1, sizeof(fa) + poscnt * sizeof(rrow))) == NULL)
 		overflo(__func__);
 	f->accept = poscnt-1;	/* penter has computed number of positions in re */
 	cfoll(f, p1);	/* set up follow sets */
@@ -295,13 +295,13 @@ void freetr(Node *p)	/* free parse tree */
 /* in the parsing of regular expressions, metacharacters like . have */
 /* to be seen literally;  \056 is not a metacharacter. */
 
-int hexstr(uschar **pp)	/* find and eval hex string at pp, return new p */
+int hexstr(const uschar **pp)	/* find and eval hex string at pp, return new p */
 {			/* only pick up one 8-bit byte (2 chars) */
-	uschar *p;
+	const uschar *p;
 	int n = 0;
 	int i;
 
-	for (i = 0, p = (uschar *) *pp; i < 2 && isxdigit(*p); i++, p++) {
+	for (i = 0, p = (const uschar *) *pp; i < 2 && isxdigit(*p); i++, p++) {
 		if (isdigit(*p))
 			n = 16 * n + *p - '0';
 		else if (*p >= 'a' && *p <= 'f')
@@ -309,16 +309,16 @@ int hexstr(uschar **pp)	/* find and eval hex string at pp, return new p */
 		else if (*p >= 'A' && *p <= 'F')
 			n = 16 * n + *p - 'A' + 10;
 	}
-	*pp = (uschar *) p;
+	*pp = (const uschar *) p;
 	return n;
 }
 
 #define isoctdigit(c) ((c) >= '0' && (c) <= '7')	/* multiple use of arg */
 
-int quoted(uschar **pp)	/* pick up next thing after a \\ */
+int quoted(const uschar **pp)	/* pick up next thing after a \\ */
 			/* and increment *pp */
 {
-	uschar *p = *pp;
+	const uschar *p = *pp;
 	int c;
 
 	if ((c = *p++) == 't')
@@ -356,8 +356,8 @@ int quoted(uschar **pp)	/* pick up next thing after a \\ */
 char *cclenter(const char *argp)	/* add a character class */
 {
 	int i, c, c2;
-	uschar *p = (uschar *) argp;
-	uschar *op, *bp;
+	const uschar *op, *p = (const uschar *) argp;
+	uschar *bp;
 	static uschar *buf = NULL;
 	static int bufsz = 100;
 
@@ -516,7 +516,7 @@ void follow(Node *v)	/* collects leaves that can follow v into setvec */
 
 int member(int c, const char *sarg)	/* is c in s? */
 {
-	uschar *s = (uschar *) sarg;
+	const uschar *s = (const uschar *) sarg;
 
 	while (*s)
 		if (c == *s++)
@@ -527,7 +527,7 @@ int member(int c, const char *sarg)	/* is c in s? */
 int match(fa *f, const char *p0)	/* shortest match ? */
 {
 	int s, ns;
-	uschar *p = (uschar *) p0;
+	const uschar *p = (const uschar *) p0;
 
 	s = f->initstat;
 	assert (s < f->state_count);
@@ -549,13 +549,13 @@ int match(fa *f, const char *p0)	/* shortest match ? */
 int pmatch(fa *f, const char *p0)	/* longest match, for sub */
 {
 	int s, ns;
-	uschar *p = (uschar *) p0;
-	uschar *q;
+	const uschar *p = (const uschar *) p0;
+	const uschar *q;
 
 	s = f->initstat;
 	assert(s < f->state_count);
 
-	patbeg = (char *)p;
+	patbeg = (const char *)p;
 	patlen = -1;
 	do {
 		q = p;
@@ -572,7 +572,7 @@ int pmatch(fa *f, const char *p0)	/* longest match, for sub */
 
 			if (s == 1) {	/* no transition */
 				if (patlen >= 0) {
-					patbeg = (char *) p;
+					patbeg = (const char *) p;
 					return(1);
 				}
 				else
@@ -582,7 +582,7 @@ int pmatch(fa *f, const char *p0)	/* longest match, for sub */
 		if (f->out[s])
 			patlen = q-p-1;	/* don't count $ */
 		if (patlen >= 0) {
-			patbeg = (char *) p;
+			patbeg = (const char *) p;
 			return(1);
 		}
 	nextin:
@@ -594,13 +594,13 @@ int pmatch(fa *f, const char *p0)	/* longest match, for sub */
 int nematch(fa *f, const char *p0)	/* non-empty match, for sub */
 {
 	int s, ns;
-	uschar *p = (uschar *) p0;
-	uschar *q;
+	const uschar *p = (const uschar *) p0;
+	const uschar *q;
 
 	s = f->initstat;
 	assert(s < f->state_count);
 
-	patbeg = (char *)p;
+	patbeg = (const char *)p;
 	patlen = -1;
 	while (*p) {
 		q = p;
@@ -614,7 +614,7 @@ int nematch(fa *f, const char *p0)	/* non-empty match, for sub */
 				s = cgoto(f, s, *q);
 			if (s == 1) {	/* no transition */
 				if (patlen > 0) {
-					patbeg = (char *) p;
+					patbeg = (const char *) p;
 					return(1);
 				} else
 					goto nnextin;	/* no nonempty match */
@@ -623,7 +623,7 @@ int nematch(fa *f, const char *p0)	/* non-empty match, for sub */
 		if (f->out[s])
 			patlen = q-p-1;	/* don't count $ */
 		if (patlen > 0 ) {
-			patbeg = (char *) p;
+			patbeg = (const char *) p;
 			return(1);
 		}
 	nnextin:
@@ -726,7 +726,7 @@ Node *reparse(const char *p)	/* parses regular expression pointed to by p */
 	Node *np;
 
 	dprintf( ("reparse <%s>\n", p) );
-	lastre = prestr = (uschar *) p;	/* prestr points to string to be parsed */
+	lastre = prestr = (const uschar *) p;	/* prestr points to string to be parsed */
 	rtok = relex();
 	/* GNU compatibility: an empty regexp matches anything */
 	if (rtok == '\0') {
@@ -766,12 +766,12 @@ Node *primary(void)
 		rtok = relex();
 		return (unary(op2(DOT, NIL, NIL)));
 	case CCL:
-		np = op2(CCL, NIL, (Node*) cclenter((char *) rlxstr));
+		np = op2(CCL, NIL, (Node*) cclenter((const char *) rlxstr));
 		lastatom = starttok;
 		rtok = relex();
 		return (unary(np));
 	case NCCL:
-		np = op2(NCCL, NIL, (Node *) cclenter((char *) rlxstr));
+		np = op2(NCCL, NIL, (Node *) cclenter((const char *) rlxstr));
 		lastatom = starttok;
 		rtok = relex();
 		return (unary(np));
@@ -911,7 +911,7 @@ replace_repeat(const uschar *reptok, int reptoklen, const uschar *atom,
 	int init_q = (firstnum==0);		/* first added char will be ? */
 	int n_q_reps = secondnum-firstnum;	/* m>n, so reduce until {1,m-n} left  */
 	int prefix_length = reptok - basestr;	/* prefix includes first rep	*/
-	int suffix_length = strlen((char *) reptok) - reptoklen;	/* string after rep specifier	*/
+	int suffix_length = strlen((const char *) reptok) - reptoklen;	/* string after rep specifier	*/
 	int size = prefix_length +  suffix_length;
 
 	if (firstnum > 1) {	/* add room for reps 2 through firstnum */
