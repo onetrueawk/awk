@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+October 17, 2019:
+	Import code cleanups from NetBSD. Much thanks to Christos
+	Zoulas (Github user zoulasc). Merges PR 51.
+
 October 6, 2019:
 	Import code from NetBSD awk that implements RS as a regular
 	expression.
