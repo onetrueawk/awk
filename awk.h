@@ -232,16 +232,16 @@ typedef struct rrow {
 } rrow;
 
 typedef struct fa {
-	uschar	gototab[NSTATES][HAT + 1];
-	uschar	out[NSTATES];
+	unsigned int	**gototab;
+	uschar	*out;
 	uschar	*restr;
-	int	*posns[NSTATES];
+	int	**posns;
+	int	state_count;
 	int	anchor;
 	int	use;
 	int	initstat;
 	int	curstat;
 	int	accept;
-	int	reset;
 	struct	rrow re[1];	/* variable: actual size set by calling malloc */
 } fa;
 
