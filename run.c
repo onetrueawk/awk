@@ -1520,13 +1520,15 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 {
 	Cell *x, *y;
 	Awkfloat u;
-	int t;
+	int t, sz;
 	Awkfloat tmp;
-	char *p, *buf;
+	char *p, *buf, *fmt;
 	Node *nextarg;
 	FILE *fp;
 	void flush_all(void);
 	int status = 0;
+	time_t tv;
+	struct tm *tm;
 
 	t = ptoi(a[0]);
 	x = execute(a[1]);
@@ -1678,6 +1680,41 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 		else
 			u = fflush(fp);
 		break;
+	case FSYSTIME:
+		u = time((time_t *) 0);
+		break;
+	case FSTRFTIME:
+		/* strftime([format [,timestamp]]) */
+		if (nextarg) {
+			y = execute(nextarg);
+			nextarg = nextarg->nnext;
+			tv = (time_t) getfval(y);
+			tempfree(y);
+		} else
+			tv = time((time_t *) 0);
+		tm = localtime(&tv);
+		if (tm == NULL)
+			FATAL("bad time %ld", (long)tv);
+
+		if (isrec(x)) {
+			/* format argument not provided, use default */
+			fmt = tostring("%a %b %d %H:%M:%S %Z %Y");
+		} else
+			fmt = tostring(getsval(x));
+
+		sz = 32;
+		buf = NULL;
+		do {
+			if ((buf = realloc(buf, (sz *= 2))) == NULL)
+				FATAL("out of memory in strftime");
+		} while (strftime(buf, sz, fmt, tm) == 0 && fmt[0] != '\0');
+
+		y = gettemp();
+		setsval(y, buf);
+		free(fmt);
+		free(buf);
+
+		return y;
 	default:	/* can't happen */
 		FATAL("illegal function type %d", t);
 		break;

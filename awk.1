@@ -320,6 +320,28 @@ according to the
 format
 .IR fmt .
 .TP
+.B systime()
+returns the current date and time as a standard
+``seconds since the epoch'' value.
+.TP
+.BI strftime( fmt ", " timestamp\^ )
+formats
+.I timestamp
+(a value in seconds since the epoch)
+according to
+.IR fmt ,
+which is a format string as supported by
+.IR strftime (3).
+Both
+.I timestamp
+and
+.I fmt
+may be omitted; if no
+.IR timestamp ,
+the current time of day is used, and if no
+.IR fmt ,
+a default format of \fB"%a %b %e %H:%M:%S %Z %Y"\fR is used.
+.TP
 .BI system( cmd )
 executes
 .I cmd
