@@ -30,7 +30,12 @@ typedef double	Awkfloat;
 
 typedef	unsigned char uschar;
 
-#define	xfree(a)	{ if ((a) != NULL) { free((void *) (a)); (a) = NULL; } }
+#define	xfree(a)	{ if ((a) != NULL) { free((void *)(intptr_t)(a)); (a) = NULL; } }
+/*
+ * We sometimes cheat writing read-only pointers to NUL-terminate them
+ * and then put back the original value
+ */
+#define setptr(ptr, a)	(*(char *)(intptr_t)(ptr)) = (a)
 
 #define	NN(p)	((p) ? (p) : "(null)")	/* guaranteed non-null for dprintf
 */
@@ -70,7 +75,7 @@ extern char	inputFS[];	/* FS at time of input, for field splitting */
 
 extern int	dbg;
 
-extern	char	*patbeg;	/* beginning of pattern matched */
+extern const char *patbeg;	/* beginning of pattern matched */
 extern	int	patlen;		/* length of pattern matched.  set in b.c */
 
 /* Cell:  all information about a variable or constant */
