@@ -462,31 +462,50 @@ Cell *getnf(Node **a, int n)	/* get NF */
 	return (Cell *) a[0];
 }
 
-Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
+static char *
+makearraystring(Node *p, const char *func)
 {
-	Cell *x, *y, *z;
-	char *s;
-	Node *np;
 	char *buf;
 	int bufsz = recsize;
-	int nsub;
+	size_t blen, seplen;
 
-	if ((buf = malloc(bufsz)) == NULL)
-		FATAL("out of memory in array");
+	if ((buf = malloc(bufsz)) == NULL) {
+		FATAL("%s: out of memory", func);
+	}
+
+	blen = 0;
+	buf[blen] = '\0';
+	seplen = strlen(getsval(subseploc));
+
+	for (; p; p = p->nnext) {
+		Cell *x = execute(p);	/* expr */
+		char *s = getsval(x);
+		size_t nsub = p->nnext ? seplen : 0;
+		size_t slen = strlen(s);
+		size_t tlen = blen + slen + nsub;
+
+		if (!adjbuf(&buf, &bufsz, tlen + 1, recsize, 0, func)) {
+			FATAL("%s: out of memory %s[%s...]",
+			    func, x->nval, buf);
+		}
+		memcpy(buf + blen, s, slen);
+		if (nsub) {
+			memcpy(buf + blen + slen, *SUBSEP, nsub);
+		}
+		buf[tlen] = '\0';
+		blen = tlen;
+		tempfree(x);
+	}
+	return buf;
+}
+
+Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
+{
+	Cell *x, *z;
+	char *buf;
 
 	x = execute(a[0]);	/* Cell* for symbol table */
-	buf[0] = 0;
-	for (np = a[1]; np; np = np->nnext) {
-		y = execute(np);	/* subscript */
-		s = getsval(y);
-		nsub = strlen(getsval(subseploc));
-		if (!adjbuf(&buf, &bufsz, strlen(buf)+strlen(s)+nsub+1, recsize, 0, "array"))
-			FATAL("out of memory for %s[%s...]", x->nval, buf);
-		strlcat(buf, s, bufsz);
-		if (np->nnext)
-			strlcat(buf, *SUBSEP, bufsz);
-		tempfree(y);
-	}
+	buf = makearraystring(a[1], __func__);
 	if (!isarr(x)) {
 		   dprintf( ("making %s into an array\n", NN(x->nval)) );
 		if (freeable(x))
@@ -505,10 +524,7 @@ Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
 
 Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
 {
-	Cell *x, *y;
-	Node *np;
-	char *s;
-	int nsub;
+	Cell *x;
 
 	x = execute(a[0]);	/* Cell* for symbol table */
 	if (x == symtabloc) {
@@ -522,22 +538,7 @@ Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts *
 		x->tval |= ARR;
 		x->sval = (char *) makesymtab(NSYMTAB);
 	} else {
-		int bufsz = recsize;
-		char *buf;
-		if ((buf = malloc(bufsz)) == NULL)
-			FATAL("out of memory in adelete");
-		buf[0] = 0;
-		for (np = a[1]; np; np = np->nnext) {
-			y = execute(np);	/* subscript */
-			s = getsval(y);
-			nsub = strlen(getsval(subseploc));
-			if (!adjbuf(&buf, &bufsz, strlen(buf)+strlen(s)+nsub+1, recsize, 0, "awkdelete"))
-				FATAL("out of memory deleting %s[%s...]", x->nval, buf);
-			strlcat(buf, s, bufsz);
-			if (np->nnext)
-				strlcat(buf, *SUBSEP, bufsz);
-			tempfree(y);
-		}
+		char *buf = makearraystring(a[1], __func__);
 		freeelem(x, buf);
 		free(buf);
 	}
@@ -547,12 +548,8 @@ Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts *
 
 Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 {
-	Cell *x, *ap, *k;
-	Node *p;
+	Cell *ap, *k;
 	char *buf;
-	char *s;
-	int bufsz = recsize;
-	int nsub;
 
 	ap = execute(a[1]);	/* array name */
 	if (!isarr(ap)) {
@@ -563,21 +560,7 @@ Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 		ap->tval |= ARR;
 		ap->sval = (char *) makesymtab(NSYMTAB);
 	}
-	if ((buf = malloc(bufsz)) == NULL) {
-		FATAL("out of memory in intest");
-	}
-	buf[0] = 0;
-	for (p = a[0]; p; p = p->nnext) {
-		x = execute(p);	/* expr */
-		s = getsval(x);
-		nsub = strlen(getsval(subseploc));
-		if (!adjbuf(&buf, &bufsz, strlen(buf)+strlen(s)+nsub+1, recsize, 0, "intest"))
-			FATAL("out of memory deleting %s[%s...]", x->nval, buf);
-		strlcat(buf, s, bufsz);
-		tempfree(x);
-		if (p->nnext)
-			strlcat(buf, *SUBSEP, bufsz);
-	}
+	buf = makearraystring(a[0], __func__);
 	k = lookup(buf, (Array *) ap->sval);
 	tempfree(ap);
 	free(buf);
