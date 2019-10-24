@@ -28,6 +28,8 @@ was sent to the printers in August, 1987.
 October 24, 2019:
 	Import second round of code cleanups from NetBSD. Much thanks
 	to Christos Zoulas (Github user zoulasc). Merges PR 53.
+	Add an optimization for string concatenation, also from
+	Christos.
 
 October 17, 2019:
 	Import code cleanups from NetBSD. Much thanks to Christos
