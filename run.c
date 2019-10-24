@@ -2091,8 +2091,9 @@ Cell *gensub(Node **a, int nnn)	/* global selective substitute */
 {
 	Cell *x, *y, *res, *h;
 	char *rptr;
-	char *sptr;
-	char *t, *buf, *pb, *q;
+	const char *sptr;
+	char *buf, *pb;
+	const char *t, *q;
 	fa *pfa;
 	int mflag, tempstat, num, whichm;
 	int bufsz = recsize;
