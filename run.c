@@ -1933,7 +1933,7 @@ Cell *sub(Node **a, int nnn)	/* substitute command */
 	fa *pfa;
 	int bufsz = recsize;
 
-	if ((buf = (char *) malloc(bufsz)) == NULL)
+	if ((buf = malloc(bufsz)) == NULL)
 		FATAL("out of memory in sub");
 	x = execute(a[3]);	/* target string */
 	t = getsval(x);
@@ -2092,9 +2092,8 @@ Cell *gensub(Node **a, int nnn)	/* global selective substitute */
 {
 	Cell *x, *y, *res, *h;
 	char *rptr;
-	const char *sptr;
 	char *buf, *pb;
-	const char *t, *q;
+	const char *q, *t, *sptr;
 	fa *pfa;
 	int mflag, tempstat, num, whichm;
 	int bufsz = recsize;
