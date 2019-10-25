@@ -134,10 +134,11 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "maketab can't open %s!\n", argv[1]);
 		exit(1);
 	}
-	printf("static char *printname[%d] = {\n", SIZE);
+	printf("static const char * const printname[%d] = {\n", SIZE);
 	i = 0;
 	while (fgets(buf, sizeof buf, fp) != NULL) {
-		n = sscanf(buf, "%1c %s %s %d", &c, def, name, &tok);
+		// 199 is sizeof(def) - 1
+		n = sscanf(buf, "%1c %199s %199s %d", &c, def, name, &tok);
 		if (c != '#' || (n != 4 && strcmp(def,"define") != 0))	/* not a valid #define */
 			continue;
 		if (strcmp(name, "YYSTYPE_IS_DECLARED") == 0)
@@ -147,7 +148,11 @@ int main(int argc, char *argv[])
 			continue;
 		}
 		names[tok-FIRSTTOKEN] = strdup(name);
-		printf("\t(char *) \"%s\",\t/* %d */\n", name, tok);
+		if (names[tok-FIRSTTOKEN] == NULL) {
+			fprintf(stderr, "maketab out of space copying %s", name);
+			continue;
+		}
+		printf("\t\"%s\",\t/* %d */\n", name, tok);
 		i++;
 	}
 	printf("};\n\n");
@@ -162,14 +167,14 @@ int main(int argc, char *argv[])
 			printf("\t%s,\t/* %s */\n", table[i], names[i]);
 	printf("};\n\n");
 
-	printf("char *tokname(int n)\n");	/* print a tokname() function */
+	printf("const char *tokname(int n)\n");	/* print a tokname() function */
 	printf("{\n");
-	printf("	static char buf[100];\n\n");
-	printf("	if (n < FIRSTTOKEN || n > LASTTOKEN) {\n");
-	printf("		sprintf(buf, \"token %%d\", n);\n");
-	printf("		return buf;\n");
-	printf("	}\n");
-	printf("	return printname[n-FIRSTTOKEN];\n");
+	printf("\tstatic char buf[100];\n\n");
+	printf("\tif (n < FIRSTTOKEN || n > LASTTOKEN) {\n");
+	printf("\t\tsnprintf(buf, sizeof(buf), \"token %%d\", n);\n");
+	printf("\t\treturn buf;\n");
+	printf("\t}\n");
+	printf("\treturn printname[n-FIRSTTOKEN];\n");
 	printf("}\n");
 	return 0;
 }

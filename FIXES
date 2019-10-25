@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+October 25, 2019:
+	More fixes and cleanups from NetBSD, courtesy of Christo
+	Zoulas. Merges PRs 54 and 55.
+
 October 24, 2019:
 	Import second round of code cleanups from NetBSD. Much thanks
 	to Christos Zoulas (Github user zoulasc). Merges PR 53.

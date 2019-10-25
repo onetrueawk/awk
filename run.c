@@ -462,31 +462,50 @@ Cell *getnf(Node **a, int n)	/* get NF */
 	return (Cell *) a[0];
 }
 
-Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
+static char *
+makearraystring(Node *p, const char *func)
 {
-	Cell *x, *y, *z;
-	char *s;
-	Node *np;
 	char *buf;
 	int bufsz = recsize;
-	int nsub;
+	size_t blen, seplen;
 
-	if ((buf = malloc(bufsz)) == NULL)
-		FATAL("out of memory in array");
+	if ((buf = malloc(bufsz)) == NULL) {
+		FATAL("%s: out of memory", func);
+	}
+
+	blen = 0;
+	buf[blen] = '\0';
+	seplen = strlen(getsval(subseploc));
+
+	for (; p; p = p->nnext) {
+		Cell *x = execute(p);	/* expr */
+		char *s = getsval(x);
+		size_t nsub = p->nnext ? seplen : 0;
+		size_t slen = strlen(s);
+		size_t tlen = blen + slen + nsub;
+
+		if (!adjbuf(&buf, &bufsz, tlen + 1, recsize, 0, func)) {
+			FATAL("%s: out of memory %s[%s...]",
+			    func, x->nval, buf);
+		}
+		memcpy(buf + blen, s, slen);
+		if (nsub) {
+			memcpy(buf + blen + slen, *SUBSEP, nsub);
+		}
+		buf[tlen] = '\0';
+		blen = tlen;
+		tempfree(x);
+	}
+	return buf;
+}
+
+Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
+{
+	Cell *x, *z;
+	char *buf;
 
 	x = execute(a[0]);	/* Cell* for symbol table */
-	buf[0] = 0;
-	for (np = a[1]; np; np = np->nnext) {
-		y = execute(np);	/* subscript */
-		s = getsval(y);
-		nsub = strlen(getsval(subseploc));
-		if (!adjbuf(&buf, &bufsz, strlen(buf)+strlen(s)+nsub+1, recsize, 0, "array"))
-			FATAL("out of memory for %s[%s...]", x->nval, buf);
-		strcat(buf, s);
-		if (np->nnext)
-			strcat(buf, *SUBSEP);
-		tempfree(y);
-	}
+	buf = makearraystring(a[1], __func__);
 	if (!isarr(x)) {
 		   dprintf( ("making %s into an array\n", NN(x->nval)) );
 		if (freeable(x))
@@ -505,10 +524,7 @@ Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
 
 Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
 {
-	Cell *x, *y;
-	Node *np;
-	char *s;
-	int nsub;
+	Cell *x;
 
 	x = execute(a[0]);	/* Cell* for symbol table */
 	if (x == symtabloc) {
@@ -522,22 +538,7 @@ Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts *
 		x->tval |= ARR;
 		x->sval = (char *) makesymtab(NSYMTAB);
 	} else {
-		int bufsz = recsize;
-		char *buf;
-		if ((buf = malloc(bufsz)) == NULL)
-			FATAL("out of memory in adelete");
-		buf[0] = 0;
-		for (np = a[1]; np; np = np->nnext) {
-			y = execute(np);	/* subscript */
-			s = getsval(y);
-			nsub = strlen(getsval(subseploc));
-			if (!adjbuf(&buf, &bufsz, strlen(buf)+strlen(s)+nsub+1, recsize, 0, "awkdelete"))
-				FATAL("out of memory deleting %s[%s...]", x->nval, buf);
-			strcat(buf, s);
-			if (np->nnext)
-				strcat(buf, *SUBSEP);
-			tempfree(y);
-		}
+		char *buf = makearraystring(a[1], __func__);
 		freeelem(x, buf);
 		free(buf);
 	}
@@ -547,12 +548,8 @@ Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts *
 
 Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 {
-	Cell *x, *ap, *k;
-	Node *p;
+	Cell *ap, *k;
 	char *buf;
-	char *s;
-	int bufsz = recsize;
-	int nsub;
 
 	ap = execute(a[1]);	/* array name */
 	if (!isarr(ap)) {
@@ -563,21 +560,7 @@ Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 		ap->tval |= ARR;
 		ap->sval = (char *) makesymtab(NSYMTAB);
 	}
-	if ((buf = malloc(bufsz)) == NULL) {
-		FATAL("out of memory in intest");
-	}
-	buf[0] = 0;
-	for (p = a[0]; p; p = p->nnext) {
-		x = execute(p);	/* expr */
-		s = getsval(x);
-		nsub = strlen(getsval(subseploc));
-		if (!adjbuf(&buf, &bufsz, strlen(buf)+strlen(s)+nsub+1, recsize, 0, "intest"))
-			FATAL("out of memory deleting %s[%s...]", x->nval, buf);
-		strcat(buf, s);
-		tempfree(x);
-		if (p->nnext)
-			strcat(buf, *SUBSEP);
-	}
+	buf = makearraystring(a[0], __func__);
 	k = lookup(buf, (Array *) ap->sval);
 	tempfree(ap);
 	free(buf);
@@ -835,6 +818,8 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 	int fmtsz = recsize;
 	char *buf = *pbuf;
 	int bufsize = *pbufsize;
+#define FMTSZ(a)   (fmtsz - ((a) - fmt))
+#define BUFSZ(a)   (bufsize - ((a) - buf))
 
 	static int first = 1;
 	static int have_a_format = 0;
@@ -842,7 +827,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 	if (first) {
 		char buf[100];
 
-		sprintf(buf, "%a", 42.0);
+		snprintf(buf, sizeof(buf), "%a", 42.0);
 		have_a_format = (strcmp(buf, "0x1.5p+5") == 0);
 		first = 0;
 	}
@@ -881,7 +866,8 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				}
 				x = execute(a);
 				a = a->nnext;
-				sprintf(t-1, "%d", fmtwd=(int) getfval(x));
+				snprintf(t - 1, FMTSZ(t - 1),
+				    "%d", fmtwd=(int) getfval(x));
 				if (fmtwd < 0)
 					fmtwd = -fmtwd;
 				adjbuf(&buf, &bufsize, fmtwd+1+p-buf, recsize, &p, "format");
@@ -906,12 +892,15 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		case 'd': case 'i':
 			flag = 'd';
 			if(*(s-1) == 'l') break;
-			*(t-1) = 'l';
+			*(t-1) = 'j';
 			*t = 'd';
 			*++t = '\0';
 			break;
 		case 'o': case 'x': case 'X': case 'u':
 			flag = *(s-1) == 'l' ? 'd' : 'u';
+			*(t-1) = 'l';
+			*t = *s;
+			*++t = '\0';
 			break;
 		case 's':
 			flag = 's';
@@ -933,20 +922,20 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			n = fmtwd;
 		adjbuf(&buf, &bufsize, 1+n+p-buf, recsize, &p, "format5");
 		switch (flag) {
-		case '?':	sprintf(p, "%s", fmt);	/* unknown, so dump it too */
+		case '?':	snprintf(p, BUFSZ(p), "%s", fmt);	/* unknown, so dump it too */
 			t = getsval(x);
 			n = strlen(t);
 			if (fmtwd > n)
 				n = fmtwd;
 			adjbuf(&buf, &bufsize, 1+strlen(p)+n+p-buf, recsize, &p, "format6");
 			p += strlen(p);
-			sprintf(p, "%s", t);
+			snprintf(p, BUFSZ(p), "%s", t);
 			break;
 		case 'a':
 		case 'A':
-		case 'f':	sprintf(p, fmt, getfval(x)); break;
-		case 'd':	sprintf(p, fmt, (long) getfval(x)); break;
-		case 'u':	sprintf(p, fmt, (int) getfval(x)); break;
+		case 'f':	snprintf(p, BUFSZ(p), fmt, getfval(x)); break;
+		case 'd':	snprintf(p, BUFSZ(p), fmt, (long) getfval(x)); break;
+		case 'u':	snprintf(p, BUFSZ(p), fmt, (int) getfval(x)); break;
 		case 's':
 			t = getsval(x);
 			n = strlen(t);
@@ -954,18 +943,18 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				n = fmtwd;
 			if (!adjbuf(&buf, &bufsize, 1+n+p-buf, recsize, &p, "format7"))
 				FATAL("huge string/format (%d chars) in printf %.30s... ran format() out of memory", n, t);
-			sprintf(p, fmt, t);
+			snprintf(p, BUFSZ(p), fmt, t);
 			break;
 		case 'c':
 			if (isnum(x)) {
 				if ((int)getfval(x))
-					sprintf(p, fmt, (int) getfval(x));
+					snprintf(p, BUFSZ(p), fmt, (int) getfval(x));
 				else {
 					*p++ = '\0'; /* explicit null byte */
 					*p = '\0';   /* next output will start here */
 				}
 			} else
-				sprintf(p, fmt, getsval(x)[0]);
+				snprintf(p, BUFSZ(p), fmt, getsval(x)[0]);
 			break;
 		default:
 			FATAL("can't happen: bad conversion %c in format()", flag);
@@ -1303,7 +1292,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			pfa->initstat = 2;
 			do {
 				n++;
-				sprintf(num, "%d", n);
+				snprintf(num, sizeof(num), "%d", n);
 				temp = *patbeg;
 				setptr(patbeg, '\0');
 				if (is_number(s))
@@ -1314,7 +1303,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 				s = patbeg + patlen;
 				if (*(patbeg+patlen-1) == 0 || *s == 0) {
 					n++;
-					sprintf(num, "%d", n);
+					snprintf(num, sizeof(num), "%d", n);
 					setsymtab(num, "", 0.0, STR, (Array *) ap->sval);
 					pfa->initstat = tempstat;
 					goto spdone;
@@ -1324,7 +1313,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 							/* cf gsub and refldbld */
 		}
 		n++;
-		sprintf(num, "%d", n);
+		snprintf(num, sizeof(num), "%d", n);
 		if (is_number(s))
 			setsymtab(num, s, atof(s), STR|NUM, (Array *) ap->sval);
 		else
@@ -1344,7 +1333,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			while (*s!=' ' && *s!='\t' && *s!='\n' && *s!='\0');
 			temp = *s;
 			setptr(s, '\0');
-			sprintf(num, "%d", n);
+			snprintf(num, sizeof(num), "%d", n);
 			if (is_number(t))
 				setsymtab(num, t, atof(t), STR|NUM, (Array *) ap->sval);
 			else
@@ -1357,7 +1346,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		for (n = 0; *s != 0; s++) {
 			char buf[2];
 			n++;
-			sprintf(num, "%d", n);
+			snprintf(num, sizeof(num), "%d", n);
 			buf[0] = *s;
 			buf[1] = 0;
 			if (isdigit((uschar)buf[0]))
@@ -1373,7 +1362,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 				s++;
 			temp = *s;
 			setptr(s, '\0');
-			sprintf(num, "%d", n);
+			snprintf(num, sizeof(num), "%d", n);
 			if (is_number(t))
 				setsymtab(num, t, atof(t), STR|NUM, (Array *) ap->sval);
 			else
@@ -1933,7 +1922,7 @@ Cell *sub(Node **a, int nnn)	/* substitute command */
 	fa *pfa;
 	int bufsz = recsize;
 
-	if ((buf = (char *) malloc(bufsz)) == NULL)
+	if ((buf = malloc(bufsz)) == NULL)
 		FATAL("out of memory in sub");
 	x = execute(a[3]);	/* target string */
 	t = getsval(x);
