@@ -898,7 +898,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			break;
 		case 'o': case 'x': case 'X': case 'u':
 			flag = *(s-1) == 'l' ? 'd' : 'u';
-			*(t-1) = 'j';
+			*(t-1) = 'l';
 			*t = *s;
 			*++t = '\0';
 			break;
@@ -1827,7 +1827,7 @@ Cell *sub(Node **a, int nnn)	/* substitute command */
 	fa *pfa;
 	int bufsz = recsize;
 
-	if ((buf = (char *) malloc(bufsz)) == NULL)
+	if ((buf = malloc(bufsz)) == NULL)
 		FATAL("out of memory in sub");
 	x = execute(a[3]);	/* target string */
 	t = getsval(x);
