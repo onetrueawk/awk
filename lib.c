@@ -332,15 +332,19 @@ void fldbld(void)	/* create fields from current record */
 		}
 		*fr = 0;
 	} else if ((sep = *inputFS) == 0) {		/* new: FS="" => 1 char/field */
-		for (i = 0; *r != 0; r++) {
-			char buf[2];
+		for (i = 0; *r != '\0'; r += n) {
+			char buf[MB_CUR_MAX + 1];
+
 			i++;
 			if (i > nfields)
 				growfldtab(i);
 			if (freeable(fldtab[i]))
 				xfree(fldtab[i]->sval);
-			buf[0] = *r;
-			buf[1] = 0;
+			n = mblen(r, MB_CUR_MAX);
+			if (n < 0)
+				n = 1;
+			memcpy(buf, r, n);
+			buf[n] = '\0';
 			fldtab[i]->sval = tostring(buf);
 			fldtab[i]->tval = FLD | STR;
 		}
