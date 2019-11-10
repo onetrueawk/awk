@@ -173,8 +173,8 @@ int gettok(char **pbuf, int *psz)	/* get next input token */
 int	word(char *);
 int	string(void);
 int	regexpr(void);
-int	sc	= 0;	/* 1 => return a } right now */
-int	reg	= 0;	/* 1 => return a REGEXPR now */
+bool	sc	= false;	/* true => return a } right now */
+bool	reg	= false;	/* true => return a REGEXPR now */
 
 int yylex(void)
 {
@@ -185,11 +185,11 @@ int yylex(void)
 	if (buf == NULL && (buf = malloc(bufsize)) == NULL)
 		FATAL( "out of space in yylex" );
 	if (sc) {
-		sc = 0;
+		sc = false;
 		RET('}');
 	}
 	if (reg) {
-		reg = 0;
+		reg = false;
 		return regexpr();
 	}
 	for (;;) {
@@ -336,7 +336,7 @@ int yylex(void)
 		case '}':
 			if (--bracecnt < 0)
 				SYNTAX( "extra }" );
-			sc = 1;
+			sc = true;
 			RET(';');
 		case ']':
 			if (--brackcnt < 0)
@@ -509,7 +509,7 @@ int word(char *w)
 
 void startreg(void)	/* next call to yylex will return a regular expression */
 {
-	reg = 1;
+	reg = true;
 }
 
 int regexpr(void)
