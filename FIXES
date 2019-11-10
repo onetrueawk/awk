@@ -25,6 +25,12 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+November 10, 2019:
+	Convert a number of Boolean integer variables into
+	actual bools. Convert compile_time variable into an
+	enum and simplify some of the related code.  Thanks
+	to Arnold Robbins.
+
 November 8, 2019:
 	Fix from Ori Bernstein to get UTF-8 characters instead of
 	bytes when FS = "".  This is currently the only bit of
