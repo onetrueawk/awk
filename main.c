@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20191024";
+const char	*version = "version 20191110";
 
 #define DEBUG
 #include <stdio.h>
@@ -43,8 +43,7 @@ char	*cmdname;	/* gets argv[0] for error messages */
 extern	FILE	*yyin;	/* lex input file */
 char	*lexprog;	/* points to program argument if it exists */
 extern	int errorflag;	/* non-zero if any syntax errors; set by yyerror */
-int	compile_time = 2;	/* for error printing: */
-				/* 2 = cmdline, 1 = compile, 0 = running */
+enum compile_states	compile_time = ERROR_PRINTING;
 
 #define	MAX_PFILE	20	/* max number of -f's */
 
@@ -52,7 +51,7 @@ char	*pfile[MAX_PFILE];	/* program filenames from -f's */
 int	npfile = 0;	/* number of filenames */
 int	curpfile = 0;	/* current filename */
 
-int	safe	= 0;	/* 1 => "safe" mode */
+bool	safe = false;	/* true => "safe" mode */
 
 /* Can this work with recursive calls?  I don't think so.
 void segvcatch(int n)
@@ -96,7 +95,7 @@ int main(int argc, char *argv[])
 		switch (argv[1][1]) {
 		case 's':
 			if (strcmp(argv[1], "-safe") == 0)
-				safe = 1;
+				safe = true;
 			break;
 		case 'f':	/* next argument is program filename */
 			if (argv[1][2] != 0) {  /* arg is -fsomething */
@@ -171,7 +170,7 @@ int main(int argc, char *argv[])
 	}
 	recinit(recsize);
 	syminit();
-	compile_time = 1;
+	compile_time = COMPILING;
 	argv[0] = cmdname;	/* put prog name at front of arglist */
 	   dprintf( ("argc=%d, argv[0]=%s\n", argc, argv[0]) );
 	arginit(argc, argv);
@@ -183,7 +182,7 @@ int main(int argc, char *argv[])
 		*FS = qstring(fs, '\0');
 	   dprintf( ("errorflag=%d\n", errorflag) );
 	if (errorflag == 0) {
-		compile_time = 0;
+		compile_time = RUNNING;
 		run(winner);
 	} else
 		bracecheck();

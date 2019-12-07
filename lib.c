@@ -45,8 +45,8 @@ char	inputFS[100] = " ";
 #define	MAXFLD	2
 int	nfields	= MAXFLD;	/* last allocated slot for $i */
 
-int	donefld;	/* 1 = implies rec broken into fields */
-int	donerec;	/* 1 = record is valid (no flds have changed) */
+bool	donefld;	/* true = implies rec broken into fields */
+bool	donerec;	/* true = record is valid (no flds have changed) */
 
 int	lastfld	= 0;	/* last used field */
 int	argno	= 1;	/* current input argument number */
@@ -121,9 +121,9 @@ void savefs(void)
 	strcpy(inputFS, *FS);
 }
 
-static int firsttime = 1;
+static bool firsttime = true;
 
-int getrec(char **pbuf, int *pbufsize, int isrecord)	/* get next input record */
+int getrec(char **pbuf, int *pbufsize, bool isrecord)	/* get next input record */
 {			/* note: cares whether buf == record */
 	int c;
 	char *buf = *pbuf;
@@ -131,14 +131,14 @@ int getrec(char **pbuf, int *pbufsize, int isrecord)	/* get next input record */
 	int bufsize = *pbufsize, savebufsize = bufsize;
 
 	if (firsttime) {
-		firsttime = 0;
+		firsttime = false;
 		initgetrec();
 	}
 	   dprintf( ("RS=<%s>, FS=<%s>, ARGC=%g, FILENAME=%s\n",
 		*RS, *FS, *ARGC, *FILENAME) );
 	if (isrecord) {
-		donefld = 0;
-		donerec = 1;
+		donefld = false;
+		donerec = true;
 		savefs();
 	}
 	saveb0 = buf[0];
@@ -210,7 +210,7 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 	char *rs = getsval(rsloc);
 
 	if (*rs && rs[1]) {
-		int found;
+		bool found;
 
 		fa *pfa = makedfa(rs, 1);
 		found = fnematch(pfa, inf, &buf, &bufsize, recsize);
@@ -332,15 +332,19 @@ void fldbld(void)	/* create fields from current record */
 		}
 		*fr = 0;
 	} else if ((sep = *inputFS) == 0) {		/* new: FS="" => 1 char/field */
-		for (i = 0; *r != 0; r++) {
-			char buf[2];
+		for (i = 0; *r != '\0'; r += n) {
+			char buf[MB_CUR_MAX + 1];
+
 			i++;
 			if (i > nfields)
 				growfldtab(i);
 			if (freeable(fldtab[i]))
 				xfree(fldtab[i]->sval);
-			buf[0] = *r;
-			buf[1] = 0;
+			n = mblen(r, MB_CUR_MAX);
+			if (n < 0)
+				n = 1;
+			memcpy(buf, r, n);
+			buf[n] = '\0';
 			fldtab[i]->sval = tostring(buf);
 			fldtab[i]->tval = FLD | STR;
 		}
@@ -373,7 +377,7 @@ void fldbld(void)	/* create fields from current record */
 		FATAL("record `%.30s...' has too many fields; can't happen", r);
 	cleanfld(i+1, lastfld);	/* clean out junk from previous record */
 	lastfld = i;
-	donefld = 1;
+	donefld = true;
 	for (j = 1; j <= lastfld; j++) {
 		p = fldtab[j];
 		if(is_number(p->sval)) {
@@ -382,7 +386,7 @@ void fldbld(void)	/* create fields from current record */
 		}
 	}
 	setfval(nfloc, (Awkfloat) lastfld);
-	donerec = 1; /* restore */
+	donerec = true; /* restore */
 	if (dbg) {
 		for (j = 0; j <= lastfld; j++) {
 			p = fldtab[j];
@@ -509,7 +513,7 @@ void recbld(void)	/* create $0 from $1..$NF if necessary */
 	char *r, *p;
 	char *sep = getsval(ofsloc);
 
-	if (donerec == 1)
+	if (donerec)
 		return;
 	r = record;
 	for (i = 1; i <= *NF; i++) {
@@ -537,7 +541,7 @@ void recbld(void)	/* create $0 from $1..$NF if necessary */
 
 	   dprintf( ("in recbld inputFS=%s, fldtab[0]=%p\n", inputFS, (void*)fldtab[0]) );
 	   dprintf( ("recbld = |%s|\n", record) );
-	donerec = 1;
+	donerec = true;
 }
 
 int	errorflag	= 0;
@@ -562,7 +566,7 @@ void SYNTAX(const char *fmt, ...)
 	fprintf(stderr, " at source line %d", lineno);
 	if (curfname != NULL)
 		fprintf(stderr, " in function %s", curfname);
-	if (compile_time == 1 && cursource() != NULL)
+	if (compile_time == COMPILING && cursource() != NULL)
 		fprintf(stderr, " source file %s", cursource());
 	fprintf(stderr, "\n");
 	errorflag = 2;
@@ -636,17 +640,20 @@ void error()
 	extern Node *curnode;
 
 	fprintf(stderr, "\n");
-	if (compile_time != 2 && NR && *NR > 0) {
-		fprintf(stderr, " input record number %d", (int) (*FNR));
-		if (strcmp(*FILENAME, "-") != 0)
-			fprintf(stderr, ", file %s", *FILENAME);
-		fprintf(stderr, "\n");
+	if (compile_time != ERROR_PRINTING) {
+		if (NR && *NR > 0) {
+			fprintf(stderr, " input record number %d", (int) (*FNR));
+			if (strcmp(*FILENAME, "-") != 0)
+				fprintf(stderr, ", file %s", *FILENAME);
+			fprintf(stderr, "\n");
+		}
+		if (curnode)
+			fprintf(stderr, " source line number %d", curnode->lineno);
+		else if (lineno)
+			fprintf(stderr, " source line number %d", lineno);
 	}
-	if (compile_time != 2 && curnode)
-		fprintf(stderr, " source line number %d", curnode->lineno);
-	else if (compile_time != 2 && lineno)
-		fprintf(stderr, " source line number %d", lineno);
-	if (compile_time == 1 && cursource() != NULL)
+
+	if (compile_time == COMPILING && cursource() != NULL)
 		fprintf(stderr, " source file %s", cursource());
 	fprintf(stderr, "\n");
 	eprint();
@@ -659,7 +666,7 @@ void eprint(void)	/* try to print context around error */
 	static int been_here = 0;
 	extern char ebuf[], *ep;
 
-	if (compile_time == 2 || compile_time == 0 || been_here++ > 0 || ebuf == ep)
+	if (compile_time != COMPILING || been_here++ > 0 || ebuf == ep)
 		return;
 	if (ebuf == ep)
 		return;

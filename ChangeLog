@@ -1,3 +1,9 @@
+2019-11-08         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* test/T.chem: Use $oldawk instead of hardwiring 'awk'.
+	* test/T.lilly: Remove gawk warnings from output, improves
+	portability.
+
 2019-10-07         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* b.c (fnematch): Change type of pbuf from unsigned char to char.
