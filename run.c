@@ -934,8 +934,8 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		case 'a':
 		case 'A':
 		case 'f':	snprintf(p, BUFSZ(p), fmt, getfval(x)); break;
-		case 'd':	snprintf(p, BUFSZ(p), fmt, (long) getfval(x)); break;
-		case 'u':	snprintf(p, BUFSZ(p), fmt, (int) getfval(x)); break;
+		case 'd':	snprintf(p, BUFSZ(p), fmt, (intmax_t) getfval(x)); break;
+		case 'u':	snprintf(p, BUFSZ(p), fmt, (uintmax_t) getfval(x)); break;
 		case 's':
 			t = getsval(x);
 			n = strlen(t);
