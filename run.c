@@ -889,15 +889,11 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		case 'f': case 'e': case 'g': case 'E': case 'G':
 			flag = 'f';
 			break;
-		case 'd': case 'i':
-			flag = 'd';
-			if(*(s-1) == 'l') break;
-			*(t-1) = 'j';
-			*t = 'd';
-			*++t = '\0';
-			break;
-		case 'o': case 'x': case 'X': case 'u':
-			flag = *(s-1) == 'l' ? 'd' : 'u';
+		case 'd': case 'i': case 'o': case 'x': case 'X': case 'u':
+			flag = *s == 'd' || *s == 'i' ? 'd' : 'u';
+			if (*(s - 1) == 'l') {
+				t--;	/* replace the l with j */
+			}
 			*(t-1) = 'j';
 			*t = *s;
 			*++t = '\0';
