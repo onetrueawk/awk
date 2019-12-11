@@ -1,3 +1,9 @@
+2019-12-11         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* README: Renamed to ...
+	* README.md: ... this. Cleaned up some as well,
+	including moving to Markdown.
+
 2019-11-08         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* test/T.chem: Use $oldawk instead of hardwiring 'awk'.

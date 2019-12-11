@@ -1273,7 +1273,8 @@ int cgoto(fa *f, int s, int c)
 			if (tmpset[j] != p[j])
 				goto different;
 		/* setvec is state i */
-		f->gototab[s][c] = i;
+		if (c != HAT)
+			f->gototab[s][c] = i;
 		return i;
 	  different:;
 	}
@@ -1287,7 +1288,8 @@ int cgoto(fa *f, int s, int c)
 	p = intalloc(setcnt + 1, __func__);
 
 	f->posns[f->curstat] = p;
-	f->gototab[s][c] = f->curstat;
+	if (c != HAT)
+		f->gototab[s][c] = f->curstat;
 	for (i = 0; i <= setcnt; i++)
 		p[i] = tmpset[i];
 	if (setvec[f->accept])
