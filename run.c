@@ -856,12 +856,12 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			if (!adjbuf(&fmt, &fmtsz, MAXNUMSIZE+1+t-fmt, recsize, &t, "format3"))
 				FATAL("format item %.30s... ran format() out of memory", os);
 			/* Ignore size specifiers */
-			if (strchr("hjLlqtz", *s)) {
+			if (strchr("hjLlqtz", *s) != NULL) {	/* the ansi panoply */
 				t--;
 				continue;
 			}
 			if (isalpha((uschar)*s))
-				break;	/* the ansi panoply */
+				break;
 			if (*s == '$') {
 				FATAL("'$' not permitted in awk formats");
 			}
@@ -895,7 +895,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			flag = 'f';
 			break;
 		case 'd': case 'i': case 'o': case 'x': case 'X': case 'u':
-			flag = *s == 'd' || *s == 'i' ? 'd' : 'u';
+			flag = (*s == 'd' || *s == 'i') ? 'd' : 'u';
 			*(t-1) = 'j';
 			*t = *s;
 			*++t = '\0';
