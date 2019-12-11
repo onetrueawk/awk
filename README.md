@@ -1,4 +1,11 @@
-/****************************************************************
+# The One True Awk
+
+This is the version of `awk` described in _The AWK Programming Language_,
+by Al Aho, Brian Kernighan, and Peter Weinberger
+(Addison-Wesley, 1988, ISBN 0-201-07981-X).
+
+## Copyright
+
 Copyright (C) Lucent Technologies 1997
 All Rights Reserved
 
@@ -20,24 +27,36 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
 IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
-****************************************************************/
 
-This is the version of awk described in "The AWK Programming Language",
-by Al Aho, Brian Kernighan, and Peter Weinberger
-(Addison-Wesley, 1988, ISBN 0-201-07981-X).
+## Distribution and Reporting Problems
 
 Changes, mostly bug fixes and occasional enhancements, are listed
-in FIXES.  If you distribute this code further, please please please
-distribute FIXES with it.  If you find errors, please report them
-to bwk@cs.princeton.edu.  Thanks.
+in `FIXES`.  If you distribute this code further, please please please
+distribute `FIXES` with it.
+
+If you find errors, please report them
+to bwk@cs.princeton.edu.
+Please _also_ open an issue in the GitHub issue tracker, to make
+it easy to track issues.
+Thanks.
+
+## Submitting Pull Requests
+
+Pull requests are welcome.  However, please create them with a request
+to merge into the `staging` branch instead of into the `master` branch.
+This allows us to do testing, and to make any additional edits or changes
+after the merge but before merging to `master`.
+
+## Building
 
 The program itself is created by
+
 	make
+
 which should produce a sequence of messages roughly like this:
 
 	yacc -d awkgram.y
-
-conflicts: 43 shift/reduce, 85 reduce/reduce
+	conflicts: 43 shift/reduce, 85 reduce/reduce
 	mv y.tab.c ytab.c
 	mv y.tab.h ytab.h
 	cc -c ytab.c
@@ -53,38 +72,25 @@ conflicts: 43 shift/reduce, 85 reduce/reduce
 	cc -c lex.c
 	cc ytab.o b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o -lm
 
-This produces an executable a.out; you will eventually want to
-move this to some place like /usr/bin/awk.
+This produces an executable `a.out`; you will eventually want to
+move this to some place like `/usr/bin/awk`.
 
-If your system does not have yacc or bison (the GNU
+If your system does not have `yacc` or `bison` (the GNU
 equivalent), you must compile the pieces manually.  We have
-included yacc output in ytab.c and ytab.h, and backup copies in
+included `yacc` output in `ytab.c` and `ytab.h`, and backup copies in
 case you overwrite them.  We have also included a copy of
-proctab.c so you do not need to run maketab.
+`proctab.c` so you do not need to run `maketab`.
 
-NOTE: This version uses ANSI C, as you should also.  We have
+NOTE: This version uses ANSI C (C 99), as you should also.  We have
 compiled this without any changes using gcc -Wall and/or local C
 compilers on a variety of systems, but new systems or compilers
 may raise some new complaint; reports of difficulties are
 welcome.
 
-This also compiles with Visual C++ on all flavors of Windows,
-*if* you provide versions of popen and pclose.  The file
-missing95.c contains versions that can be used to get started
-with, though the underlying support has mysterious properties,
-the symptom of which can be truncated pipe output.  Beware.  The
-file makefile.win gives hints on how to proceed; if you run
-vcvars32.bat, it will set up necessary paths and parameters so
-you can subsequently run nmake -f makefile.win.  Beware also that
-when running on Windows under command.com, various quoting
-conventions are different from Unix systems: single quotes won't
-work around arguments, and various characters like % are
-interpreted within double quotes.
-
-This compiles without change on Macintosh OS X using gcc and
+This compiles without change on Macintosh OS X using `gcc` and
 the standard developer tools.
 
-The version of malloc that comes with some systems is sometimes
-astonishly slow.  If awk seems slow, you might try fixing that.
+The version of `malloc` that comes with some systems is sometimes
+astonishly slow.  If `awk` seems slow, you might try fixing that.
 More generally, turning on optimization can significantly improve
-awk's speed, perhaps by 1/3 for highest levels.
+`awk`'s speed, perhaps by 1/3 for highest levels.
