@@ -77,12 +77,12 @@ move this to some place like `/usr/bin/awk`.
 
 If your system does not have `yacc` or `bison` (the GNU
 equivalent), you must compile the pieces manually.  We have
-included `yacc` output in `ytab.c` and `ytab.h`, and backup copies in
-case you overwrite them.  We have also included a copy of
+included `yacc` output in `ytab.c` and `ytab.h`.
+We have also included a copy of
 `proctab.c` so you do not need to run `maketab`.
 
 NOTE: This version uses ANSI C (C 99), as you should also.  We have
-compiled this without any changes using gcc -Wall and/or local C
+compiled this without any changes using `gcc -Wall` and/or local C
 compilers on a variety of systems, but new systems or compilers
 may raise some new complaint; reports of difficulties are
 welcome.
@@ -96,4 +96,4 @@ More generally, turning on optimization can significantly improve
 `awk`'s speed, perhaps by 1/3 for highest levels.
 
 #### Last Updated
-Wed Dec 11 20:53:18 IST 2019
+Wed Dec 11 21:15:19 IST 2019
