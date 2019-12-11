@@ -94,3 +94,6 @@ The version of `malloc` that comes with some systems is sometimes
 astonishly slow.  If `awk` seems slow, you might try fixing that.
 More generally, turning on optimization can significantly improve
 `awk`'s speed, perhaps by 1/3 for highest levels.
+
+#### Last Updated
+Wed Dec 11 20:53:18 IST 2019
