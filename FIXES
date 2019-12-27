@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+December 27, 2019:
+	Fix a bug whereby a{0,3} could match four a's.  Thanks to
+	"Anonymous AWK fan" for the report.
+
 December 11, 2019:
 	Further printf-related fixes for 32 bit systems.
 	Thanks again to Christos Zoulas.

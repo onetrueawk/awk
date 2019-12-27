@@ -908,7 +908,7 @@ replace_repeat(const uschar *reptok, int reptoklen, const uschar *atom,
 	int i, j;
 	uschar *buf = 0;
 	int ret = 1;
-	int init_q = (firstnum == 0);		/* first added char will be ? */
+	bool init_q = (firstnum == 0);		/* first added char will be ? */
 	int n_q_reps = secondnum-firstnum;	/* m>n, so reduce until {1,m-n} left  */
 	int prefix_length = reptok - basestr;	/* prefix includes first rep	*/
 	int suffix_length = strlen((const char *) reptok) - reptoklen;	/* string after rep specifier	*/
@@ -935,7 +935,7 @@ replace_repeat(const uschar *reptok, int reptoklen, const uschar *atom,
 		buf[j++] = '(';
 		buf[j++] = ')';
 	}
-	for (i=1; i < firstnum; i++) {		/* copy x reps 	*/
+	for (i = 1; i < firstnum; i++) {	/* copy x reps 	*/
 		memcpy(&buf[j], atom, atomlen);
 		j += atomlen;
 	}
@@ -944,7 +944,7 @@ replace_repeat(const uschar *reptok, int reptoklen, const uschar *atom,
 	} else if (special_case == REPEAT_WITH_Q) {
 		if (init_q)
 			buf[j++] = '?';
-		for (i = 0; i < n_q_reps; i++) {	/* copy x? reps */
+		for (i = init_q; i < n_q_reps; i++) {	/* copy x? reps */
 			memcpy(&buf[j], atom, atomlen);
 			j += atomlen;
 			buf[j++] = '?';
@@ -1166,15 +1166,17 @@ rescan:
 				if (commafound) {
 					if (digitfound) { /* {n,m} */
 						m = num;
-						if (m<n)
+						if (m < n)
 							FATAL("illegal repetition expression: class %.20s",
 								lastre);
-						if ((n==0) && (m==1)) {
+						if (n == 0 && m == 1) {
 							return QUEST;
 						}
 					} else {	/* {n,} */
-						if (n==0) return STAR;
-						if (n==1) return PLUS;
+						if (n == 0)
+							return STAR;
+						else if (n == 1)
+							return PLUS;
 					}
 				} else {
 					if (digitfound) { /* {n} same as {n,n} */
@@ -1187,7 +1189,7 @@ rescan:
 				}
 				if (repeat(starttok, prestr-starttok, lastatom,
 					   startreptok - lastatom, n, m) > 0) {
-					if ((n==0) && (m==0)) {
+					if (n == 0 && m == 0) {
 						return EMPTYRE;
 					}
 					/* must rescan input for next token */
@@ -1313,7 +1315,7 @@ void freefa(fa *f)	/* free a finite automaton */
 	for (i = 0; i <= f->accept; i++) {
 		xfree(f->re[i].lfollow);
 		if (f->re[i].ltype == CCL || f->re[i].ltype == NCCL)
-			xfree((f->re[i].lval.np));
+			xfree(f->re[i].lval.np);
 	}
 	xfree(f->restr);
 	xfree(f->out);

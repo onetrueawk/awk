@@ -1,3 +1,10 @@
+2019-12-27         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* b.c (replace_repeat): Fix a bug whereby a{0,3} could match
+	four a's.  Thanks to Anonymous AWK fan <awkfan77@mailfence.com>
+	for the report. Also, minor code formatting cleanups.
+	* testdir/T.int-expr: New file.
+
 2019-12-11         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* README: Renamed to ...
