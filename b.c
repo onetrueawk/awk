@@ -180,7 +180,7 @@ fa *makedfa(const char *s, bool anchor)	/* returns dfa for reg expr s */
 }
 
 fa *mkdfa(const char *s, bool anchor)	/* does the real work of making a dfa */
-				/* anchor = 1 for anchored matches, else 0 */
+				/* anchor = true for anchored matches, else false */
 {
 	Node *p, *p1;
 	fa *f;
@@ -223,17 +223,17 @@ int makeinit(fa *f, bool anchor)
 	k = *(f->re[0].lfollow);
 	xfree(f->posns[2]);
 	f->posns[2] = intalloc(k + 1,  __func__);
-	for (i=0; i <= k; i++) {
+	for (i = 0; i <= k; i++) {
 		(f->posns[2])[i] = (f->re[0].lfollow)[i];
 	}
 	if ((f->posns[2])[1] == f->accept)
 		f->out[2] = 1;
-	for (i=0; i < NCHARS; i++)
+	for (i = 0; i < NCHARS; i++)
 		f->gototab[2][i] = 0;
 	f->curstat = cgoto(f, 2, HAT);
 	if (anchor) {
 		*f->posns[2] = k-1;	/* leave out position 0 */
-		for (i=0; i < k; i++) {
+		for (i = 0; i < k; i++) {
 			(f->posns[0])[i] = (f->posns[2])[i];
 		}
 
@@ -463,9 +463,10 @@ int first(Node *p)	/* collects initially active leaves of p into setvec */
 		}
 		if (type(p) == CCL && (*(char *) right(p)) == '\0')
 			return(0);		/* empty CCL */
-		else return(1);
+		return(1);
 	case PLUS:
-		if (first(left(p)) == 0) return(0);
+		if (first(left(p)) == 0)
+			return(0);
 		return(1);
 	case STAR:
 	case QUEST:
@@ -714,7 +715,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 			if (buf[--k] && ungetc(buf[k], f) == EOF)
 				FATAL("unable to ungetc '%c'", buf[k]);
 		while (k > i + patlen);
-		buf[k] = 0;
+		buf[k] = '\0';
 		return true;
 	}
 	else
