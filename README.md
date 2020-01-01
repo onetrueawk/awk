@@ -6,7 +6,7 @@ by Al Aho, Brian Kernighan, and Peter Weinberger
 
 ## Copyright
 
-Copyright (C) Lucent Technologies 1997
+Copyright (C) Lucent Technologies 1997<br/>
 All Rights Reserved
 
 Permission to use, copy, modify, and distribute this software and
@@ -76,10 +76,7 @@ This produces an executable `a.out`; you will eventually want to
 move this to some place like `/usr/bin/awk`.
 
 If your system does not have `yacc` or `bison` (the GNU
-equivalent), you must compile the pieces manually.  We have
-included `yacc` output in `ytab.c` and `ytab.h`.
-We have also included a copy of
-`proctab.c` so you do not need to run `maketab`.
+equivalent), you need to install one of them first.
 
 NOTE: This version uses ANSI C (C 99), as you should also.  We have
 compiled this without any changes using `gcc -Wall` and/or local C
@@ -96,4 +93,4 @@ More generally, turning on optimization can significantly improve
 `awk`'s speed, perhaps by 1/3 for highest levels.
 
 #### Last Updated
-Wed Dec 11 21:15:19 IST 2019
+Wed Jan  1 22:44:38 IST 2020
