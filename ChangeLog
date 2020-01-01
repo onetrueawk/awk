@@ -1,3 +1,9 @@
+2020-01-01         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* tran.c (syminit, arginit, envinit): Free sval member before
+	setting it. Thanks to valgrind.
+	* b.c: Small formatting cleanups in several routines.
+
 2019-12-27         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* b.c (replace_repeat): Fix a bug whereby a{0,3} could match
