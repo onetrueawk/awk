@@ -527,7 +527,7 @@ Cell *catstr(Cell *a, Cell *b) /* concatenate a and b */
 	if (p == NULL)
 		FATAL("out of space concatenating %s and %s", sa, sb);
 	snprintf(p, l, "%s%s", sa, sb);
-	c = setsymtab(p, p, 0.0, CON|STR|DONTFREE, symtab);
+	c = setsymtab(strcat(strdup(p), " "), p, 0.0, CON|STR|DONTFREE, symtab);
 	free(p);
 	return c;
 }
