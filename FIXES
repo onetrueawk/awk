@@ -25,6 +25,13 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+January 5, 2020:
+	Fix a bug in the concatentation of two string constants into
+	one done in the grammar.  Fixes GitHub issue #61.  Thanks
+	to GitHub user awkfan77 for pointing out the direction for
+	the fix.  New test T.concat added to the test suite.
+	Fix a few memory leaks reported by valgrind, as well.
+
 December 27, 2019:
 	Fix a bug whereby a{0,3} could match four a's.  Thanks to
 	"Anonymous AWK fan" for the report.
