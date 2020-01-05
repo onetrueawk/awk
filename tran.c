@@ -527,8 +527,15 @@ Cell *catstr(Cell *a, Cell *b) /* concatenate a and b */
 	if (p == NULL)
 		FATAL("out of space concatenating %s and %s", sa, sb);
 	snprintf(p, l, "%s%s", sa, sb);
-	c = setsymtab(p, p, 0.0, CON|STR|DONTFREE, symtab);
+	char *newbuf = malloc(strlen(p) + 2);
+	if (newbuf == NULL)
+		FATAL("out of space concatenating %s and %s", sa, sb);
+	// See string() in lex.c; a string "xx" is stored in the symbol
+	// table as "xx ".
+	sprintf(newbuf, "%s ", p);
+	c = setsymtab(newbuf, p, 0.0, CON|STR|DONTFREE, symtab);
 	free(p);
+	free(newbuf);
 	return c;
 }
 
