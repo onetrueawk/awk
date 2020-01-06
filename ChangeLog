@@ -1,3 +1,10 @@
+2020-01-06         Arnold D. Robbins     <arnold@skeeve.com>
+
+	Minor fixes.
+	* b.c (replace_repeat): Turn init_q back into an int.
+	* lex.c (string): Use \a instead of \007.
+	* tran.c (catstr): Use snprintf instead of sprintf.
+
 2020-01-01         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* tran.c (syminit, arginit, envinit): Free sval member before

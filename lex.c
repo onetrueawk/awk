@@ -390,7 +390,7 @@ int string(void)
 			case 'r': *bp++ = '\r'; break;
 			case 'b': *bp++ = '\b'; break;
 			case 'v': *bp++ = '\v'; break;
-			case 'a': *bp++ = '\007'; break;
+			case 'a': *bp++ = '\a'; break;
 			case '\\': *bp++ = '\\'; break;
 
 			case '0': case '1': case '2': /* octal: \d \dd \ddd */
