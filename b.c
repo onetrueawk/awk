@@ -965,7 +965,7 @@ replace_repeat(const uschar *reptok, int reptoklen, const uschar *atom,
 	basestr = buf;
 	prestr  = buf + prefix_length;
 	if (special_case == REPEAT_ZERO) {
-		prestr  -= atomlen;
+		prestr  -= prefix_length;
 		ret++;
 	}
 	return ret;
