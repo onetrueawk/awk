@@ -1,4 +1,4 @@
-echo T.concat: test constant string concatentation
+echo T.csconcat: test constant string concatentation
 
 awk=${awk-../a.out}
 
@@ -26,4 +26,4 @@ hello world
 hello world
 EOF
 
-diff foo1 foo2 || echo 'BAD: T.concat (1)'
+diff foo1 foo2 || echo 'BAD: T.csconcat (1)'
