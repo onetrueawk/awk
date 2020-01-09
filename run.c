@@ -1769,13 +1769,13 @@ Cell *closefile(Node **a, int n)
 	for (i = 0; i < nfiles; i++) {
 		if (files[i].fname && strcmp(x->sval, files[i].fname) == 0) {
 			if (ferror(files[i].fp))
-				WARNING( "i/o error occurred on %s", files[i].fname );
+				FATAL( "i/o error occurred on %s", files[i].fname );
 			if (files[i].mode == '|' || files[i].mode == LE)
 				stat = pclose(files[i].fp);
 			else
 				stat = fclose(files[i].fp);
 			if (stat == EOF)
-				WARNING( "i/o error occurred closing %s", files[i].fname );
+				FATAL( "i/o error occurred closing %s", files[i].fname );
 			if (i > 2)	/* don't do /dev/std... */
 				xfree(files[i].fname);
 			files[i].fname = NULL;	/* watch out for ref thru this */
@@ -1795,13 +1795,13 @@ void closeall(void)
 	for (i = 0; i < FOPEN_MAX; i++) {
 		if (files[i].fp) {
 			if (ferror(files[i].fp))
-				WARNING( "i/o error occurred on %s", files[i].fname );
+				FATAL( "i/o error occurred on %s", files[i].fname );
 			if (files[i].mode == '|' || files[i].mode == LE)
 				stat = pclose(files[i].fp);
 			else
 				stat = fclose(files[i].fp);
 			if (stat == EOF)
-				WARNING( "i/o error occurred while closing %s", files[i].fname );
+				FATAL( "i/o error occurred while closing %s", files[i].fname );
 		}
 	}
 }
