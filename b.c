@@ -909,7 +909,7 @@ replace_repeat(const uschar *reptok, int reptoklen, const uschar *atom,
 	int i, j;
 	uschar *buf = 0;
 	int ret = 1;
-	bool init_q = (firstnum == 0);		/* first added char will be ? */
+	int init_q = (firstnum == 0);		/* first added char will be ? */
 	int n_q_reps = secondnum-firstnum;	/* m>n, so reduce until {1,m-n} left  */
 	int prefix_length = reptok - basestr;	/* prefix includes first rep	*/
 	int suffix_length = strlen((const char *) reptok) - reptoklen;	/* string after rep specifier	*/
