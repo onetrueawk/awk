@@ -89,7 +89,7 @@ static Cell	exitcell	={ OJUMP, JEXIT, 0, 0, 0.0, NUM, NULL };
 Cell	*jexit	= &exitcell;
 static Cell	retcell		={ OJUMP, JRET, 0, 0, 0.0, NUM, NULL };
 Cell	*jret	= &retcell;
-static Cell	tempcell	={ OCELL, CTEMP, 0, "", 0.0, NUM|STR|DONTFREE, NULL };
+static Cell	tempcell	={ OCELL, CTEMP, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL };
 
 Node	*curnode = NULL;	/* the node being executed, for debugging */
 
@@ -223,7 +223,7 @@ struct Frame *fp = NULL;	/* frame pointer. bottom level unused */
 
 Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 {
-	static Cell newcopycell = { OCELL, CCOPY, 0, "", 0.0, NUM|STR|DONTFREE, NULL };
+	static Cell newcopycell = { OCELL, CCOPY, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL };
 	int i, ncall, ndef;
 	int freed = 0; /* handles potential double freeing when fcn & param share a tempcell */
 	Node *x;
@@ -1275,7 +1275,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
         if (arg3type == REGEXPR && strlen((char*)((fa*)a[2])->restr) == 0) {
 		/* split(s, a, //); have to arrange that it looks like empty sep */
 		arg3type = 0;
-		fs = "";
+		fs = EMPTY;
 		sep = 0;
 	}
 	if (*s != '\0' && (strlen(fs) > 1 || arg3type == REGEXPR)) {	/* reg expr */
