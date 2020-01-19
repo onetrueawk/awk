@@ -79,8 +79,6 @@ extern int	lineno;		/* line number in awk program */
 extern int	errorflag;	/* 1 if error has occurred */
 extern bool	donefld;	/* true if record broken into fields */
 extern bool	donerec;	/* true if record is valid (no fld has changed */
-extern char	inputFS[];	/* FS at time of input, for field splitting */
-
 extern int	dbg;
 
 extern const char *patbeg;	/* beginning of pattern matched */

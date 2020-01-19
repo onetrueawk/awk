@@ -41,7 +41,8 @@ char	*fields;
 int	fieldssize = RECSIZE;
 
 Cell	**fldtab;	/* pointers to Cells */
-char	inputFS[100] = " ";
+static size_t	len_inputFS = 0;
+static char	*inputFS = NULL; /* FS at time of input, for field splitting */
 
 #define	MAXFLD	2
 int	nfields	= MAXFLD;	/* last allocated slot for $i */
@@ -117,9 +118,17 @@ void initgetrec(void)
  */
 void savefs(void)
 {
-	if (strlen(getsval(fsloc)) >= sizeof (inputFS))
+	size_t len;
+	if ((len = strlen(getsval(fsloc))) < len_inputFS) {
+		strcpy(inputFS, *FS);	/* for subsequent field splitting */
+		return;
+	}
+
+	len_inputFS = len + 1;
+	inputFS = realloc(inputFS, len_inputFS);
+	if (inputFS == NULL)
 		FATAL("field separator %.10s... is too long", *FS);
-	strcpy(inputFS, *FS);
+	memcpy(inputFS, *FS, len_inputFS);
 }
 
 static bool firsttime = true;
