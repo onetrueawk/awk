@@ -1,3 +1,29 @@
+2020-01-06         Arnold D. Robbins     <arnold@skeeve.com>
+
+	Minor fixes.
+	* b.c (replace_repeat): Turn init_q back into an int.
+	* lex.c (string): Use \a instead of \007.
+	* tran.c (catstr): Use snprintf instead of sprintf.
+
+2020-01-01         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* tran.c (syminit, arginit, envinit): Free sval member before
+	setting it. Thanks to valgrind.
+	* b.c: Small formatting cleanups in several routines.
+
+2019-12-27         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* b.c (replace_repeat): Fix a bug whereby a{0,3} could match
+	four a's.  Thanks to Anonymous AWK fan <awkfan77@mailfence.com>
+	for the report. Also, minor code formatting cleanups.
+	* testdir/T.int-expr: New file.
+
+2019-12-11         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* README: Renamed to ...
+	* README.md: ... this. Cleaned up some as well,
+	including moving to Markdown.
+
 2019-11-08         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* test/T.chem: Use $oldawk instead of hardwiring 'awk'.

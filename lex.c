@@ -190,7 +190,9 @@ int yylex(void)
 		if (isalpha(c) || c == '_')
 			return word(buf);
 		if (isdigit(c)) {
-			yylval.cp = setsymtab(buf, tostring(buf), atof(buf), CON|NUM, symtab);
+			char *cp = tostring(buf);
+			yylval.cp = setsymtab(buf, cp, atof(buf), CON|NUM, symtab);
+			free(cp);
 			/* should this also have STR set? */
 			RET(NUMBER);
 		}
@@ -388,7 +390,7 @@ int string(void)
 			case 'r': *bp++ = '\r'; break;
 			case 'b': *bp++ = '\b'; break;
 			case 'v': *bp++ = '\v'; break;
-			case 'a': *bp++ = '\007'; break;
+			case 'a': *bp++ = '\a'; break;
 			case '\\': *bp++ = '\\'; break;
 
 			case '0': case '1': case '2': /* octal: \d \dd \ddd */
@@ -431,8 +433,9 @@ int string(void)
 	}
 	*bp = 0;
 	s = tostring(buf);
-	*bp++ = ' '; *bp++ = 0;
+	*bp++ = ' '; *bp++ = '\0';
 	yylval.cp = setsymtab(buf, s, 0.0, CON|STR|DONTFREE, symtab);
+	free(s);
 	RET(STRING);
 }
 
