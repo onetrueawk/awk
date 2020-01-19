@@ -502,6 +502,16 @@ functions may be called recursively.
 Parameters are local to the function; all other variables are global.
 Thus local variables may be created by providing excess parameters in
 the function definition.
+.SH ENVIRONMENT VARIABLES
+If
+.B POSIXLY_CORRECT
+is set in the environment, then
+.I awk
+follows the POSIX rules for
+.B sub
+and
+.B gsub
+with respect to consecutive backslashes and ampersands.
 .SH EXAMPLES
 .TP
 .EX
