@@ -1246,7 +1246,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 {
 	Cell *x = NULL, *y, *ap;
 	const char *s, *origs, *t;
-	char *fs = NULL, *origfs = NULL;
+	const char *fs = NULL;
+	char *origfs = NULL;
 	int sep;
 	char temp, num[50];
 	int n, tempstat, arg3type;
@@ -1258,7 +1259,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		fs = getsval(fsloc);
 	else if (arg3type == STRING) {	/* split(str,arr,"string") */
 		x = execute(a[2]);
-		origfs = fs = strdup(getsval(x));
+		fs = origfs = strdup(getsval(x));
 		tempfree(x);
 	} else if (arg3type == REGEXPR)
 		fs = "(regexpr)";	/* split(str,arr,/regexpr/) */
@@ -1276,7 +1277,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
         if (arg3type == REGEXPR && strlen((char*)((fa*)a[2])->restr) == 0) {
 		/* split(s, a, //); have to arrange that it looks like empty sep */
 		arg3type = 0;
-		fs = EMPTY;
+		fs = "";
 		sep = 0;
 	}
 	if (*s != '\0' && (strlen(fs) > 1 || arg3type == REGEXPR)) {	/* reg expr */
