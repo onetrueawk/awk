@@ -25,6 +25,15 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+January 19, 2020:
+	If POSIXLY_CORRECT is set in the environment, then sub and gsub
+	use POSIX rules for multiple backslashes.  This fixes Issue #66,
+	while maintaining backwards compatibility.
+
+January 9, 2020:
+	Input/output errors on closing files are now fatal instead of
+	mere warnings. Thanks to Martijn Dekker <martijn@inlv.org>.
+
 January 5, 2020:
 	Fix a bug in the concatentation of two string constants into
 	one done in the grammar.  Fixes GitHub issue #61.  Thanks

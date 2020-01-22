@@ -466,3 +466,8 @@ echo '' >foo0
 $awk 'END { print NF, $0 }' foo0 >foo1
 awk '{ print NF, $0 }' foo0| tail -1 >foo2
 cmp -s foo1 foo2 || echo 'BAD: T.misc END must preserve $0'
+
+# Check for nonzero exit status on I/O error.
+echo 'E 2' >foo1
+(trap '' PIPE; "$awk" 'BEGIN { print "hi"; }' 2>/dev/null; echo "E $?" >foo2) | :
+cmp -s foo1 foo2 || echo 'BAD: T.misc exit status on I/O error'

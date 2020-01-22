@@ -1,3 +1,8 @@
+2020-01-20         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* run.c (openfile): Set the close-on-exec flag for file
+	and pipe redirections that aren't stdin/stdout/stderr.
+
 2020-01-06         Arnold D. Robbins     <arnold@skeeve.com>
 
 	Minor fixes.
