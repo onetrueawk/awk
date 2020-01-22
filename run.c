@@ -25,6 +25,7 @@ THIS SOFTWARE.
 #define DEBUG
 #include <stdio.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <setjmp.h>
 #include <limits.h>
 #include <math.h>
@@ -1744,6 +1745,8 @@ FILE *openfile(int a, const char *us)
 		files[i].fname = tostring(s);
 		files[i].fp = fp;
 		files[i].mode = m;
+		if (fp != stdin && fp != stdout && fp != stderr)
+			(void) fcntl(fileno(fp), F_SETFD, FD_CLOEXEC);
 	}
 	return fp;
 }
