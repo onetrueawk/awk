@@ -90,7 +90,7 @@ static Cell	exitcell	={ OJUMP, JEXIT, 0, 0, 0.0, NUM, NULL };
 Cell	*jexit	= &exitcell;
 static Cell	retcell		={ OJUMP, JRET, 0, 0, 0.0, NUM, NULL };
 Cell	*jret	= &retcell;
-static Cell	tempcell	={ OCELL, CTEMP, 0, "", 0.0, NUM|STR|DONTFREE, NULL };
+static Cell	tempcell	={ OCELL, CTEMP, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL };
 
 Node	*curnode = NULL;	/* the node being executed, for debugging */
 
@@ -224,7 +224,7 @@ struct Frame *fp = NULL;	/* frame pointer. bottom level unused */
 
 Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 {
-	static Cell newcopycell = { OCELL, CCOPY, 0, "", 0.0, NUM|STR|DONTFREE, NULL };
+	static Cell newcopycell = { OCELL, CCOPY, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL };
 	int i, ncall, ndef;
 	int freed = 0; /* handles potential double freeing when fcn & param share a tempcell */
 	Node *x;
@@ -1246,7 +1246,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 {
 	Cell *x = NULL, *y, *ap;
 	const char *s, *origs, *t;
-	char *fs = NULL, *origfs = NULL;
+	const char *fs = NULL;
+	char *origfs = NULL;
 	int sep;
 	char temp, num[50];
 	int n, tempstat, arg3type;
@@ -1258,7 +1259,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		fs = getsval(fsloc);
 	else if (arg3type == STRING) {	/* split(str,arr,"string") */
 		x = execute(a[2]);
-		origfs = fs = strdup(getsval(x));
+		fs = origfs = strdup(getsval(x));
 		tempfree(x);
 	} else if (arg3type == REGEXPR)
 		fs = "(regexpr)";	/* split(str,arr,/regexpr/) */

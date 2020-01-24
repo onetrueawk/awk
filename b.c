@@ -873,7 +873,7 @@ int (xisblank)(int c)
 
 #endif
 
-struct charclass {
+static const struct charclass {
 	const char *cc_name;
 	int cc_namelen;
 	int (*cc_func)(int);
@@ -1017,7 +1017,7 @@ int relex(void)		/* lexical analyzer for reparse */
 	static uschar *buf = NULL;
 	static int bufsz = 100;
 	uschar *bp;
-	struct charclass *cc;
+	const struct charclass *cc;
 	int i;
 	int num, m;
 	bool commafound, digitfound;
