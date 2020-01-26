@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+January 24, 2020:
+	A number of small cleanups from Christos Zoulas.  Add the close
+	on exec flag to files/pipes opened for redirection; courtesy of
+	Arnold Robbins.
+
 January 19, 2020:
 	If POSIXLY_CORRECT is set in the environment, then sub and gsub
 	use POSIX rules for multiple backslashes.  This fixes Issue #66,

@@ -60,7 +60,7 @@ extern bool	safe;		/* false => unsafe, true => safe */
 #define	RECSIZE	(8 * 1024)	/* sets limit on records, fields, etc., etc. */
 extern int	recsize;	/* size of current record, orig RECSIZE */
 
-extern char	EMPTY[];
+extern char	EMPTY[];	/* this avoid -Wwritable-strings issues */
 extern char	**FS;
 extern char	**RS;
 extern char	**ORS;
