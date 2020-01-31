@@ -18,6 +18,34 @@ pat	ab{0}c
 ac	1
 abc	0
 
+pat	a(b{0})c
+ac	1
+abc	0
+
+pat	ab{0}*c
+ac	1
+abc	0
+
+pat	a(b{0})*c
+ac	1
+abc	0
+
+pat	ab{0,}c
+ac	1
+abc	1
+
+pat	a(b{0,})c
+ac	1
+abc	1
+
+pat	ab{0,}*c
+ac	1
+abc	1
+
+pat	a(b{0,})*c
+ac	1
+abc	1
+
 pat	ab{1}c
 ac	0
 abc	1
@@ -53,6 +81,20 @@ EOF
 cat << \EOF > foo1
 ac ~ /ab{0}c/ -> should be 1, is 1
 abc ~ /ab{0}c/ -> should be 0, is 0
+ac ~ /a(b{0})c/ -> should be 1, is 1
+abc ~ /a(b{0})c/ -> should be 0, is 0
+ac ~ /ab{0}*c/ -> should be 1, is 1
+abc ~ /ab{0}*c/ -> should be 0, is 0
+ac ~ /a(b{0})*c/ -> should be 1, is 1
+abc ~ /a(b{0})*c/ -> should be 0, is 0
+ac ~ /ab{0,}c/ -> should be 1, is 1
+abc ~ /ab{0,}c/ -> should be 1, is 1
+ac ~ /a(b{0,})c/ -> should be 1, is 1
+abc ~ /a(b{0,})c/ -> should be 1, is 1
+ac ~ /ab{0,}*c/ -> should be 1, is 1
+abc ~ /ab{0,}*c/ -> should be 1, is 1
+ac ~ /a(b{0,})*c/ -> should be 1, is 1
+abc ~ /a(b{0,})*c/ -> should be 1, is 1
 ac ~ /ab{1}c/ -> should be 0, is 0
 abc ~ /ab{1}c/ -> should be 1, is 1
 abbc ~ /ab{1}c/ -> should be 0, is 0
