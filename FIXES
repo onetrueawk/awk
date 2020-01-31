@@ -28,7 +28,8 @@ was sent to the printers in August, 1987.
 January 31, 2020:
 	Merge PR #70, which avoids use of variable length arrays. Thanks
 	to GitHub user michaelforney.  Fix issue #60 ({0} in interval
-	expressions doesn't work). Thanks to Arnold Robbins.
+	expressions doesn't work).  Also get all tests working again.
+	Thanks to Arnold Robbins.
 
 January 24, 2020:
 	A number of small cleanups from Christos Zoulas.  Add the close
