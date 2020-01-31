@@ -382,7 +382,7 @@ $awk 'BEGIN \
 		print "hello, world"
 	}
 }}}' >foo1 2>foo2
-grep 'source line 5' foo2 >/dev/null 2>&1 || echo 'BAD: T.misc continuation line number'
+grep 'source line 4' foo2 >/dev/null 2>&1 || echo 'BAD: T.misc continuation line number'
 
 
 echo 111 222 333 >foo

@@ -219,6 +219,11 @@ int yylex(void)
 			while ((c = input()) != '\n' && c != 0)
 				;
 			unput(c);
+			/*
+			 * Next line is a hack, itcompensates for
+			 * unput's treatment of \n.
+			 */
+			lineno++;
 			break;
 		case ';':
 			RET(';');
