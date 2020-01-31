@@ -263,6 +263,8 @@ void penter(Node *p)	/* set up parent pointers and leaf indices */
 		parent(left(p)) = p;
 		parent(right(p)) = p;
 		break;
+	case ZERO:
+		break;
 	default:	/* can't happen */
 		FATAL("can't happen: unknown type %d in penter", type(p));
 		break;
@@ -277,6 +279,7 @@ void freetr(Node *p)	/* free parse tree */
 		xfree(p);
 		break;
 	UNARY
+	case ZERO:
 		freetr(left(p));
 		xfree(p);
 		break;
@@ -436,6 +439,8 @@ void cfoll(fa *f, Node *v)	/* enter follow set of each leaf of vertex v into lfo
 		cfoll(f,left(v));
 		cfoll(f,right(v));
 		break;
+	case ZERO:
+		break;
 	default:	/* can't happen */
 		FATAL("can't happen: unknown type %d in cfoll", type(v));
 	}
@@ -479,6 +484,8 @@ int first(Node *p)	/* collects initially active leaves of p into setvec */
 		b = first(right(p));
 		if (first(left(p)) == 0 || b == 0) return(0);
 		return(1);
+	case ZERO:
+		return 0;
 	}
 	FATAL("can't happen: unknown type %d in first", type(p));	/* can't happen */
 	return(-1);
@@ -838,6 +845,9 @@ Node *unary(Node *np)
 	case QUEST:
 		rtok = relex();
 		return (unary(op2(QUEST, np, NIL)));
+	case ZERO:
+		rtok = relex();
+		return (unary(op2(ZERO, np, NIL)));
 	default:
 		return (np);
 	}
@@ -1191,7 +1201,7 @@ rescan:
 				if (repeat(starttok, prestr-starttok, lastatom,
 					   startreptok - lastatom, n, m) > 0) {
 					if (n == 0 && m == 0) {
-						return EMPTYRE;
+						return ZERO;
 					}
 					/* must rescan input for next token */
 					goto rescan;
