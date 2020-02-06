@@ -1850,23 +1850,24 @@ const char *filename(FILE *fp)
 
 void closeall(void)
 {
-	int i, stat;
+	size_t i;
+	bool stat = false;
 
-	for (i = 0; i < FOPEN_MAX; i++) {
-		if (files[i].fp) {
-			if (ferror(files[i].fp))
-				FATAL( "i/o error occurred on %s", files[i].fname );
-			if (files[i].mode == '|' || files[i].mode == LE)
-				stat = pclose(files[i].fp);
-			else
-				stat = fclose(files[i].fp);
-			if (stat == EOF)
-				FATAL( "i/o error occurred while closing %s", files[i].fname );
-		}
+	for (i = 0; i < nfiles; i++) {
+		if (! files[i].fp)
+			continue;
+		if (ferror(files[i].fp))
+			FATAL( "i/o error occurred on %s", files[i].fname );
+		if (files[i].mode == '|' || files[i].mode == LE)
+			stat = pclose(files[i].fp) == -1;
+		else
+			stat = fclose(files[i].fp) == EOF;
+		if (stat)
+			FATAL( "i/o error occurred while closing %s", files[i].fname );
 	}
 }
 
-void flush_all(void)
+static void flush_all(void)
 {
 	int i;
 
