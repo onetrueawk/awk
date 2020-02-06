@@ -29,6 +29,14 @@ $awk '{ printf("%s|%s|%s\n", tolower($0), toupper($0), $0)}' >foo1
 echo 'hello, world!|HELLO, WORLD!|hello, WORLD!' >foo2
 diff foo1 foo2 || echo 'BAD: T.builtin (toupper/tolower)'
 
+
+if locale -a | grep -qsi de_DE.UTF-8; then
+	(export LANG=de_DE.UTF-8 && echo 'Dürst' |
+	$awk '{ printf("%s|%s|%s\n", tolower($0), toupper($0), $0)}') >foo1
+	echo 'dürst|DÜRST|Dürst' >foo2
+	diff foo1 foo2 || echo 'BAD: T.builtin (toupper/tolower) for utf-8'
+fi
+
 $awk 'BEGIN {
 	j = 1; sprintf("%d", 99, ++j)	# does j get incremented?
 	if (j != 2)
