@@ -1858,9 +1858,8 @@ void closeall(void)
 			continue;
 		if (ferror(files[i].fp))
 			FATAL("i/o error occurred on %s", files[i].fname);
-		if (i == 0)
-			stat = fpurge(files[i].fp) == EOF;
-		else if (i <= 2)
+
+		if (i > 0 && i < 3)
 			stat = fflush(files[i].fp) == EOF;
 		else if (files[i].mode == '|' || files[i].mode == LE)
 			stat = pclose(files[i].fp) == -1;
