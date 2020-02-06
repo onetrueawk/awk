@@ -795,8 +795,8 @@ Cell *sindex(Node **a, int nnn)		/* index(a[0], a[1]) */
 
 	z = gettemp();
 	for (p1 = s1; *p1 != '\0'; p1++) {
-		for (q=p1, p2=s2; *p2 != '\0' && *q == *p2; q++, p2++)
-			;
+		for (q = p1, p2 = s2; *p2 != '\0' && *q == *p2; q++, p2++)
+			continue;
 		if (*p2 == '\0') {
 			v = (Awkfloat) (p1 - s1 + 1);	/* origin 1 */
 			break;
@@ -1303,7 +1303,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 					setsymtab(num, s, 0.0, STR, (Array *) ap->sval);
 				setptr(patbeg, temp);
 				s = patbeg + patlen;
-				if (*(patbeg+patlen-1) == 0 || *s == 0) {
+				if (*(patbeg+patlen-1) == '\0' || *s == '\0') {
 					n++;
 					snprintf(num, sizeof(num), "%d", n);
 					setsymtab(num, "", 0.0, STR, (Array *) ap->sval);
@@ -1324,15 +1324,16 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		pfa = NULL;
 	} else if (sep == ' ') {
 		for (n = 0; ; ) {
-			while (*s == ' ' || *s == '\t' || *s == '\n')
+#define ISWS(c)	((c) == ' ' || (c) == '\t' || (c) == '\n')
+			while (ISWS(*s))
 				s++;
-			if (*s == 0)
+			if (*s == '\0')
 				break;
 			n++;
 			t = s;
 			do
 				s++;
-			while (*s!=' ' && *s!='\t' && *s!='\n' && *s!='\0');
+			while (*s != '\0' && !ISWS(*s));
 			temp = *s;
 			setptr(s, '\0');
 			snprintf(num, sizeof(num), "%d", n);
@@ -1341,22 +1342,22 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			else
 				setsymtab(num, t, 0.0, STR, (Array *) ap->sval);
 			setptr(s, temp);
-			if (*s != 0)
+			if (*s != '\0')
 				s++;
 		}
 	} else if (sep == 0) {	/* new: split(s, a, "") => 1 char/elem */
-		for (n = 0; *s != 0; s++) {
+		for (n = 0; *s != '\0'; s++) {
 			char buf[2];
 			n++;
 			snprintf(num, sizeof(num), "%d", n);
 			buf[0] = *s;
-			buf[1] = 0;
+			buf[1] = '\0';
 			if (isdigit((uschar)buf[0]))
 				setsymtab(num, buf, atof(buf), STR|NUM, (Array *) ap->sval);
 			else
 				setsymtab(num, buf, 0.0, STR, (Array *) ap->sval);
 		}
-	} else if (*s != 0) {
+	} else if (*s != '\0') {
 		for (;;) {
 			n++;
 			t = s;
@@ -1370,7 +1371,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			else
 				setsymtab(num, t, 0.0, STR, (Array *) ap->sval);
 			setptr(s, temp);
-			if (*s++ == 0)
+			if (*s++ == '\0')
 				break;
 		}
 	}
@@ -1546,7 +1547,7 @@ static char *nawk_convert(const char *s, int (*fun_c)(int),
 			pbuf += n;
 		}
 
-		*pbuf = 0;
+		*pbuf = '\0';
 
 		if (n)
 			FATAL("illegal byte sequence %s", s);
@@ -1910,7 +1911,7 @@ Cell *sub(Node **a, int nnn)	/* substitute command */
 		while (sptr < patbeg)
 			*pb++ = *sptr++;
 		sptr = getsval(y);
-		while (*sptr != 0) {
+		while (*sptr != '\0') {
 			adjbuf(&buf, &bufsz, 5+pb-buf, recsize, &pb, "sub");
 			if (*sptr == '\\') {
 				backsub(&pb, &sptr);
@@ -1928,8 +1929,8 @@ Cell *sub(Node **a, int nnn)	/* substitute command */
 		sptr = patbeg + patlen;
 		if ((patlen == 0 && *patbeg) || (patlen && *(sptr-1))) {
 			adjbuf(&buf, &bufsz, 1+strlen(sptr)+pb-buf, 0, &pb, "sub");
-			while ((*pb++ = *sptr++) != 0)
-				;
+			while ((*pb++ = *sptr++) != '\0')
+				continue;
 		}
 		if (pb > buf + bufsz)
 			FATAL("sub result2 %.30s too big; can't happen", buf);
@@ -1972,11 +1973,11 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 		pb = buf;
 		rptr = getsval(y);
 		do {
-			if (patlen == 0 && *patbeg != 0) {	/* matched empty string */
+			if (patlen == 0 && *patbeg != '\0') {	/* matched empty string */
 				if (mflag == 0) {	/* can replace empty */
 					num++;
 					sptr = rptr;
-					while (*sptr != 0) {
+					while (*sptr != '\0') {
 						adjbuf(&buf, &bufsz, 5+pb-buf, recsize, &pb, "gsub");
 						if (*sptr == '\\') {
 							backsub(&pb, &sptr);
@@ -1989,7 +1990,7 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 							*pb++ = *sptr++;
 					}
 				}
-				if (*t == 0)	/* at end */
+				if (*t == '\0')	/* at end */
 					goto done;
 				adjbuf(&buf, &bufsz, 2+pb-buf, recsize, &pb, "gsub");
 				*pb++ = *t++;
@@ -2004,7 +2005,7 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 				while (sptr < patbeg)
 					*pb++ = *sptr++;
 				sptr = rptr;
-				while (*sptr != 0) {
+				while (*sptr != '\0') {
 					adjbuf(&buf, &bufsz, 5+pb-buf, recsize, &pb, "gsub");
 					if (*sptr == '\\') {
 						backsub(&pb, &sptr);
@@ -2017,7 +2018,7 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 						*pb++ = *sptr++;
 				}
 				t = patbeg + patlen;
-				if (patlen == 0 || *t == 0 || *(t-1) == 0)
+				if (patlen == 0 || *t == '\0' || *(t-1) == '\0')
 					goto done;
 				if (pb > buf + bufsz)
 					FATAL("gsub result1 %.30s too big; can't happen", buf);
@@ -2026,8 +2027,8 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 		} while (pmatch(pfa,t));
 		sptr = t;
 		adjbuf(&buf, &bufsz, 1+strlen(sptr)+pb-buf, 0, &pb, "gsub");
-		while ((*pb++ = *sptr++) != 0)
-			;
+		while ((*pb++ = *sptr++) != '\0')
+			continue;
 	done:	if (pb < buf + bufsz)
 			*pb = '\0';
 		else if (*(pb-1) != '\0')
