@@ -1844,7 +1844,7 @@ Cell *closefile(Node **a, int n)
 	}
 	tempfree(x);
 	x = gettemp();
-	setfval(x, (Awkfloat) stat ? -1 : 0);
+	setfval(x, (Awkfloat) (stat ? -1 : 0));
 	return(x);
 }
 
