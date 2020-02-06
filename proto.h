@@ -111,7 +111,6 @@ extern	double	getfval(Cell *);
 extern	char	*getsval(Cell *);
 extern	char	*getpssval(Cell *);     /* for print */
 extern	char	*tostring(const char *);
-extern	char	*tostringN(const char *, size_t);
 extern	char	*qstring(const char *, int);
 extern	Cell	*catstr(Cell *, Cell *);
 
@@ -136,12 +135,9 @@ extern	void	yyerror(const char *);
 extern	void	fpecatch(int);
 extern	void	bracecheck(void);
 extern	void	bcheck2(int, int, int);
-extern	void	SYNTAX(const char *, ...)
-    __attribute__((__format__(__printf__, 1, 2)));
-extern	void	FATAL(const char *, ...)
-    __attribute__((__format__(__printf__, 1, 2), __noreturn__));
-extern	void	WARNING(const char *, ...)
-    __attribute__((__format__(__printf__, 1, 2)));
+extern	void	SYNTAX(const char *, ...);
+extern	void	FATAL(const char *, ...) __attribute__((__noreturn__));
+extern	void	WARNING(const char *, ...);
 extern	void	error(void);
 extern	void	eprint(void);
 extern	void	bclass(int);

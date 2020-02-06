@@ -25,10 +25,6 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
-February 6, 2020:
-	Additional small cleanups from Christos Zoulas. awk is now
-	a little more robust about reporting I/O errors upon exit.
-
 January 31, 2020:
 	Merge PR #70, which avoids use of variable length arrays. Thanks
 	to GitHub user michaelforney.  Fix issue #60 ({0} in interval
