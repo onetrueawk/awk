@@ -29,6 +29,7 @@ THIS SOFTWARE.
 #include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <limits.h>
 #include "awk.h"
 #include "ytab.h"
 
@@ -343,14 +344,14 @@ void fldbld(void)	/* create fields from current record */
 		*fr = 0;
 	} else if ((sep = *inputFS) == 0) {		/* new: FS="" => 1 char/field */
 		for (i = 0; *r != '\0'; r += n) {
-			char buf[MB_CUR_MAX + 1];
+			char buf[MB_LEN_MAX + 1];
 
 			i++;
 			if (i > nfields)
 				growfldtab(i);
 			if (freeable(fldtab[i]))
 				xfree(fldtab[i]->sval);
-			n = mblen(r, MB_CUR_MAX);
+			n = mblen(r, MB_LEN_MAX);
 			if (n < 0)
 				n = 1;
 			memcpy(buf, r, n);
