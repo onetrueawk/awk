@@ -1817,35 +1817,36 @@ const char *filename(FILE *fp)
 	return "???";
 }
 
-Cell *closefile(Node **a, int n)
-{
-	Cell *x;
-	int i, stat;
-
-	x = execute(a[0]);
-	getsval(x);
-	stat = -1;
-	for (i = 0; i < nfiles; i++) {
-		if (files[i].fname && strcmp(x->sval, files[i].fname) == 0) {
-			if (ferror(files[i].fp))
-				FATAL( "i/o error occurred on %s", files[i].fname );
-			if (files[i].mode == '|' || files[i].mode == LE)
-				stat = pclose(files[i].fp);
-			else
-				stat = fclose(files[i].fp);
-			if (stat == EOF)
-				FATAL( "i/o error occurred closing %s", files[i].fname );
-			if (i > 2)	/* don't do /dev/std... */
-				xfree(files[i].fname);
-			files[i].fname = NULL;	/* watch out for ref thru this */
-			files[i].fp = NULL;
-		}
-	}
-	tempfree(x);
-	x = gettemp();
-	setfval(x, (Awkfloat) stat);
-	return(x);
-}
+ Cell *closefile(Node **a, int n)
+ {
+ 	Cell *x;
+	size_t i;
+	bool stat;
+ 
+ 	x = execute(a[0]);
+ 	getsval(x);
+	stat = true;
+ 	for (i = 0; i < nfiles; i++) {
+		if (!files[i].fname || strcmp(x->sval, files[i].fname) != 0)
+			continue;
+		if (ferror(files[i].fp))
+			FATAL("i/o error occurred on %s", files[i].fname);
+		if (files[i].mode == '|' || files[i].mode == LE)
+			stat = pclose(files[i].fp) == -1;
+		else
+			stat = fclose(files[i].fp) == EOF;
+		if (stat)
+			FATAL("i/o error occurred closing %s", files[i].fname);
+		if (i > 2)	/* don't do /dev/std... */
+			xfree(files[i].fname);
+		files[i].fname = NULL;	/* watch out for ref thru this */
+		files[i].fp = NULL;
+ 	}
+ 	tempfree(x);
+ 	x = gettemp();
+	setfval(x, (Awkfloat) (stat ? -1 : 0));
+ 	return(x);
+ }
 
 void closeall(void)
 {
