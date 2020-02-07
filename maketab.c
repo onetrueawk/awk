@@ -136,8 +136,12 @@ int main(int argc, char *argv[])
 	while (fgets(buf, sizeof buf, fp) != NULL) {
 		// 199 is sizeof(def) - 1
 		n = sscanf(buf, "%1c %199s %199s %d", &c, def, name, &tok);
-		if (c != '#' || (n != 4 && strcmp(def,"define") != 0))	/* not a valid #define */
-			continue;
+		if (c != '#' || (n != 4 && strcmp(def, "define") != 0)) {
+			/* not a valid #define, bison uses enums now */
+			n = sscanf(buf, "%199s = %d,\n", name, &tok);
+			if (n != 2)
+				continue;
+		}
 		if (strcmp(name, "YYSTYPE_IS_DECLARED") == 0)
 			continue;
 		if (tok < FIRSTTOKEN || tok > LASTTOKEN) {
