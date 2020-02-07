@@ -135,7 +135,6 @@ extern	int	refldbld(const char *, const char *);
 extern	void	recbld(void);
 extern	Cell	*fieldadr(int);
 extern	void	yyerror(const char *);
-extern	void	fpecatch(int);
 extern	void	bracecheck(void);
 extern	void	bcheck2(int, int, int);
 extern	void	SYNTAX(const char *, ...)
