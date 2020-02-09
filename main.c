@@ -92,9 +92,8 @@ setfs(char *p)
 	/* wart: t=>\t */
 	if (p[0] == 't' && p[1] == '\0')
 		return "\t";
-	else
-	    if (p[0] != '\0')
-		    return p;
+	else if (p[0] != '\0')
+		return p;
 	return NULL;
 }
 
@@ -164,8 +163,7 @@ int main(int argc, char *argv[])
 			fn = getarg(&argc, &argv, "no program filename");
 			if (npfile >= maxpfile) {
 				maxpfile += 20;
-				pfile = realloc(pfile,
-				    maxpfile * sizeof(*pfile));
+				pfile = realloc(pfile, maxpfile * sizeof(*pfile));
 				if (pfile == NULL)
 					FATAL("error allocating space for "
 					    "-f options");
