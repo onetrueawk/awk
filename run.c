@@ -795,8 +795,8 @@ Cell *sindex(Node **a, int nnn)		/* index(a[0], a[1]) */
 
 	z = gettemp();
 	for (p1 = s1; *p1 != '\0'; p1++) {
-		for (q=p1, p2=s2; *p2 != '\0' && *q == *p2; q++, p2++)
-			;
+		for (q = p1, p2 = s2; *p2 != '\0' && *q == *p2; q++, p2++)
+			continue;
 		if (*p2 == '\0') {
 			v = (Awkfloat) (p1 - s1 + 1);	/* origin 1 */
 			break;
@@ -1303,7 +1303,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 					setsymtab(num, s, 0.0, STR, (Array *) ap->sval);
 				setptr(patbeg, temp);
 				s = patbeg + patlen;
-				if (*(patbeg+patlen-1) == 0 || *s == 0) {
+				if (*(patbeg+patlen-1) == '\0' || *s == '\0') {
 					n++;
 					snprintf(num, sizeof(num), "%d", n);
 					setsymtab(num, "", 0.0, STR, (Array *) ap->sval);
@@ -1324,7 +1324,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		pfa = NULL;
 	} else if (sep == ' ') {
 		for (n = 0; ; ) {
-			while (*s == ' ' || *s == '\t' || *s == '\n')
+#define ISWS(c)	((c) == ' ' || (c) == '\t' || (c) == '\n')
+			while (ISWS(*s))
 				s++;
 			if (*s == '\0')
 				break;
@@ -1332,7 +1333,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			t = s;
 			do
 				s++;
-			while (*s!=' ' && *s!='\t' && *s!='\n' && *s!='\0');
+			while (*s != '\0' && !ISWS(*s));
 			temp = *s;
 			setptr(s, '\0');
 			snprintf(num, sizeof(num), "%d", n);
@@ -1816,16 +1817,16 @@ const char *filename(FILE *fp)
 	return "???";
 }
 
-Cell *closefile(Node **a, int n)
-{
-	Cell *x;
+ Cell *closefile(Node **a, int n)
+ {
+ 	Cell *x;
 	size_t i;
 	bool stat;
-
-	x = execute(a[0]);
-	getsval(x);
+ 
+ 	x = execute(a[0]);
+ 	getsval(x);
 	stat = true;
-	for (i = 0; i < nfiles; i++) {
+ 	for (i = 0; i < nfiles; i++) {
 		if (!files[i].fname || strcmp(x->sval, files[i].fname) != 0)
 			continue;
 		if (ferror(files[i].fp))
@@ -1840,34 +1841,29 @@ Cell *closefile(Node **a, int n)
 			xfree(files[i].fname);
 		files[i].fname = NULL;	/* watch out for ref thru this */
 		files[i].fp = NULL;
-	}
-	tempfree(x);
-	x = gettemp();
+ 	}
+ 	tempfree(x);
+ 	x = gettemp();
 	setfval(x, (Awkfloat) (stat ? -1 : 0));
-	return(x);
-}
+ 	return(x);
+ }
 
 void closeall(void)
 {
 	size_t i;
-	bool stat;
+	bool stat = false;
 
 	for (i = 0; i < nfiles; i++) {
-		if (!files[i].fp)
+		if (! files[i].fp)
 			continue;
 		if (ferror(files[i].fp))
-			FATAL("i/o error occurred on %s", files[i].fname);
-		if (i == 0)
-			stat = fpurge(files[i].fp) == EOF;
-		else if (i <= 2)
-			stat = fflush(files[i].fp) == EOF;
-		else if (files[i].mode == '|' || files[i].mode == LE)
+			FATAL( "i/o error occurred on %s", files[i].fname );
+		if (files[i].mode == '|' || files[i].mode == LE)
 			stat = pclose(files[i].fp) == -1;
 		else
 			stat = fclose(files[i].fp) == EOF;
 		if (stat)
-			FATAL("i/o error occurred while closing %s",
-			    files[i].fname);
+			FATAL( "i/o error occurred while closing %s", files[i].fname );
 	}
 }
 

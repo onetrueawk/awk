@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20200131";
+const char	*version = "version 20200206";
 
 #define DEBUG
 #include <stdio.h>
@@ -45,13 +45,39 @@ char	*lexprog;	/* points to program argument if it exists */
 extern	int errorflag;	/* non-zero if any syntax errors; set by yyerror */
 enum compile_states	compile_time = ERROR_PRINTING;
 
-#define	MAX_PFILE	20	/* max number of -f's */
-
-char	*pfile[MAX_PFILE];	/* program filenames from -f's */
-int	npfile = 0;	/* number of filenames */
-int	curpfile = 0;	/* current filename */
+static char	**pfile;	/* program filenames from -f's */
+static size_t	maxpfile;	/* max program filename */
+static size_t	npfile;		/* number of filenames */
+static size_t	curpfile;	/* current filename */
 
 bool	safe = false;	/* true => "safe" mode */
+
+static __attribute__((__noreturn__)) void fpecatch(int n
+#ifdef SA_SIGINFO
+	, siginfo_t *si, void *uc
+#endif
+)
+ {
+#ifdef SA_SIGINFO
+	static const char *emsg[] = {
+	    [0] = "Unknown error",
+	    [FPE_INTDIV] = "Integer divide by zero",
+	    [FPE_INTOVF] = "Integer overflow",
+	    [FPE_FLTDIV] = "Floating point divide by zero",
+	    [FPE_FLTOVF] = "Floating point overflow",
+	    [FPE_FLTUND] = "Floating point underflow",
+	    [FPE_FLTRES] = "Floating point inexact result",
+	    [FPE_FLTINV] = "Invalid Floating point operation",
+	    [FPE_FLTSUB] = "Subscript out of range",
+	};
+#endif
+	FATAL("floating point exception"
+#ifdef SA_SIGINFO
+	    ": %s\n", (size_t)si->si_code < sizeof(emsg) / sizeof(emsg[0]) &&
+	    emsg[si->si_code] ? emsg[si->si_code] : emsg[0]
+#endif
+	    );
+}
 
 /* Can this work with recursive calls?  I don't think so.
 void segvcatch(int n)
@@ -60,9 +86,34 @@ void segvcatch(int n)
 }
 */
 
+static const char *
+setfs(char *p)
+{
+	/* wart: t=>\t */
+	if (p[0] == 't' && p[1] == '\0')
+		return "\t";
+	else if (p[0] != '\0')
+		return p;
+	return NULL;
+}
+
+static char *
+getarg(int *argc, char ***argv, const char *msg)
+{
+	if ((*argv)[1][2] != '\0') {	/* arg is -fsomething */
+		return &(*argv)[1][2];
+	} else {			/* arg is -f something */
+		(*argc)--; (*argv)++;
+		if (*argc <= 1)
+			FATAL("%s", msg);
+		return (*argv)[1];
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	const char *fs = NULL;
+	char *fn, *vn;
 
 	setlocale(LC_CTYPE, "");
 	setlocale(LC_NUMERIC, "C"); /* for parsing cmdline & prog */
@@ -73,19 +124,30 @@ int main(int argc, char *argv[])
 		  cmdname);
 		exit(1);
 	}
-	signal(SIGFPE, fpecatch);
+#ifdef SA_SIGINFO
+	{
+		struct sigaction sa;
+		sa.sa_sigaction = fpecatch;
+		sa.sa_flags = SA_SIGINFO;
+		sigemptyset(&sa.sa_mask);
+		(void)sigaction(SIGFPE, &sa, NULL);
+	}
+#else
+	(void)signal(SIGFPE, fpecatch);
+#endif
 	/*signal(SIGSEGV, segvcatch); experiment */
 
+	/* Set and keep track of the random seed */
 	srand_seed = 1;
 	srandom((unsigned long) srand_seed);
 
 	yyin = NULL;
 	symtab = makesymtab(NSYMTAB/NSYMTAB);
 	while (argc > 1 && argv[1][0] == '-' && argv[1][1] != '\0') {
-		if (strcmp(argv[1],"-version") == 0 || strcmp(argv[1],"--version") == 0) {
+		if (strcmp(argv[1], "-version") == 0 ||
+		    strcmp(argv[1], "--version") == 0) {
 			printf("awk %s\n", version);
-			exit(0);
-			break;
+			return 0;
 		}
 		if (strcmp(argv[1], "--") == 0) {	/* explicit end of args */
 			argc--;
@@ -98,50 +160,27 @@ int main(int argc, char *argv[])
 				safe = true;
 			break;
 		case 'f':	/* next argument is program filename */
-			if (argv[1][2] != 0) {  /* arg is -fsomething */
-				if (npfile >= MAX_PFILE - 1)
-					FATAL("too many -f options");
-				pfile[npfile++] = &argv[1][2];
-			} else {		/* arg is -f something */
-				argc--; argv++;
-				if (argc <= 1)
-					FATAL("no program filename");
-				if (npfile >= MAX_PFILE - 1)
-					FATAL("too many -f options");
-				pfile[npfile++] = argv[1];
-			}
-			break;
+			fn = getarg(&argc, &argv, "no program filename");
+			if (npfile >= maxpfile) {
+				maxpfile += 20;
+				pfile = realloc(pfile, maxpfile * sizeof(*pfile));
+				if (pfile == NULL)
+					FATAL("error allocating space for "
+					    "-f options");
+ 			}
+			pfile[npfile++] = fn;
+ 			break;
 		case 'F':	/* set field separator */
-			if (argv[1][2] != 0) {	/* arg is -Fsomething */
-				if (argv[1][2] == 't' && argv[1][3] == 0)	/* wart: t=>\t */
-					fs = "\t";
-				else if (argv[1][2] != 0)
-					fs = &argv[1][2];
-			} else {		/* arg is -F something */
-				argc--; argv++;
-				if (argc > 1 && argv[1][0] == 't' && argv[1][1] == 0)	/* wart: t=>\t */
-					fs = "\t";
-				else if (argc > 1 && argv[1][0] != 0)
-					fs = &argv[1][0];
-			}
-			if (fs == NULL || *fs == '\0')
+			fs = setfs(getarg(&argc, &argv, "no field separator"));
+			if (fs == NULL)
 				WARNING("field separator FS is empty");
 			break;
 		case 'v':	/* -v a=1 to be done NOW.  one -v for each */
-			if (argv[1][2] != 0) {  /* arg is -vsomething */
-				if (isclvar(&argv[1][2]))
-					setclvar(&argv[1][2]);
-				else
-					FATAL("invalid -v option argument: %s", &argv[1][2]);
-			} else {		/* arg is -v something */
-				argc--; argv++;
-				if (argc <= 1)
-					FATAL("no variable name");
-				if (isclvar(argv[1]))
-					setclvar(argv[1]);
-				else
-					FATAL("invalid -v option argument: %s", argv[1]);
-			}
+			vn = getarg(&argc, &argv, "no variable name");
+			if (isclvar(vn))
+				setclvar(vn);
+			else
+				FATAL("invalid -v option argument: %s", vn);
 			break;
 		case 'd':
 			dbg = atoi(&argv[1][2]);
