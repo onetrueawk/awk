@@ -139,24 +139,28 @@ int main(int argc, char *argv[])
 		if (tokentype != TOK_ENUM) {
 			n = sscanf(buf, "%1c %199s %199s %d", &c, def, name,
 			    &tok);
-			if ((c != '#' || (n != 4 && strcmp(def, "define") != 0))
-			    && tokentype != TOK_UNKNOWN)
+			if (c == '#' && n == 4 && strcmp(def, "define") == 0) {
+				tokentype = TOK_DEFINE;
+			} else if (tokentype != TOK_UNKNOWN) {
 				continue;
+			}
 		}
 		if (tokentype != TOK_DEFINE) {
 			/* not a valid #define, bison uses enums now */
 			n = sscanf(buf, "%199s = %d,\n", name, &tok);
 			if (n != 2)
 				continue;
+			tokentype = TOK_ENUM;
 		}
-		if (strcmp(name, "YYSTYPE_IS_DECLARED") == 0)
+		if (strcmp(name, "YYSTYPE_IS_DECLARED") == 0) {
+			tokentype = TOK_UNKNOWN;
 			continue;
+		}
 		if (tok < FIRSTTOKEN || tok > LASTTOKEN) {
+			tokentype = TOK_UNKNOWN;
 			/* fprintf(stderr, "maketab funny token %d %s ignored\n", tok, buf); */
 			continue;
 		}
-		if (tokentype == TOK_UNKNOWN)
-			tokentype = n == 2 ? TOK_ENUM : TOK_DEFINE;
 		names[tok-FIRSTTOKEN] = strdup(name);
 		if (names[tok-FIRSTTOKEN] == NULL) {
 			fprintf(stderr, "maketab out of space copying %s", name);
