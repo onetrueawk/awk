@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
 	char c;
 	FILE *fp;
 	char buf[200], name[200], def[200];
+	enum { TOK_UNKNOWN, TOK_ENUM, TOK_DEFINE } tokentype = TOK_UNKNOWN;
 
 	printf("#include <stdio.h>\n");
 	printf("#include \"awk.h\"\n");
@@ -135,12 +136,28 @@ int main(int argc, char *argv[])
 	i = 0;
 	while (fgets(buf, sizeof buf, fp) != NULL) {
 		// 199 is sizeof(def) - 1
-		n = sscanf(buf, "%1c %199s %199s %d", &c, def, name, &tok);
-		if (c != '#' || (n != 4 && strcmp(def,"define") != 0))	/* not a valid #define */
+		if (tokentype != TOK_ENUM) {
+			n = sscanf(buf, "%1c %199s %199s %d", &c, def, name,
+			    &tok);
+			if (c == '#' && n == 4 && strcmp(def, "define") == 0) {
+				tokentype = TOK_DEFINE;
+			} else if (tokentype != TOK_UNKNOWN) {
+				continue;
+			}
+		}
+		if (tokentype != TOK_DEFINE) {
+			/* not a valid #define, bison uses enums now */
+			n = sscanf(buf, "%199s = %d,\n", name, &tok);
+			if (n != 2)
+				continue;
+			tokentype = TOK_ENUM;
+		}
+		if (strcmp(name, "YYSTYPE_IS_DECLARED") == 0) {
+			tokentype = TOK_UNKNOWN;
 			continue;
-		if (strcmp(name, "YYSTYPE_IS_DECLARED") == 0)
-			continue;
+		}
 		if (tok < FIRSTTOKEN || tok > LASTTOKEN) {
+			tokentype = TOK_UNKNOWN;
 			/* fprintf(stderr, "maketab funny token %d %s ignored\n", tok, buf); */
 			continue;
 		}
