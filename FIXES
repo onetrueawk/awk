@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+February 18, 2020:
+	Additional cleanups from Christos Zoulas. It's no longer necessary
+	to use the -y flag to bison.
+
 February 6, 2020:
 	Additional small cleanups from Christos Zoulas. awk is now
 	a little more robust about reporting I/O errors upon exit.

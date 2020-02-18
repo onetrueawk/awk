@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20200206";
+const char	*version = "version 20200218";
 
 #define DEBUG
 #include <stdio.h>
@@ -57,24 +57,24 @@ static __attribute__((__noreturn__)) void fpecatch(int n
 	, siginfo_t *si, void *uc
 #endif
 )
- {
+{
 #ifdef SA_SIGINFO
 	static const char *emsg[] = {
-	    [0] = "Unknown error",
-	    [FPE_INTDIV] = "Integer divide by zero",
-	    [FPE_INTOVF] = "Integer overflow",
-	    [FPE_FLTDIV] = "Floating point divide by zero",
-	    [FPE_FLTOVF] = "Floating point overflow",
-	    [FPE_FLTUND] = "Floating point underflow",
-	    [FPE_FLTRES] = "Floating point inexact result",
-	    [FPE_FLTINV] = "Invalid Floating point operation",
-	    [FPE_FLTSUB] = "Subscript out of range",
+		[0] = "Unknown error",
+		[FPE_INTDIV] = "Integer divide by zero",
+		[FPE_INTOVF] = "Integer overflow",
+		[FPE_FLTDIV] = "Floating point divide by zero",
+		[FPE_FLTOVF] = "Floating point overflow",
+		[FPE_FLTUND] = "Floating point underflow",
+		[FPE_FLTRES] = "Floating point inexact result",
+		[FPE_FLTINV] = "Invalid Floating point operation",
+		[FPE_FLTSUB] = "Subscript out of range",
 	};
 #endif
 	FATAL("floating point exception"
 #ifdef SA_SIGINFO
-	    ": %s\n", (size_t)si->si_code < sizeof(emsg) / sizeof(emsg[0]) &&
-	    emsg[si->si_code] ? emsg[si->si_code] : emsg[0]
+		": %s", (size_t)si->si_code < sizeof(emsg) / sizeof(emsg[0]) &&
+		emsg[si->si_code] ? emsg[si->si_code] : emsg[0]
 #endif
 	    );
 }
@@ -144,8 +144,7 @@ int main(int argc, char *argv[])
 	yyin = NULL;
 	symtab = makesymtab(NSYMTAB/NSYMTAB);
 	while (argc > 1 && argv[1][0] == '-' && argv[1][1] != '\0') {
-		if (strcmp(argv[1], "-version") == 0 ||
-		    strcmp(argv[1], "--version") == 0) {
+		if (strcmp(argv[1], "-version") == 0 || strcmp(argv[1], "--version") == 0) {
 			printf("awk %s\n", version);
 			return 0;
 		}
@@ -165,8 +164,7 @@ int main(int argc, char *argv[])
 				maxpfile += 20;
 				pfile = realloc(pfile, maxpfile * sizeof(*pfile));
 				if (pfile == NULL)
-					FATAL("error allocating space for "
-					    "-f options");
+					FATAL("error allocating space for -f options");
  			}
 			pfile[npfile++] = fn;
  			break;

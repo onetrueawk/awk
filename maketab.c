@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 		if (tokentype != TOK_ENUM) {
 			n = sscanf(buf, "%1c %199s %199s %d", &c, def, name,
 			    &tok);
-			if (c == '#' && n == 4 && strcmp(def, "define") == 0) {
+			if (n == 4 && c == '#' && strcmp(def, "define") == 0) {
 				tokentype = TOK_DEFINE;
 			} else if (tokentype != TOK_UNKNOWN) {
 				continue;
