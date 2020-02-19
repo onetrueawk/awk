@@ -77,23 +77,23 @@ extern	Awkfloat	srand_seed;
 Node	*winner = NULL;	/* root of parse tree */
 Cell	*tmps;		/* free temporary cells for execution */
 
-static Cell	truecell	={ OBOOL, BTRUE, 0, 0, 1.0, NUM, NULL };
+static Cell	truecell	={ OBOOL, BTRUE, 0, 0, 1.0, NUM, NULL, NULL };
 Cell	*True	= &truecell;
-static Cell	falsecell	={ OBOOL, BFALSE, 0, 0, 0.0, NUM, NULL };
+static Cell	falsecell	={ OBOOL, BFALSE, 0, 0, 0.0, NUM, NULL, NULL };
 Cell	*False	= &falsecell;
-static Cell	breakcell	={ OJUMP, JBREAK, 0, 0, 0.0, NUM, NULL };
+static Cell	breakcell	={ OJUMP, JBREAK, 0, 0, 0.0, NUM, NULL, NULL };
 Cell	*jbreak	= &breakcell;
-static Cell	contcell	={ OJUMP, JCONT, 0, 0, 0.0, NUM, NULL };
+static Cell	contcell	={ OJUMP, JCONT, 0, 0, 0.0, NUM, NULL, NULL };
 Cell	*jcont	= &contcell;
-static Cell	nextcell	={ OJUMP, JNEXT, 0, 0, 0.0, NUM, NULL };
+static Cell	nextcell	={ OJUMP, JNEXT, 0, 0, 0.0, NUM, NULL, NULL };
 Cell	*jnext	= &nextcell;
-static Cell	nextfilecell	={ OJUMP, JNEXTFILE, 0, 0, 0.0, NUM, NULL };
+static Cell	nextfilecell	={ OJUMP, JNEXTFILE, 0, 0, 0.0, NUM, NULL, NULL };
 Cell	*jnextfile	= &nextfilecell;
-static Cell	exitcell	={ OJUMP, JEXIT, 0, 0, 0.0, NUM, NULL };
+static Cell	exitcell	={ OJUMP, JEXIT, 0, 0, 0.0, NUM, NULL, NULL };
 Cell	*jexit	= &exitcell;
-static Cell	retcell		={ OJUMP, JRET, 0, 0, 0.0, NUM, NULL };
+static Cell	retcell		={ OJUMP, JRET, 0, 0, 0.0, NUM, NULL, NULL };
 Cell	*jret	= &retcell;
-static Cell	tempcell	={ OCELL, CTEMP, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL };
+static Cell	tempcell	={ OCELL, CTEMP, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL, NULL };
 
 Node	*curnode = NULL;	/* the node being executed, for debugging */
 
@@ -226,7 +226,7 @@ struct Frame *frp = NULL;	/* frame pointer. bottom level unused */
 
 Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 {
-	static const Cell newcopycell = { OCELL, CCOPY, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL };
+	static const Cell newcopycell = { OCELL, CCOPY, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL, NULL };
 	int i, ncall, ndef;
 	int freed = 0; /* handles potential double freeing when fcn & param share a tempcell */
 	Node *x;
@@ -828,10 +828,10 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 	static bool have_a_format = false;
 
 	if (first) {
-		char buf[100];
+		char xbuf[100];
 
-		snprintf(buf, sizeof(buf), "%a", 42.0);
-		have_a_format = (strcmp(buf, "0x1.5p+5") == 0);
+		snprintf(xbuf, sizeof(xbuf), "%a", 42.0);
+		have_a_format = (strcmp(xbuf, "0x1.5p+5") == 0);
 		first = false;
 	}
 
@@ -1964,7 +1964,7 @@ void closeall(void)
 
 static void flush_all(void)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; i < nfiles; i++)
 		if (files[i].fp)
