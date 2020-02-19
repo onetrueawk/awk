@@ -122,7 +122,7 @@ extern	void	growfldtab(int n);
 extern	void	savefs(void);
 extern	int	getrec(char **, int *, bool);
 extern	void	nextfile(void);
-extern	int	readrec(char **, int *, FILE *);
+extern	int	readrec(char **buf, int *bufsize, FILE *inf);
 extern	char	*getargv(int);
 extern	void	setclvar(char *);
 extern	void	fldbld(void);
@@ -148,7 +148,7 @@ extern	double	errcheck(double, const char *);
 extern	int	isclvar(const char *);
 extern	int	is_number(const char *);
 
-extern	int	adjbuf(char **, int *, int, int, char **, const char *);
+extern	int	adjbuf(char **pb, int *sz, int min, int q, char **pbp, const char *what);
 extern	void	run(Node *);
 extern	Cell	*execute(Node *);
 extern	Cell	*program(Node **, int);
