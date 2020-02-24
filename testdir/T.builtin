@@ -35,6 +35,9 @@ if locale -a | grep -qsi de_DE.UTF-8; then
 	$awk '{ printf("%s|%s|%s\n", tolower($0), toupper($0), $0)}') >foo1
 	echo 'dürst|DÜRST|Dürst' >foo2
 	diff foo1 foo2 || echo 'BAD: T.builtin (toupper/tolower) for utf-8'
+	(export LC_NUMERIC=de_DE.UTF-8 && $awk 'BEGIN { print 0.01 }' /dev/null) >foo1
+	echo "0.01" >foo2
+	diff foo1 foo2 || echo 'BAD: LC_NUMERIC radix (.) handling' 
 fi
 
 $awk 'BEGIN {
