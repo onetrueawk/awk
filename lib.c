@@ -35,6 +35,7 @@ THIS SOFTWARE.
 
 char	EMPTY[] = { '\0' };
 FILE	*infile	= NULL;
+bool	innew;		/* true = infile has not been read by readrec */
 char	*file	= EMPTY;
 char	*record;
 int	recsize	= RECSIZE;
@@ -106,6 +107,7 @@ void initgetrec(void)
 		argno++;
 	}
 	infile = stdin;		/* no filenames, so use stdin */
+	innew = true;
 }
 
 /*
@@ -175,7 +177,9 @@ int getrec(char **pbuf, int *pbufsize, bool isrecord)	/* get next input record *
 				FATAL("can't open file %s", file);
 			setfval(fnrloc, 0.0);
 		}
-		c = readrec(&buf, &bufsize, infile);
+		c = readrec(&buf, &bufsize, infile, innew);
+		if (innew)
+			innew = false;
 		if (c != 0 || buf[0] != '\0') {	/* normal record */
 			if (isrecord) {
 				if (freeable(fldtab[0]))
@@ -213,7 +217,7 @@ void nextfile(void)
 	argno++;
 }
 
-int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf */
+int readrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag)	/* read one record into buf */
 {
 	int sep, c, isrec;
 	char *rr, *buf = *pbuf;
@@ -224,7 +228,14 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 		bool found;
 
 		fa *pfa = makedfa(rs, 1);
-		found = fnematch(pfa, inf, &buf, &bufsize, recsize);
+		if (newflag)
+			found = fnematch(pfa, inf, &buf, &bufsize, recsize);
+		else {
+			int tempstat = pfa->initstat;
+			pfa->initstat = 2;
+			found = fnematch(pfa, inf, &buf, &bufsize, recsize);
+			pfa->initstat = tempstat;
+		}
 		if (found)
 			setptr(patbeg, '\0');
 	} else {
