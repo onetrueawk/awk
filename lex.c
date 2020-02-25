@@ -30,7 +30,7 @@ THIS SOFTWARE.
 #include "ytab.h"
 
 extern YYSTYPE	yylval;
-extern int	infunc;
+extern bool	infunc;
 
 int	lineno	= 1;
 int	bracecnt = 0;
