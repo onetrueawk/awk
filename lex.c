@@ -30,7 +30,7 @@ THIS SOFTWARE.
 #include "ytab.h"
 
 extern YYSTYPE	yylval;
-extern int	infunc;
+extern bool	infunc;
 
 int	lineno	= 1;
 int	bracecnt = 0;
@@ -397,6 +397,7 @@ int string(void)
 		case '\\':
 			c = input();
 			switch (c) {
+			case '\n': break;
 			case '"': *bp++ = '"'; break;
 			case 'n': *bp++ = '\n'; break;
 			case 't': *bp++ = '\t'; break;

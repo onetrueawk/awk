@@ -35,6 +35,9 @@ if locale -a | grep -qsi de_DE.UTF-8; then
 	$awk '{ printf("%s|%s|%s\n", tolower($0), toupper($0), $0)}') >foo1
 	echo 'dürst|DÜRST|Dürst' >foo2
 	diff foo1 foo2 || echo 'BAD: T.builtin (toupper/tolower) for utf-8'
+	(export LC_NUMERIC=de_DE.UTF-8 && $awk 'BEGIN { print 0.01 }' /dev/null) >foo1
+	echo "0.01" >foo2
+	diff foo1 foo2 || echo 'BAD: T.builtin LC_NUMERIC radix (.) handling' 
 fi
 
 $awk 'BEGIN {
@@ -70,3 +73,18 @@ echo '1
 3' >foo1
 $awk '{ n = split($0, x); print length(x) }' <foo0 >foo2
 diff foo1 foo2 || echo 'BAD: T.builtin length array'
+
+# Test for backslash handling
+cat << \EOF >foo0
+BEGIN {
+    print "A\
+B";
+    print "CD"
+}
+EOF
+$awk -f foo0 /dev/null >foo1
+cat << \EOF >foo2
+AB
+CD
+EOF
+diff foo1 foo2 || echo 'BAD: T.builtin continuation handling (backslash)' 

@@ -405,6 +405,7 @@ Cell *awkgetline(Node **a, int n)	/* get next line from specific input */
 	char *buf;
 	int bufsize = recsize;
 	int mode;
+	bool newflag;
 
 	if ((buf = malloc(bufsize)) == NULL)
 		FATAL("out of memory in getline");
@@ -416,12 +417,12 @@ Cell *awkgetline(Node **a, int n)	/* get next line from specific input */
 		mode = ptoi(a[1]);
 		if (mode == '|')		/* input pipe */
 			mode = LE;	/* arbitrary flag */
-		fp = openfile(mode, getsval(x));
+		fp = openfile(mode, getsval(x), &newflag);
 		tempfree(x);
 		if (fp == NULL)
 			n = -1;
 		else
-			n = readrec(&buf, &bufsize, fp);
+			n = readrec(&buf, &bufsize, fp, newflag);
 		if (n <= 0) {
 			;
 		} else if (a[0] != NULL) {	/* getline var <file */
@@ -1718,7 +1719,7 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 		if (isrec(x) || strlen(getsval(x)) == 0) {
 			flush_all();	/* fflush() or fflush("") -> all */
 			u = 0;
-		} else if ((fp = openfile(FFLUSH, getsval(x))) == NULL)
+		} else if ((fp = openfile(FFLUSH, getsval(x), NULL)) == NULL)
 			u = EOF;
 		else
 			u = fflush(fp);
@@ -1813,7 +1814,7 @@ FILE *redirect(int a, Node *b)	/* set up all i/o redirections */
 
 	x = execute(b);
 	fname = getsval(x);
-	fp = openfile(a, fname);
+	fp = openfile(a, fname, NULL);
 	if (fp == NULL)
 		FATAL("can't open file %s", fname);
 	tempfree(x);
@@ -1845,7 +1846,7 @@ static void stdinit(void)	/* in case stdin, etc., are not constants */
 	files[2].mode = GT;
 }
 
-FILE *openfile(int a, const char *us)
+FILE *openfile(int a, const char *us, bool *pnewflag)
 {
 	const char *s = us;
 	size_t i;
@@ -1855,11 +1856,12 @@ FILE *openfile(int a, const char *us)
 	if (*s == '\0')
 		FATAL("null file name in print or getline");
 	for (i = 0; i < nfiles; i++)
-		if (files[i].fname && strcmp(s, files[i].fname) == 0) {
-			if (a == files[i].mode || (a==APPEND && files[i].mode==GT))
-				return files[i].fp;
-			if (a == FFLUSH)
-				return files[i].fp;
+		if (files[i].fname && strcmp(s, files[i].fname) == 0 &&
+		    (a == files[i].mode || (a==APPEND && files[i].mode==GT) ||
+		     a == FFLUSH)) {
+			if (pnewflag)
+				*pnewflag = false;
+			return files[i].fp;
 		}
 	if (a == FFLUSH)	/* didn't find it, so don't create it! */
 		return NULL;
@@ -1896,6 +1898,8 @@ FILE *openfile(int a, const char *us)
 		files[i].fname = tostring(s);
 		files[i].fp = fp;
 		files[i].mode = m;
+		if (pnewflag)
+			*pnewflag = true;
 		if (fp != stdin && fp != stdout && fp != stderr)
 			(void) fcntl(fileno(fp), F_SETFD, FD_CLOEXEC);
 	}
