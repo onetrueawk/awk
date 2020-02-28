@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20200219";
+const char	*version = "version 20200228";
 
 #define DEBUG
 #include <stdio.h>
@@ -214,6 +214,11 @@ int main(int argc, char *argv[])
 	if (!safe)
 		envinit(environ);
 	yyparse();
+#if 0
+	// Doing this would comply with POSIX, but is not compatible with
+	// other awks and with what most users expect. So comment it out.
+	setlocale(LC_NUMERIC, ""); /* back to whatever it is locally */
+#endif
 	if (fs)
 		*FS = qstring(fs, '\0');
 	   dprintf( ("errorflag=%d\n", errorflag) );
