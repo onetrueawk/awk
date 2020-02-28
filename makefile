@@ -22,6 +22,7 @@
 # THIS SOFTWARE.
 # ****************************************************************/
 
+CFLAGS = -fsanitize=address -O1 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
 CFLAGS = -g
 CFLAGS =
 CFLAGS = -O2
