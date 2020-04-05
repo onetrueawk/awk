@@ -52,7 +52,7 @@ static size_t	curpfile;	/* current filename */
 
 bool	safe = false;	/* true => "safe" mode */
 
-static __attribute__((__noreturn__)) void fpecatch(int n
+static noreturn void fpecatch(int n
 #ifdef SA_SIGINFO
 	, siginfo_t *si, void *uc
 #endif
