@@ -25,6 +25,7 @@ THIS SOFTWARE.
 #include <assert.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdnoreturn.h>
 
 typedef double	Awkfloat;
 

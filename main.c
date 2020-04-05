@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20200228";
+const char	*version = "version 20200405";
 
 #define DEBUG
 #include <stdio.h>
@@ -52,7 +52,7 @@ static size_t	curpfile;	/* current filename */
 
 bool	safe = false;	/* true => "safe" mode */
 
-static __attribute__((__noreturn__)) void fpecatch(int n
+static noreturn void fpecatch(int n
 #ifdef SA_SIGINFO
 	, siginfo_t *si, void *uc
 #endif
