@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+April 16, 2020:
+	Handle old compilers that don't support C11 (for noreturn).
+	Thanks to Arnold Robbins.
+
 April 5, 2020:
 	Use <stdnoreturn.h> and noreturn instead of GCC attributes.
 	Thanks to GitHub user awkfan77. Closes PR #77.
