@@ -25,7 +25,11 @@ THIS SOFTWARE.
 #include <assert.h>
 #include <stdint.h>
 #include <stdbool.h>
+#if __STDC__ <= 199901L
+#define noreturn
+#else
 #include <stdnoreturn.h>
+#endif
 
 typedef double	Awkfloat;
 
