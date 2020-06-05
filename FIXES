@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+June 5, 2020:
+	In fldbld(), make sure that inputFS is set before trying to
+	use it. Thanks to  Steffen Nurpmeso <steffen@sdaoden.eu>
+	for the report.
+
 May 5, 2020:
 	Fix checks for compilers that can handle noreturn. Thanks to
 	GitHub user enh-google for pointing it out. Closes Issue #79.
