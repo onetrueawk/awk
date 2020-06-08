@@ -515,6 +515,7 @@ void startreg(void)	/* next call to yylex will return a regular expression */
 int regexpr(void)
 {
 	int c;
+	bool inclass = false;
 	static char *buf = NULL;
 	static int bufsz = 500;
 	char *bp;
@@ -522,7 +523,7 @@ int regexpr(void)
 	if (buf == NULL && (buf = malloc(bufsz)) == NULL)
 		FATAL("out of space for rex expr");
 	bp = buf;
-	for ( ; (c = input()) != '/' && c != 0; ) {
+	for ( ; ((c = input()) != '/' || inclass) && c != 0; ) {
 		if (!adjbuf(&buf, &bufsz, bp-buf+3, 500, &bp, "regexpr"))
 			FATAL("out of space for reg expr %.10s...", buf);
 		if (c == '\n') {
@@ -534,6 +535,10 @@ int regexpr(void)
 			*bp++ = '\\';
 			*bp++ = input();
 		} else {
+			if (c == '[')
+				inclass = true;
+			else if (c == ']')
+				inclass = false;
 			*bp++ = c;
 		}
 	}
