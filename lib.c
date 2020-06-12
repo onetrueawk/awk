@@ -758,6 +758,9 @@ int isclvar(const char *s)	/* is s of form var=something ? */
 /* strtod is supposed to be a proper test of what's a valid number */
 /* appears to be broken in gcc on linux: thinks 0x123 is a valid FP number */
 /* wrong: violates 4.10.1.4 of ansi C standard */
+/* well, not quite. As of C99, hex floating point is allowed. so this is
+ * a bit of a mess.
+ */
 
 #include <math.h>
 int is_number(const char *s)
@@ -768,7 +771,8 @@ int is_number(const char *s)
 	r = strtod(s, &ep);
 	if (ep == s || r == HUGE_VAL || errno == ERANGE)
 		return 0;
-	while (*ep == ' ' || *ep == '\t' || *ep == '\n')
+	/* allow \r as well. windows files aren't going to go away. */
+	while (*ep == ' ' || *ep == '\t' || *ep == '\n' || *ep == '\r')
 		ep++;
 	if (*ep == '\0')
 		return 1;

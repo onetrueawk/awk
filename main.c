@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20200605";
+const char	*version = "version 20200612";
 
 #define DEBUG
 #include <stdio.h>
