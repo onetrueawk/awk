@@ -1105,6 +1105,12 @@ rescan:
 						if (!adjbuf((char **) &buf, &bufsz, bp-buf+1, 100, (char **) &bp, "relex2"))
 						    FATAL("out of space for reg expr %.10s...", lastre);
 						if (cc->cc_func(i)) {
+							/* escape backslash */
+							if (i == '\\') {
+								*bp++ = '\\';
+								n++;
+							}
+
 							*bp++ = i;
 							n++;
 						}
