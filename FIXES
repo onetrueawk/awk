@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+June 25, 2020:
+	Merge PRs 82 and 84. The latter fixes issue #83. Thanks to
+	Todd Miller and awkfan77.
+
 June 12, 2020:
 	Clear errno before calling errcheck to avoid any spurious errors
 	left over from previous calls that may have set it. Thanks to
