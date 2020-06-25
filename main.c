@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 				exit(0);
 			FATAL("no program given");
 		}
-		   dprintf( ("program = |%s|\n", argv[1]) );
+		DPRINTF("program = |%s|\n", argv[1]);
 		lexprog = argv[1];
 		argc--;
 		argv++;
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 	syminit();
 	compile_time = COMPILING;
 	argv[0] = cmdname;	/* put prog name at front of arglist */
-	   dprintf( ("argc=%d, argv[0]=%s\n", argc, argv[0]) );
+	DPRINTF("argc=%d, argv[0]=%s\n", argc, argv[0]);
 	arginit(argc, argv);
 	if (!safe)
 		envinit(environ);
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
 #endif
 	if (fs)
 		*FS = qstring(fs, '\0');
-	   dprintf( ("errorflag=%d\n", errorflag) );
+	DPRINTF("errorflag=%d\n", errorflag);
 	if (errorflag == 0) {
 		compile_time = RUNNING;
 		run(winner);
