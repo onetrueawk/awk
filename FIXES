@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+July 2, 2020:
+	Merge PRs 85 and 86 which fix regressions. Thanks to
+	Tim van der Molen for the fixes.
+
 June 25, 2020:
 	Merge PRs 82 and 84. The latter fixes issue #83. Thanks to
 	Todd Miller and awkfan77.
