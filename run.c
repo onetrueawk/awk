@@ -472,7 +472,7 @@ makearraystring(Node *p, const char *func)
 {
 	char *buf;
 	int bufsz = recsize;
-	size_t blen, seplen;
+	size_t blen;
 
 	if ((buf = malloc(bufsz)) == NULL) {
 		FATAL("%s: out of memory", func);
@@ -480,11 +480,11 @@ makearraystring(Node *p, const char *func)
 
 	blen = 0;
 	buf[blen] = '\0';
-	seplen = strlen(getsval(subseploc));
 
 	for (; p; p = p->nnext) {
 		Cell *x = execute(p);	/* expr */
 		char *s = getsval(x);
+		size_t seplen = strlen(getsval(subseploc));
 		size_t nsub = p->nnext ? seplen : 0;
 		size_t slen = strlen(s);
 		size_t tlen = blen + slen + nsub;
@@ -1192,12 +1192,12 @@ Cell *cat(Node **a, int q)	/* a[0] cat a[1] */
 
 	x = execute(a[0]);
 	n1 = strlen(getsval(x));
+	adjbuf(&s, &ssz, n1, recsize, 0, "cat1");
+	memcpy(s, x->sval, n1);
 
 	y = execute(a[1]);
 	n2 = strlen(getsval(y));
-
-	adjbuf(&s, &ssz, n1 + n2 + 1, recsize, 0, "cat");
-	memcpy(s, x->sval, n1);
+	adjbuf(&s, &ssz, n1 + n2 + 1, recsize, 0, "cat2");
 	memcpy(s + n1, y->sval, n2);
 	s[n1 + n2] = '\0';
 
