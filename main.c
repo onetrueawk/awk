@@ -256,7 +256,7 @@ int pgetc(void)		/* get 1 character from awk program */
 char *cursource(void)	/* current source file name */
 {
 	if (npfile > 0)
-		return pfile[curpfile];
+		return pfile[curpfile < npfile ? curpfile : curpfile - 1];
 	else
 		return NULL;
 }
