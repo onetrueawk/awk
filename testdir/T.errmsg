@@ -186,7 +186,7 @@ BEGIN { foo() }
 
 this should print a BAD message
 BEGIN { print }
-!!!
+!!!!
 
 
 echo '	running tests in foo.sh'
@@ -213,5 +213,3 @@ grep 'print | is unsafe' foo2 >/dev/null || echo 'BAD: T.errmsg print | unsafe'
 
 $awk -safe 'BEGIN {system("date")}' >foo 2>foo2
 grep 'system is unsafe' foo2 >/dev/null || echo 'BAD: T.errmsg system unsafe'
-
-!!!!
