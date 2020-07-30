@@ -669,12 +669,11 @@ void error()
 			fprintf(stderr, " source line number %d", curnode->lineno);
 		else if (lineno)
 			fprintf(stderr, " source line number %d", lineno);
+		if (compile_time == COMPILING && cursource() != NULL)
+			fprintf(stderr, " source file %s", cursource());
+		fprintf(stderr, "\n");
+		eprint();
 	}
-
-	if (compile_time == COMPILING && cursource() != NULL)
-		fprintf(stderr, " source file %s", cursource());
-	fprintf(stderr, "\n");
-	eprint();
 }
 
 void eprint(void)	/* try to print context around error */
