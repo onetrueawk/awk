@@ -27,7 +27,7 @@ THIS SOFTWARE.
 #include <string.h>
 #include <ctype.h>
 #include "awk.h"
-#include "ytab.h"
+#include "awkgram.tab.h"
 
 extern YYSTYPE	yylval;
 extern bool	infunc;

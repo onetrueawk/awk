@@ -31,7 +31,6 @@ THIS SOFTWARE.
 #include <stdarg.h>
 #include <limits.h>
 #include "awk.h"
-#include "ytab.h"
 
 char	EMPTY[] = { '\0' };
 FILE	*infile	= NULL;
