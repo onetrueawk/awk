@@ -1,3 +1,15 @@
+2020-07-30         Arnold D. Robbins     <arnold@skeeve.com>
+
+	By fiat, we use bison for $(YACC). Trying to accommodate
+	different versions didn't work.
+
+	* makefile: Significant cleanup. Replace all ytab* references
+	with awkgram.tab.* and simplify definition of YACC.
+	* .gitignore: Remove ytab* references.
+	* b.c, lex.c, maketab.c, parse.c, run.c: Replace include of ytab.h
+	with awkgram.tab.h.
+	* lib.c, main.c, tran.c: Remove include of ytab.h, wasn't needed.
+
 2020-01-20         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* run.c (openfile): Set the close-on-exec flag for file

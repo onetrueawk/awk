@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20200702";
+const char	*version = "version 20200730";
 
 #define DEBUG
 #include <stdio.h>
@@ -32,7 +32,6 @@ const char	*version = "version 20200702";
 #include <string.h>
 #include <signal.h>
 #include "awk.h"
-#include "ytab.h"
 
 extern	char	**environ;
 extern	int	nfields;
@@ -256,7 +255,7 @@ int pgetc(void)		/* get 1 character from awk program */
 char *cursource(void)	/* current source file name */
 {
 	if (npfile > 0)
-		return pfile[curpfile];
+		return pfile[curpfile < npfile ? curpfile : curpfile - 1];
 	else
 		return NULL;
 }

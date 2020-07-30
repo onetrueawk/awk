@@ -38,7 +38,7 @@ THIS SOFTWARE.
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "awk.h"
-#include "ytab.h"
+#include "awkgram.tab.h"
 
 static void stdinit(void);
 static void flush_all(void);
@@ -1941,7 +1941,10 @@ const char *filename(FILE *fp)
 			continue;
 		if (ferror(files[i].fp))
 			FATAL("i/o error occurred on %s", files[i].fname);
-		if (files[i].mode == '|' || files[i].mode == LE)
+		if (files[i].fp == stdin || files[i].fp == stdout ||
+		    files[i].fp == stderr)
+			stat = freopen("/dev/null", "r+", files[i].fp) == NULL;
+		else if (files[i].mode == '|' || files[i].mode == LE)
 			stat = pclose(files[i].fp) == -1;
 		else
 			stat = fclose(files[i].fp) == EOF;
@@ -1951,6 +1954,7 @@ const char *filename(FILE *fp)
 			xfree(files[i].fname);
 		files[i].fname = NULL;	/* watch out for ref thru this */
 		files[i].fp = NULL;
+		break;
  	}
  	tempfree(x);
  	x = gettemp();
@@ -1968,8 +1972,12 @@ void closeall(void)
 			continue;
 		if (ferror(files[i].fp))
 			FATAL( "i/o error occurred on %s", files[i].fname );
+		if (files[i].fp == stdin)
+			continue;
 		if (files[i].mode == '|' || files[i].mode == LE)
 			stat = pclose(files[i].fp) == -1;
+		else if (files[i].fp == stdout || files[i].fp == stderr)
+			stat = fflush(files[i].fp) == EOF;
 		else
 			stat = fclose(files[i].fp) == EOF;
 		if (stat)
