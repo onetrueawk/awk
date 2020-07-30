@@ -25,6 +25,13 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+July 30, 2020:
+	Merge PRs 88-91 which fix small bugs. Thanks to Todd Miller and
+	Tim van der Molen for the fixes.
+
+	In order to make life easier, we move exclusively to bison
+	as the parser generator.
+
 July 2, 2020:
 	Merge PRs 85 and 86 which fix regressions. Thanks to
 	Tim van der Molen for the fixes.
