@@ -25,6 +25,16 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+August 7, 2020:
+	Merge PR #93, which adds casts to (void*) for debug prints
+	using the %p format specifier. Thanks to GitHub user YongHaoWu
+	("Chris") for the fixes.
+
+August 4, 2020:
+	In run.c, use non-restartable multibyte routines to attain
+	portability to DJGPP. Should fix Issue 92. Thanks to Albert Wik
+	for the report and to Todd Miller for the suggested fix.
+
 July 30, 2020:
 	Merge PRs 88-91 which fix small bugs. Thanks to Todd Miller and
 	Tim van der Molen for the fixes.
