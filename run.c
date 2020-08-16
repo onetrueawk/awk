@@ -1568,6 +1568,24 @@ static char *nawk_convert(const char *s, int (*fun_c)(int),
 	}
 }
 
+#ifdef __DJGPP__
+static wint_t towupper(wint_t wc)
+{
+	if (wc >= 0 && wc < 256)
+		return toupper(wc & 0xFF);
+
+	return wc;
+}
+
+static wint_t towlower(wint_t wc)
+{
+	if (wc >= 0 && wc < 256)
+		return tolower(wc & 0xFF);
+
+	return wc;
+}
+#endif
+
 static char *nawk_toupper(const char *s)
 {
 	return nawk_convert(s, toupper, towupper);
