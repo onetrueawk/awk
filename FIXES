@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+August 16, 2020:
+	Additional fixes for DJGPP. Thanks to Eli Zaretskii for
+	the testing.
+
 August 7, 2020:
 	Merge PR #93, which adds casts to (void*) for debug prints
 	using the %p format specifier. Thanks to GitHub user YongHaoWu
