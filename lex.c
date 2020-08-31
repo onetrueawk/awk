@@ -27,10 +27,10 @@ THIS SOFTWARE.
 #include <string.h>
 #include <ctype.h>
 #include "awk.h"
-#include "ytab.h"
+#include "awkgram.tab.h"
 
 extern YYSTYPE	yylval;
-extern int	infunc;
+extern bool	infunc;
 
 int	lineno	= 1;
 int	bracecnt = 0;
@@ -148,7 +148,7 @@ static int gettok(char **pbuf, int *psz)	/* get next input token */
 		strtod(buf, &rem);	/* parse the number */
 		if (rem == buf) {	/* it wasn't a valid number at all */
 			buf[1] = 0;	/* return one character as token */
-			retc = buf[0];	/* character is its own type */
+			retc = (uschar)buf[0];	/* character is its own type */
 			unputstr(rem+1); /* put rest back for later */
 		} else {	/* some prefix was a number */
 			unputstr(rem);	/* put rest back for later */

@@ -22,6 +22,7 @@
 # THIS SOFTWARE.
 # ****************************************************************/
 
+CFLAGS = -fsanitize=address -O1 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
 CFLAGS = -g
 CFLAGS =
 CFLAGS = -O2
@@ -33,54 +34,43 @@ CFLAGS = -O2
 HOSTCC = gcc -g -Wall -pedantic -Wcast-qual
 CC = $(HOSTCC)  # change this is cross-compiling.
 
-# yacc options.  pick one; this varies a lot by system.
-#YFLAGS = -d -S
+# By fiat, to make our lives easier, yacc is now defined to be bison.
+# If you want something else, you're on your own.
 YACC = bison -d
-#YACC = yacc -d
-#		-S uses sprintf in yacc parser instead of sprint
 
 OFILES = b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o
 
-SOURCE = awk.h ytab.c ytab.h proto.h awkgram.y lex.c b.c main.c \
+SOURCE = awk.h awkgram.tab.c awkgram.tab.h proto.h awkgram.y lex.c b.c main.c \
 	maketab.c parse.c lib.c run.c tran.c proctab.c
 
 LISTING = awk.h proto.h awkgram.y lex.c b.c main.c maketab.c parse.c \
 	lib.c run.c tran.c
 
-SHIP = README LICENSE FIXES $(SOURCE) ytab[ch].bak makefile  \
+SHIP = README LICENSE FIXES $(SOURCE) awkgram.tab.[ch].bak makefile  \
 	 awk.1
 
-a.out:	ytab.o $(OFILES)
-	$(CC) $(CFLAGS) ytab.o $(OFILES) $(ALLOC)  -lm
+a.out:	awkgram.tab.o $(OFILES)
+	$(CC) $(CFLAGS) awkgram.tab.o $(OFILES) $(ALLOC)  -lm
 
-$(OFILES):	awk.h ytab.h proto.h
+$(OFILES):	awk.h awkgram.tab.h proto.h
 
-# Clear dependency for parallel build: (make -j)
-# Depending if we used yacc or bison we can be generating different names
-# ({awkgram,y}.tab.{c,h}) so try to move both. We could be using -p to
-# specify the output prefix, but older yacc's don't support it.
-ytab.c ytab.h:	awk.h proto.h awkgram.y
+awkgram.tab.c awkgram.tab.h:	awk.h proto.h awkgram.y
 	$(YACC) $(YFLAGS) awkgram.y
-	-@for i in c h; do for j in awkgram y; do \
-	     if [ -f "$$j.tab.$$i" ]; then mv $$j.tab.$$i ytab.$$i; fi; \
-	  done; done
-
-ytab.h:	ytab.c
 
 proctab.c:	maketab
-	./maketab ytab.h >proctab.c
+	./maketab awkgram.tab.h >proctab.c
 
-maketab:	ytab.h maketab.c
+maketab:	awkgram.tab.h maketab.c
 	$(HOSTCC) $(CFLAGS) maketab.c -o maketab
 
 bundle:
-	@cp ytab.h ytabh.bak
-	@cp ytab.c ytabc.bak
+	@cp awkgram.tab.h awkgram.tab.h.bak
+	@cp awkgram.tab.c awkgram.tab.c.bak
 	@bundle $(SHIP)
 
 tar:
-	@cp ytab.h ytabh.bak
-	@cp ytab.c ytabc.bak
+	@cp awkgram.tab.h awkgram.tab.h.bak
+	@cp awkgram.tab.c awkgram.tab.c.bak
 	@bundle $(SHIP) >awk.shar
 	@tar cf awk.tar $(SHIP)
 	gzip awk.tar
@@ -109,7 +99,7 @@ clean: testclean
 	rm -f a.out *.o *.obj maketab maketab.exe *.bb *.bbg *.da *.gcov *.gcno *.gcda # proctab.c
 
 cleaner: testclean
-	rm -f a.out *.o *.obj maketab maketab.exe *.bb *.bbg *.da *.gcov *.gcno *.gcda proctab.c ytab*
+	rm -f a.out *.o *.obj maketab maketab.exe *.bb *.bbg *.da *.gcov *.gcno *.gcda proctab.c awkgram.tab.*
 
 # This is a bit of a band-aid until we can invest some more time
 # in the test suite.
@@ -118,4 +108,4 @@ testclean:
 		glop glop1 glop2 lilly.diff tempbig tempsmall time
 
 # For the habits of GNU maintainers:
-distclean: clean
+distclean: cleaner

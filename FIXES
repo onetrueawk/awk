@@ -25,6 +25,67 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+August 16, 2020:
+	Additional fixes for DJGPP. Thanks to Eli Zaretskii for
+	the testing.
+
+August 7, 2020:
+	Merge PR #93, which adds casts to (void*) for debug prints
+	using the %p format specifier. Thanks to GitHub user YongHaoWu
+	("Chris") for the fixes.
+
+August 4, 2020:
+	In run.c, use non-restartable multibyte routines to attain
+	portability to DJGPP. Should fix Issue 92. Thanks to Albert Wik
+	for the report and to Todd Miller for the suggested fix.
+
+July 30, 2020:
+	Merge PRs 88-91 which fix small bugs. Thanks to Todd Miller and
+	Tim van der Molen for the fixes.
+
+	In order to make life easier, we move exclusively to bison
+	as the parser generator.
+
+July 2, 2020:
+	Merge PRs 85 and 86 which fix regressions. Thanks to
+	Tim van der Molen for the fixes.
+
+June 25, 2020:
+	Merge PRs 82 and 84. The latter fixes issue #83. Thanks to
+	Todd Miller and awkfan77.
+
+June 12, 2020:
+	Clear errno before calling errcheck to avoid any spurious errors
+	left over from previous calls that may have set it. Thanks to
+	Todd Miller for the fix, from PR #80.
+
+	Fix Issue #78 by allowing \r to follow floating point numbers in
+	lib.c:is_number. Thanks to GitHub user ajcarr for the report
+	and to Arnold Robbins for the fix.
+
+June 5, 2020:
+	In fldbld(), make sure that inputFS is set before trying to
+	use it. Thanks to  Steffen Nurpmeso <steffen@sdaoden.eu>
+	for the report.
+
+May 5, 2020:
+	Fix checks for compilers that can handle noreturn. Thanks to
+	GitHub user enh-google for pointing it out. Closes Issue #79.
+
+April 16, 2020:
+	Handle old compilers that don't support C11 (for noreturn).
+	Thanks to Arnold Robbins.
+
+April 5, 2020:
+	Use <stdnoreturn.h> and noreturn instead of GCC attributes.
+	Thanks to GitHub user awkfan77. Closes PR #77.
+
+February 28, 2020:
+	More cleanups from Christos Zoulas: notably backslash continuation
+	inside strings removes the newline and a fix for RS = "^a".
+	Fix for address sanitizer-found problem. Thanks to GitHub user
+	enh-google.
+
 February 19, 2020:
 	More small cleanups from Christos Zoulas.
 

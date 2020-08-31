@@ -27,7 +27,7 @@ THIS SOFTWARE.
 #include <string.h>
 #include <stdlib.h>
 #include "awk.h"
-#include "ytab.h"
+#include "awkgram.tab.h"
 
 Node *nodealloc(int n)
 {
@@ -250,7 +250,7 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 	for (p = vl; p; p = p->nnext)
 		n++;
 	v->fval = n;
-	dprintf( ("defining func %s (%d args)\n", v->nval, n) );
+	DPRINTF("defining func %s (%d args)\n", v->nval, n);
 }
 
 int isarg(const char *s)		/* is s in argument list for current function? */

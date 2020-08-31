@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20200219";
+const char	*version = "version 20200816";
 
 #define DEBUG
 #include <stdio.h>
@@ -32,7 +32,6 @@ const char	*version = "version 20200219";
 #include <string.h>
 #include <signal.h>
 #include "awk.h"
-#include "ytab.h"
 
 extern	char	**environ;
 extern	int	nfields;
@@ -52,7 +51,7 @@ static size_t	curpfile;	/* current filename */
 
 bool	safe = false;	/* true => "safe" mode */
 
-static __attribute__((__noreturn__)) void fpecatch(int n
+static noreturn void fpecatch(int n
 #ifdef SA_SIGINFO
 	, siginfo_t *si, void *uc
 #endif
@@ -200,7 +199,7 @@ int main(int argc, char *argv[])
 				exit(0);
 			FATAL("no program given");
 		}
-		   dprintf( ("program = |%s|\n", argv[1]) );
+		DPRINTF("program = |%s|\n", argv[1]);
 		lexprog = argv[1];
 		argc--;
 		argv++;
@@ -209,14 +208,19 @@ int main(int argc, char *argv[])
 	syminit();
 	compile_time = COMPILING;
 	argv[0] = cmdname;	/* put prog name at front of arglist */
-	   dprintf( ("argc=%d, argv[0]=%s\n", argc, argv[0]) );
+	DPRINTF("argc=%d, argv[0]=%s\n", argc, argv[0]);
 	arginit(argc, argv);
 	if (!safe)
 		envinit(environ);
 	yyparse();
+#if 0
+	// Doing this would comply with POSIX, but is not compatible with
+	// other awks and with what most users expect. So comment it out.
+	setlocale(LC_NUMERIC, ""); /* back to whatever it is locally */
+#endif
 	if (fs)
 		*FS = qstring(fs, '\0');
-	   dprintf( ("errorflag=%d\n", errorflag) );
+	DPRINTF("errorflag=%d\n", errorflag);
 	if (errorflag == 0) {
 		compile_time = RUNNING;
 		run(winner);
@@ -251,7 +255,7 @@ int pgetc(void)		/* get 1 character from awk program */
 char *cursource(void)	/* current source file name */
 {
 	if (npfile > 0)
-		return pfile[curpfile];
+		return pfile[curpfile < npfile ? curpfile : curpfile - 1];
 	else
 		return NULL;
 }

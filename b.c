@@ -32,7 +32,7 @@ THIS SOFTWARE.
 #include <string.h>
 #include <stdlib.h>
 #include "awk.h"
-#include "ytab.h"
+#include "awkgram.tab.h"
 
 #define MAXLIN 22
 
@@ -397,7 +397,7 @@ char *cclenter(const char *argp)	/* add a character class */
 		i++;
 	}
 	*bp = 0;
-	dprintf( ("cclenter: in = |%s|, out = |%s|\n", op, buf) );
+	DPRINTF("cclenter: in = |%s|, out = |%s|\n", op, buf);
 	xfree(op);
 	return (char *) tostring((char *) buf);
 }
@@ -684,7 +684,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 						FATAL("stream '%.30s...' too long", buf);
 				buf[k++] = (c = getc(f)) != EOF ? c : 0;
 			}
-			c = buf[j];
+			c = (uschar)buf[j];
 			/* assert(c < NCHARS); */
 
 			if ((ns = pfa->gototab[s][c]) != 0)
@@ -733,7 +733,7 @@ Node *reparse(const char *p)	/* parses regular expression pointed to by p */
 {			/* uses relex() to scan regular expression */
 	Node *np;
 
-	dprintf( ("reparse <%s>\n", p) );
+	DPRINTF("reparse <%s>\n", p);
 	lastre = prestr = (const uschar *) p;	/* prestr points to string to be parsed */
 	rtok = relex();
 	/* GNU compatibility: an empty regexp matches anything */
@@ -1105,6 +1105,12 @@ rescan:
 						if (!adjbuf((char **) &buf, &bufsz, bp-buf+1, 100, (char **) &bp, "relex2"))
 						    FATAL("out of space for reg expr %.10s...", lastre);
 						if (cc->cc_func(i)) {
+							/* escape backslash */
+							if (i == '\\') {
+								*bp++ = '\\';
+								n++;
+							}
+
 							*bp++ = i;
 							n++;
 						}
