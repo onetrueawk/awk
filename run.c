@@ -118,7 +118,7 @@ int adjbuf(char **pbuf, int *psiz, int minlen, int quantum, char **pbptr,
 		/* round up to next multiple of quantum */
 		if (rminlen)
 			minlen += quantum - rminlen;
-		tbuf = realloc(*pbuf, minlen);
+		tbuf = (char *) realloc(*pbuf, minlen);
 		DPRINTF("adjbuf %s: %d %d (pbuf=%p, tbuf=%p)\n", whatrtn, *psiz, minlen, (void*)*pbuf, (void*)tbuf);
 		if (tbuf == NULL) {
 			if (whatrtn)
@@ -240,7 +240,7 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	if (!isfcn(fcn))
 		FATAL("calling undefined function %s", s);
 	if (frame == NULL) {
-		frp = frame = calloc(nframe += 100, sizeof(*frame));
+		frp = frame = (struct Frame *) calloc(nframe += 100, sizeof(*frame));
 		if (frame == NULL)
 			FATAL("out of space for stack frames calling %s", s);
 	}
@@ -274,7 +274,7 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	frp++;	/* now ok to up frame */
 	if (frp >= frame + nframe) {
 		int dfp = frp - frame;	/* old index */
-		frame = realloc(frame, (nframe += 100) * sizeof(*frame));
+		frame = (struct Frame *) realloc(frame, (nframe += 100) * sizeof(*frame));
 		if (frame == NULL)
 			FATAL("out of space for stack frames in %s", s);
 		frp = frame + dfp;
@@ -408,7 +408,7 @@ Cell *awkgetline(Node **a, int n)	/* get next line from specific input */
 	int mode;
 	bool newflag;
 
-	if ((buf = malloc(bufsize)) == NULL)
+	if ((buf = (char *) malloc(bufsize)) == NULL)
 		FATAL("out of memory in getline");
 
 	fflush(stdout);	/* in case someone is waiting for a prompt */
@@ -474,7 +474,7 @@ makearraystring(Node *p, const char *func)
 	int bufsz = recsize;
 	size_t blen;
 
-	if ((buf = malloc(bufsz)) == NULL) {
+	if ((buf = (char *) malloc(bufsz)) == NULL) {
 		FATAL("%s: out of memory", func);
 	}
 
@@ -701,7 +701,7 @@ Cell *gettemp(void)	/* get a tempcell */
 	Cell *x;
 
 	if (!tmps) {
-		tmps = calloc(100, sizeof(*tmps));
+		tmps = (Cell *) calloc(100, sizeof(*tmps));
 		if (!tmps)
 			FATAL("out of space for temporaries");
 		for (i = 1; i < 100; i++)
@@ -839,7 +839,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 
 	os = s;
 	p = buf;
-	if ((fmt = malloc(fmtsz)) == NULL)
+	if ((fmt = (char *) malloc(fmtsz)) == NULL)
 		FATAL("out of memory in format()");
 	while (*s) {
 		adjbuf(&buf, &bufsize, MAXNUMSIZE+1+p-buf, recsize, &p, "format1");
@@ -982,7 +982,7 @@ Cell *awksprintf(Node **a, int n)		/* sprintf(a[0]) */
 	char *buf;
 	int bufsz=3*recsize;
 
-	if ((buf = malloc(bufsz)) == NULL)
+	if ((buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of memory in awksprintf");
 	y = a[0]->nnext;
 	x = execute(a[0]);
@@ -1005,7 +1005,7 @@ Cell *awkprintf(Node **a, int n)		/* printf */
 	int len;
 	int bufsz=3*recsize;
 
-	if ((buf = malloc(bufsz)) == NULL)
+	if ((buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of memory in awkprintf");
 	y = a[0]->nnext;
 	x = execute(a[0]);
@@ -1772,7 +1772,7 @@ size_t nfiles;
 static void stdinit(void)	/* in case stdin, etc., are not constants */
 {
 	nfiles = FOPEN_MAX;
-	files = calloc(nfiles, sizeof(*files));
+	files = (struct files *) calloc(nfiles, sizeof(*files));
 	if (files == NULL)
 		FATAL("can't allocate file memory for %zu files", nfiles);
         files[0].fp = stdin;
@@ -1812,7 +1812,7 @@ FILE *openfile(int a, const char *us, bool *pnewflag)
 	if (i >= nfiles) {
 		struct files *nf;
 		size_t nnf = nfiles + FOPEN_MAX;
-		nf = realloc(files, nnf * sizeof(*nf));
+		nf = (struct files *) realloc(files, nnf * sizeof(*nf));
 		if (nf == NULL)
 			FATAL("cannot grow files for %s and %zu files", s, nnf);
 		memset(&nf[nfiles], 0, FOPEN_MAX * sizeof(*nf));
@@ -1933,7 +1933,7 @@ Cell *sub(Node **a, int nnn)	/* substitute command */
 	fa *pfa;
 	int bufsz = recsize;
 
-	if ((buf = malloc(bufsz)) == NULL)
+	if ((buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of memory in sub");
 	x = execute(a[3]);	/* target string */
 	t = getsval(x);
@@ -1995,7 +1995,7 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 	int mflag, tempstat, num;
 	int bufsz = recsize;
 
-	if ((buf = malloc(bufsz)) == NULL)
+	if ((buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of memory in gsub");
 	mflag = 0;	/* if mflag == 0, can replace empty string */
 	num = 0;

@@ -60,10 +60,10 @@ static Cell dollar1 = { OCELL, CFLD, NULL, EMPTY, 0.0, FLD|STR|DONTFREE, NULL, N
 
 void recinit(unsigned int n)
 {
-	if ( (record = malloc(n)) == NULL
-	  || (fields = malloc(n+1)) == NULL
-	  || (fldtab = calloc(nfields+2, sizeof(*fldtab))) == NULL
-	  || (fldtab[0] = malloc(sizeof(**fldtab))) == NULL)
+	if ( (record = (char *) malloc(n)) == NULL
+	  || (fields = (char *) malloc(n+1)) == NULL
+	  || (fldtab = (Cell **) calloc(nfields+2, sizeof(*fldtab))) == NULL
+	  || (fldtab[0] = (Cell *) malloc(sizeof(**fldtab))) == NULL)
 		FATAL("out of space for $0 and fields");
 	*record = '\0';
 	*fldtab[0] = dollar0;
@@ -78,7 +78,7 @@ void makefields(int n1, int n2)		/* create $n1..$n2 inclusive */
 	int i;
 
 	for (i = n1; i <= n2; i++) {
-		fldtab[i] = malloc(sizeof(**fldtab));
+		fldtab[i] = (Cell *) malloc(sizeof(**fldtab));
 		if (fldtab[i] == NULL)
 			FATAL("out of space in makefields %d", i);
 		*fldtab[i] = dollar1;
@@ -127,7 +127,7 @@ void savefs(void)
 	}
 
 	len_inputFS = len + 1;
-	inputFS = realloc(inputFS, len_inputFS);
+	inputFS = (char *) realloc(inputFS, len_inputFS);
 	if (inputFS == NULL)
 		FATAL("field separator %.10s... is too long", *FS);
 	memcpy(inputFS, *FS, len_inputFS);
@@ -325,7 +325,7 @@ void fldbld(void)	/* create fields from current record */
 	n = strlen(r);
 	if (n > fieldssize) {
 		xfree(fields);
-		if ((fields = malloc(n+2)) == NULL) /* possibly 2 final \0s */
+		if ((fields = (char *) malloc(n+2)) == NULL) /* possibly 2 final \0s */
 			FATAL("out of space for fields in fldbld %d", n);
 		fieldssize = n;
 	}
@@ -474,7 +474,7 @@ void growfldtab(int n)	/* make new fields up to at least $n */
 		nf = n;
 	s = (nf+1) * (sizeof (struct Cell *));  /* freebsd: how much do we need? */
 	if (s / sizeof(struct Cell *) - 1 == (size_t)nf) /* didn't overflow */
-		fldtab = realloc(fldtab, s);
+		fldtab = (Cell **) realloc(fldtab, s);
 	else					/* overflow sizeof int */
 		xfree(fldtab);	/* make it null */
 	if (fldtab == NULL)
@@ -494,7 +494,7 @@ int refldbld(const char *rec, const char *fs)	/* build fields from reg expr in F
 	n = strlen(rec);
 	if (n > fieldssize) {
 		xfree(fields);
-		if ((fields = malloc(n+1)) == NULL)
+		if ((fields = (char *) malloc(n+1)) == NULL)
 			FATAL("out of space for fields in refldbld %d", n);
 		fieldssize = n;
 	}

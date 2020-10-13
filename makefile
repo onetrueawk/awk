@@ -104,7 +104,7 @@ cleaner: testclean
 # This is a bit of a band-aid until we can invest some more time
 # in the test suite.
 testclean:
-	cd testdir; rm -fr arnold-fixes beebe echo foo* \
+	cd testdir; rm -fr arnold-fixes beebe devnull echo foo* \
 		glop glop1 glop2 lilly.diff tempbig tempsmall time
 
 # For the habits of GNU maintainers:

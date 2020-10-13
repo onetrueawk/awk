@@ -33,7 +33,7 @@ Node *nodealloc(int n)
 {
 	Node *x;
 
-	x = malloc(sizeof(*x) + (n-1) * sizeof(x));
+	x = (Node *) malloc(sizeof(*x) + (n-1) * sizeof(x));
 	if (x == NULL)
 		FATAL("out of space in nodealloc");
 	x->nnext = NULL;
