@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20200816";
+const char	*version = "version 20201013";
 
 #define DEBUG
 #include <stdio.h>
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 			fn = getarg(&argc, &argv, "no program filename");
 			if (npfile >= maxpfile) {
 				maxpfile += 20;
-				pfile = realloc(pfile, maxpfile * sizeof(*pfile));
+				pfile = (char **) realloc(pfile, maxpfile * sizeof(*pfile));
 				if (pfile == NULL)
 					FATAL("error allocating space for -f options");
  			}
