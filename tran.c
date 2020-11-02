@@ -394,11 +394,15 @@ static int checkstr(const char *s, const char *v)
 {
 	while (*s && tolower((unsigned char)*s) == *v)
 		s++, v++;
+	while (isspace((unsigned char)*s))
+		s++;
 	return !(*s || *v);
 }
 
 static int checkinfnan(const char *s)
 {
+	while (isspace((unsigned char)*s))
+		s++;
 	if (*s == '+' || *s == '-')
 		s++;
 	switch (tolower((unsigned char)*s)) {
@@ -422,6 +426,8 @@ Awkfloat getfval(Cell *vp)	/* get float val of a Cell */
 	if (!isnum(vp)) {	/* not a number */
 		if (checkinfnan(vp->sval))
 			vp->fval = atof(vp->sval);	/* best guess */
+		else 
+			vp->fval = 0.0;
 		if (is_number(vp->sval) && !(vp->tval&CON))
 			vp->tval |= NUM;	/* make NUM only sparingly */
 	}
