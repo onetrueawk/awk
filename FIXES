@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+December 3, 2020:
+	Fix to argument parsing to avoid printing spurious newlines.
+	Thanks to Todd Miller. Merges PR #97.
+
 October 13, 2020:
 	Add casts before all the calls to malloc/calloc/realloc in order
 	to get it to compile with g++. Thanks to Arnold Robbins.
