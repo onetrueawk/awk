@@ -129,9 +129,11 @@ void arginit(int ac, char **av)	/* set up ARGV and ARGC */
 	free(cp->sval);
 	cp->sval = (char *) ARGVtab;
 	for (i = 0; i < ac; i++) {
+		double result;
+
 		sprintf(temp, "%d", i);
-		if (is_number(*av))
-			setsymtab(temp, *av, atof(*av), STR|NUM, ARGVtab);
+		if (is_number(*av, & result))
+			setsymtab(temp, *av, result, STR|NUM, ARGVtab);
 		else
 			setsymtab(temp, *av, 0.0, STR, ARGVtab);
 		av++;
@@ -148,13 +150,15 @@ void envinit(char **envp)	/* set up ENVIRON variable */
 	free(cp->sval);
 	cp->sval = (char *) ENVtab;
 	for ( ; *envp; envp++) {
+		double result;
+
 		if ((p = strchr(*envp, '=')) == NULL)
 			continue;
 		if( p == *envp ) /* no left hand side name in env string */
 			continue;
 		*p++ = 0;	/* split into two strings at = */
-		if (is_number(p))
-			setsymtab(*envp, p, atof(p), STR|NUM, ENVtab);
+		if (is_number(p, & result))
+			setsymtab(*envp, p, result, STR|NUM, ENVtab);
 		else
 			setsymtab(*envp, p, 0.0, STR, ENVtab);
 		p[-1] = '=';	/* restore in case env is passed down to a shell */
@@ -399,9 +403,15 @@ Awkfloat getfval(Cell *vp)	/* get float val of a Cell */
 	else if (isrec(vp) && !donerec)
 		recbld();
 	if (!isnum(vp)) {	/* not a number */
-		vp->fval = atof(vp->sval);	/* best guess */
-		if (is_number(vp->sval) && !(vp->tval&CON))
-			vp->tval |= NUM;	/* make NUM only sparingly */
+		double fval;
+		bool no_trailing;
+
+		if (is_valid_number(vp->sval, true, & no_trailing, & fval)) {
+			vp->fval = fval;
+			if (no_trailing && !(vp->tval&CON))
+				vp->tval |= NUM;	/* make NUM only sparingly */
+		} else
+			vp->fval = 0.0;
 	}
 	DPRINTF("getfval %p: %s = %g, t=%o\n",
 		(void*)vp, NN(vp->nval), vp->fval, vp->tval);
