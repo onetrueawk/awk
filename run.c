@@ -407,6 +407,7 @@ Cell *awkgetline(Node **a, int n)	/* get next line from specific input */
 	int bufsize = recsize;
 	int mode;
 	bool newflag;
+	double result;
 
 	if ((buf = (char *) malloc(bufsize)) == NULL)
 		FATAL("out of memory in getline");
@@ -429,15 +430,15 @@ Cell *awkgetline(Node **a, int n)	/* get next line from specific input */
 		} else if (a[0] != NULL) {	/* getline var <file */
 			x = execute(a[0]);
 			setsval(x, buf);
-			if (is_number(x->sval)) {
-				x->fval = atof(x->sval);
+			if (is_number(x->sval, & result)) {
+				x->fval = result;
 				x->tval |= NUM;
 			}
 			tempfree(x);
 		} else {			/* getline <file */
 			setsval(fldtab[0], buf);
-			if (is_number(fldtab[0]->sval)) {
-				fldtab[0]->fval = atof(fldtab[0]->sval);
+			if (is_number(fldtab[0]->sval, & result)) {
+				fldtab[0]->fval = result;
 				fldtab[0]->tval |= NUM;
 			}
 		}
@@ -448,8 +449,8 @@ Cell *awkgetline(Node **a, int n)	/* get next line from specific input */
 			n = getrec(&buf, &bufsize, false);
 			x = execute(a[0]);
 			setsval(x, buf);
-			if (is_number(x->sval)) {
-				x->fval = atof(x->sval);
+			if (is_number(x->sval, & result)) {
+				x->fval = result;
 				x->tval |= NUM;
 			}
 			tempfree(x);
@@ -726,7 +727,7 @@ Cell *indirect(Node **a, int n)	/* $( a[0] ) */
 	if ((Awkfloat)INT_MAX < val)
 		FATAL("trying to access out of range field %s", x->nval);
 	m = (int) val;
-	if (m == 0 && !is_number(s = getsval(x)))	/* suspicion! */
+	if (m == 0 && !is_number(s = getsval(x), NULL))	/* suspicion! */
 		FATAL("illegal field $(%s), name \"%s\"", s, x->nval);
 		/* BUG: can x->nval ever be null??? */
 	tempfree(x);
@@ -1259,6 +1260,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	int sep;
 	char temp, num[50];
 	int n, tempstat, arg3type;
+	double result;
 
 	y = execute(a[0]);	/* source string */
 	origs = s = strdup(getsval(y));
@@ -1303,8 +1305,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 				snprintf(num, sizeof(num), "%d", n);
 				temp = *patbeg;
 				setptr(patbeg, '\0');
-				if (is_number(s))
-					setsymtab(num, s, atof(s), STR|NUM, (Array *) ap->sval);
+				if (is_number(s, & result))
+					setsymtab(num, s, result, STR|NUM, (Array *) ap->sval);
 				else
 					setsymtab(num, s, 0.0, STR, (Array *) ap->sval);
 				setptr(patbeg, temp);
@@ -1322,8 +1324,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		}
 		n++;
 		snprintf(num, sizeof(num), "%d", n);
-		if (is_number(s))
-			setsymtab(num, s, atof(s), STR|NUM, (Array *) ap->sval);
+		if (is_number(s, & result))
+			setsymtab(num, s, result, STR|NUM, (Array *) ap->sval);
 		else
 			setsymtab(num, s, 0.0, STR, (Array *) ap->sval);
   spdone:
@@ -1343,8 +1345,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			temp = *s;
 			setptr(s, '\0');
 			snprintf(num, sizeof(num), "%d", n);
-			if (is_number(t))
-				setsymtab(num, t, atof(t), STR|NUM, (Array *) ap->sval);
+			if (is_number(t, & result))
+				setsymtab(num, t, result, STR|NUM, (Array *) ap->sval);
 			else
 				setsymtab(num, t, 0.0, STR, (Array *) ap->sval);
 			setptr(s, temp);
@@ -1372,8 +1374,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			temp = *s;
 			setptr(s, '\0');
 			snprintf(num, sizeof(num), "%d", n);
-			if (is_number(t))
-				setsymtab(num, t, atof(t), STR|NUM, (Array *) ap->sval);
+			if (is_number(t, & result))
+				setsymtab(num, t, result, STR|NUM, (Array *) ap->sval);
 			else
 				setsymtab(num, t, 0.0, STR, (Array *) ap->sval);
 			setptr(s, temp);
