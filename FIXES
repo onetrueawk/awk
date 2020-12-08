@@ -25,6 +25,13 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+December 8, 2020:
+	Merge PR #98: Disallow hex data. Allow only +nan, -nan,
+	+inf, -inf (case independent) to give NaN and infinity values.
+	Improve things so that string to double conversion is only
+	done once, yielding something of a speedup.  This obviate
+	PR #95. Thanks to Arnold Robbins.
+
 December 3, 2020:
 	Fix to argument parsing to avoid printing spurious newlines.
 	Thanks to Todd Miller. Merges PR #97.
