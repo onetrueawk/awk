@@ -629,3 +629,56 @@ The scope rules for variables in functions are a botch;
 the syntax is worse.
 .PP
 Only eight-bit characters sets are handled correctly.
+.SH UNUSUAL FLOATING-POINT VALUES
+.I Awk
+was designed before IEEE 754 arithmetic defined Not-A-Number (NaN)
+and Infinity values, which are supported by all modern floating-point
+hardware.
+.PP
+Because
+.I awk
+uses
+.IR strtod (3)
+and
+.IR atof (3)
+to convert string values to double-precision floating-point values,
+modern C libraries also convert strings starting with
+.B inf
+and
+.B nan
+into infinity and NaN values respectively.  This led to strange results,
+with something like this:
+.PP
+.EX
+.nf
+echo nancy | awk '{ print $1 + 0 }'
+.fi
+.EE
+.PP
+printing
+.B nan
+instead of zero.
+.PP
+.I Awk
+now follows GNU AWK, and prefilters string values before attempting
+to convert them to numbers, as follows:
+.TP
+.I "Hexadecimal values"
+Hexadecimal values (allowed since C99) convert to zero, as they did
+prior to C99.
+.TP
+.I "NaN values"
+The two strings
+.B +nan
+and
+.B \-nan
+(case independent) convert to NaN. No others do.
+(NaNs can have signs.)
+.TP
+.I "Infinity values"
+The two strings
+.B +inf
+and
+.B \-inf
+(case independent) convert to positive and negative infinity, respectively.
+No others do.

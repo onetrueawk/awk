@@ -148,7 +148,9 @@ extern	void	eprint(void);
 extern	void	bclass(int);
 extern	double	errcheck(double, const char *);
 extern	int	isclvar(const char *);
-extern	int	is_number(const char *);
+extern	bool	is_valid_number(const char *s, bool trailing_stuff_ok,
+				bool *no_trailing, double *result);
+#define is_number(s, val)	is_valid_number(s, false, NULL, val)
 
 extern	int	adjbuf(char **pb, int *sz, int min, int q, char **pbp, const char *what);
 extern	void	run(Node *);

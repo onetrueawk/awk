@@ -200,7 +200,12 @@ int yylex(void)
 			return word(buf);
 		if (isdigit(c)) {
 			char *cp = tostring(buf);
-			yylval.cp = setsymtab(buf, cp, atof(buf), CON|NUM, symtab);
+			double result;
+
+			if (is_number(cp, & result))
+				yylval.cp = setsymtab(buf, cp, result, CON|NUM, symtab);
+			else
+				yylval.cp = setsymtab(buf, cp, 0.0, STR, symtab);
 			free(cp);
 			/* should this also have STR set? */
 			RET(NUMBER);
