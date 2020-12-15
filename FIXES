@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+December 15, 2020:
+	Merge PR #99, which gets the right header for strcasecmp.
+	Thanks to GitHub user michaelforney.
+
 December 8, 2020:
 	Merge PR #98: Disallow hex data. Allow only +nan, -nan,
 	+inf, -inf (case independent) to give NaN and infinity values.
