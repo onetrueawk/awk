@@ -784,46 +784,48 @@ bool is_valid_number(const char *s, bool trailing_stuff_ok,
 	double r;
 	char *ep;
 	bool retval = false;
+	bool is_nan = false;
+	bool is_inf = false;
 
 	if (no_trailing)
 		*no_trailing = false;
 
-	while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r')
+	while (isspace(*s))
 		s++;
 
-	if (s[0] == '0' && tolower(s[1]) == 'x')	// no hex floating point, sorry
+	// no hex floating point, sorry
+	if (s[0] == '0' && tolower(s[1]) == 'x')
 		return false;
 
 	// allow +nan, -nan, +inf, -inf, any other letter, no
 	if (s[0] == '+' || s[0] == '-') {
-		if (strcasecmp(s+1, "nan") == 0 || strcasecmp(s+1, "inf") == 0)
-			return true;
+		is_nan = (strncasecmp(s+1, "nan", 3) == 0);
+		is_inf = (strncasecmp(s+1, "inf", 3) == 0);
+		if ((is_nan || is_inf)
+		    && (isspace(s[4]) || s[4] == '\0'))
+			goto convert;
 		else if (! isdigit(s[1]) && s[1] != '.')
 			return false;
 	}
 	else if (! isdigit(s[0]) && s[0] != '.')
 		return false;
 
+convert:
 	errno = 0;
 	r = strtod(s, &ep);
-	if (ep == s || r == HUGE_VAL || errno == ERANGE)
+	if (ep == s || errno == ERANGE)
 		return false;
+
+	if (isnan(r) && s[0] == '-' && signbit(r) == 0)
+		r = -r;
 
 	if (result != NULL)
 		*result = r;
 
-	/*
-	 * check for trailing stuff
-	 * allow \r as well. windows files aren't going to go away.
-	 */
-	while (*ep == ' ' || *ep == '\t' || *ep == '\n' || *ep == '\r')
-		ep++;
+	retval = (isspace(*ep) || *ep == '\0' || trailing_stuff_ok);
 
-	if (no_trailing)
+	if (no_trailing != NULL)
 		*no_trailing = (*ep == '\0');
-
-	// return true if found the end, or trailing stuff is allowed
-	retval = (*ep == '\0') || trailing_stuff_ok;
 
 	return retval;
 }
