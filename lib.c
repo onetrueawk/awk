@@ -790,11 +790,11 @@ bool is_valid_number(const char *s, bool trailing_stuff_ok,
 	if (no_trailing)
 		*no_trailing = false;
 
-	while (isspace(*s))
+	while (isspace((uschar)*s))
 		s++;
 
 	// no hex floating point, sorry
-	if (s[0] == '0' && tolower(s[1]) == 'x')
+	if (s[0] == '0' && tolower((uschar)s[1]) == 'x')
 		return false;
 
 	// allow +nan, -nan, +inf, -inf, any other letter, no
@@ -802,12 +802,12 @@ bool is_valid_number(const char *s, bool trailing_stuff_ok,
 		is_nan = (strncasecmp(s+1, "nan", 3) == 0);
 		is_inf = (strncasecmp(s+1, "inf", 3) == 0);
 		if ((is_nan || is_inf)
-		    && (isspace(s[4]) || s[4] == '\0'))
+		    && (isspace((uschar)s[4]) || s[4] == '\0'))
 			goto convert;
-		else if (! isdigit(s[1]) && s[1] != '.')
+		else if (! isdigit((uschar)s[1]) && s[1] != '.')
 			return false;
 	}
-	else if (! isdigit(s[0]) && s[0] != '.')
+	else if (! isdigit((uschar)s[0]) && s[0] != '.')
 		return false;
 
 convert:
@@ -822,7 +822,7 @@ convert:
 	if (result != NULL)
 		*result = r;
 
-	retval = (isspace(*ep) || *ep == '\0' || trailing_stuff_ok);
+	retval = (isspace((uschar)*ep) || *ep == '\0' || trailing_stuff_ok);
 
 	if (no_trailing != NULL)
 		*no_trailing = (*ep == '\0');
