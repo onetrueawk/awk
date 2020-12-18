@@ -418,10 +418,21 @@ Awkfloat getfval(Cell *vp)	/* get float val of a Cell */
 	return(vp->fval);
 }
 
+static char *get_inf_nan(double d)
+{
+	if (isinf(d)) {
+		return (d < 0 ? "-inf" : "+inf");
+	} else if (isnan(d)) {
+		return (signbit(d) != 0 ? "-nan" : "+nan");
+	} else
+		return NULL;
+}
+
 static char *get_str_val(Cell *vp, char **fmt)        /* get string val of a Cell */
 {
 	char s[256];
 	double dtemp;
+	char *p;
 
 	if ((vp->tval & (NUM | STR)) == 0)
 		funnyvar(vp, "read value of");
@@ -458,7 +469,9 @@ static char *get_str_val(Cell *vp, char **fmt)        /* get string val of a Cel
 	{ \
 		if (freeable(vp)) \
 			xfree(vp->sval); \
-		if (modf(vp->fval, &dtemp) == 0)	/* it's integral */ \
+		if ((p = get_inf_nan(vp->fval)) != NULL) \
+			strcpy(s, p); \
+		else if (modf(vp->fval, &dtemp) == 0)	/* it's integral */ \
 			snprintf(s, sizeof (s), "%.30g", vp->fval); \
 		else \
 			snprintf(s, sizeof (s), *fmt, vp->fval); \
