@@ -114,10 +114,6 @@ basis.  We try to get to issues and pull requests as quickly
 as we can.  Unfortunately, however, keeping this program going
 is not at the top of our priority list.
 
-_If_ you (yes, you!) are interested in taking over active maintenance of
-`awk`, please open an issue to indicate that fact, and give us a little bit of
-your background and some idea of your plans and dreams.  Thanks!
-
 #### Last Updated
 
-Tue Oct 13 20:00:09 IDT 2020
+Fri Dec 25 16:53:34 EST 2020
