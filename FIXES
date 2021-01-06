@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+January 06, 2021:
+	Fix a decision bug with trailing stuff in lib.c:is_valid_number
+	after recent changes. Thanks to Ozan Yigit.
+
 December 18, 2020:
 	Fix problems converting inf and NaN values in lib.c:is_valid_number.
 	Enhance number to string conversion to do the right thing for
