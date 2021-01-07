@@ -822,10 +822,17 @@ convert:
 	if (result != NULL)
 		*result = r;
 
-	retval = (isspace(*ep) || *ep == '\0' || trailing_stuff_ok);
+	/*
+	 * check for trailing stuff
+	 */
+	while (isspace(*ep))
+		ep++;
 
 	if (no_trailing != NULL)
 		*no_trailing = (*ep == '\0');
+
+        // return true if found the end, or trailing stuff is allowed
+	retval = *ep == '\0' || trailing_stuff_ok;
 
 	return retval;
 }
