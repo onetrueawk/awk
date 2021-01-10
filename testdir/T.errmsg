@@ -155,8 +155,8 @@ BEGIN { next }
 illegal .*next.* from END
 END {	next; print NR }
 
-can.t open file /etc/passwd
-BEGIN { print "abc" >"/etc/passwd" }
+can.t open file ./nonexistentdir/foo
+BEGIN { print "abc" >"./nonexistentdir/foo" }
 
 you can.t define function f more than once
 function f() { print 1 }
