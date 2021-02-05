@@ -90,7 +90,7 @@ move this to some place like `/usr/bin/awk`.
 If your system does not have `yacc` or `bison` (the GNU
 equivalent), you need to install one of them first.
 
-NOTE: This version uses ANSI C (C 99), as you should also.  We have
+NOTE: This version uses ANSI C (C89), as you should also.  We have
 compiled this without any changes using `gcc -Wall` and/or local C
 compilers on a variety of systems, but new systems or compilers
 may raise some new complaint; reports of difficulties are
