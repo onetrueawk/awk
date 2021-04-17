@@ -176,6 +176,7 @@ int getrec(char **pbuf, int *pbufsize, bool isrecord)	/* get next input record *
 				infile = stdin;
 			else if ((infile = fopen(file, "r")) == NULL)
 				FATAL("can't open file %s", file);
+			innew = true;
 			setfval(fnrloc, 0.0);
 		}
 		c = readrec(&buf, &bufsize, infile, innew);
