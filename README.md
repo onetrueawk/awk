@@ -109,7 +109,7 @@ More generally, turning on optimization can significantly improve
 
 ## A Note About Maintenance
 
-NOTICE! Maintenance of this program is on a ``best effort''
+NOTICE! Maintenance of this program is on a ''best effort''
 basis.  We try to get to issues and pull requests as quickly
 as we can.  Unfortunately, however, keeping this program going
 is not at the top of our priority list.
