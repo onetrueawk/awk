@@ -88,9 +88,11 @@ void segvcatch(int n)
 static const char *
 setfs(char *p)
 {
+#ifdef HISTORIC_FT_WART
 	/* wart: t=>\t */
 	if (p[0] == 't' && p[1] == '\0')
 		return "\t";
+#endif
 	else if (p[0] != '\0')
 		return p;
 	return NULL;
