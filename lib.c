@@ -242,6 +242,7 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag)	/* read one rec
 		}
 		if (found)
 			setptr(patbeg, '\0');
+		isrec = (found == 0 && *buf == '\0') ? 0 : 1;
 	} else {
 		if ((sep = *rs) == 0) {
 			sep = '\n';
@@ -271,10 +272,10 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag)	/* read one rec
 		if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readrec 3"))
 			FATAL("input record `%.30s...' too long", buf);
 		*rr = 0;
+		isrec = (c == EOF && rr == buf) ? 0 : 1;
 	}
 	*pbuf = buf;
 	*pbufsize = bufsize;
-	isrec = *buf || !feof(inf);
 	DPRINTF("readrec saw <%s>, returns %d\n", buf, isrec);
 	return isrec;
 }
