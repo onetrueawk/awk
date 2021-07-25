@@ -186,6 +186,13 @@ BEGIN {	RS = ""
 }' >foo1
 $awk 'END {print NR}' foo1 | grep 4 >/dev/null || echo 'BAD: T.misc abcdef fails'
 
+# Test for RS regex matching an empty record at EOF
+echo a | $awk 1 RS='a\n' > foo1
+cat << \EOF > foo2
+
+EOF
+diff foo1 foo2 || echo 'BAD: T.misc RS regex matching an empty record at EOF fails'
+
 # Test for RS regex being reapplied
 echo aaa1a2a | $awk 1 RS='^a' >foo1
 cat << \EOF > foo2
@@ -194,6 +201,24 @@ aa1a2a
 
 EOF
 diff foo1 foo2 || echo 'BAD: T.misc ^regex reapplied fails'
+
+# ^-anchored RS matching should be active at the start of each input file
+tee foo1 foo2 >foo3 << \EOF
+aaa
+EOF
+$awk 1 RS='^a' foo1 foo2 foo3 >foo4
+cat << \EOF > foo5
+
+aa
+
+
+aa
+
+
+aa
+
+EOF
+diff foo4 foo5 || echo 'BAD: T.misc ^RS matches the start of every input file fails'
 
 # The following should not produce a warning about changing a constant
 # nor about a curdled tempcell list
