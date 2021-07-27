@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+July 27, 2021:
+	As per IEEE Std 1003.1-2008, -F "str" is now consistent with
+	-v FS="str" when str is null. Thanks to Warner Losh.
+
 July 24, 2021:
 	Fix readrec's definition of a record. This fixes an issue
 	with NetBSD's RS regular expression support that can cause
