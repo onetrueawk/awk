@@ -1,13 +1,13 @@
 # /****************************************************************
-# Copyright (C) Lucent Technologies 1997
+# Copyright (C) guanlong huang 2021
 # All Rights Reserved
 #
 # Permission to use, copy, modify, and distribute this software and
 # its documentation for any purpose and without fee is hereby
-# granted, provided that the above copyright notice appear in all
+# granted, provided that the abouve copyright notice appear in all
 # copies and that both that the copyright notice and this
 # permission notice and warranty disclaimer appear in supporting
-# documentation, and that the name Lucent Technologies or any of
+# documentation, and that the name guanlong huang or any of
 # its entities not be used in advertising or publicity pertaining
 # to distribution of the software without specific, written prior
 # permission.
