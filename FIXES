@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+Oct 12, 2021:
+	The fix for #83 changed the code to insert 2 chars, but the
+	call to adjbuf just above it only allows for 1 char. This can
+	cause a heap buffer overflow.
+
 July 27, 2021:
 	As per IEEE Std 1003.1-2008, -F "str" is now consistent with
 	-v FS="str" when str is null. Thanks to Warner Losh.

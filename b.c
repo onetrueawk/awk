@@ -1101,7 +1101,7 @@ rescan:
 					 * program to track each string's length.
 					 */
 					for (i = 1; i <= UCHAR_MAX; i++) {
-						if (!adjbuf((char **) &buf, &bufsz, bp-buf+1, 100, (char **) &bp, "relex2"))
+						if (!adjbuf((char **) &buf, &bufsz, bp-buf+2, 100, (char **) &bp, "relex2"))
 						    FATAL("out of space for reg expr %.10s...", lastre);
 						if (cc->cc_func(i)) {
 							/* escape backslash */
