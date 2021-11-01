@@ -447,13 +447,15 @@ Cell *awkgetline(Node **a, int n)	/* get next line from specific input */
 			n = getrec(&record, &recsize, true);
 		else {			/* getline var */
 			n = getrec(&buf, &bufsize, false);
-			x = execute(a[0]);
-			setsval(x, buf);
-			if (is_number(x->sval, & result)) {
-				x->fval = result;
-				x->tval |= NUM;
+			if (n > 0) {
+				x = execute(a[0]);
+				setsval(x, buf);
+				if (is_number(x->sval, & result)) {
+					x->fval = result;
+					x->tval |= NUM;
+				}
+				tempfree(x);
 			}
-			tempfree(x);
 		}
 	}
 	setfval(r, (Awkfloat) n);
