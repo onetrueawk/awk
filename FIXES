@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+Nov 03, 2021:
+        getline accesses uninitialized data after getrec()
+	returns 0 on EOF and leaves the contents of buf unchanged.
+	Thanks to Volodymyr Gubarkov, and Todd C Miller.
+
 Oct 12, 2021:
 	The fix for #83 changed the code to insert 2 chars, but the
 	call to adjbuf just above it only allows for 1 char. This can
