@@ -523,11 +523,12 @@ int regexpr(void)
 	static char *buf = NULL;
 	static int bufsz = 500;
 	char *bp;
+	bool in_character_class = false;
 
 	if (buf == NULL && (buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of space for rex expr");
 	bp = buf;
-	for ( ; (c = input()) != '/' && c != 0; ) {
+	for ( ; ((c = input()) != '/' || in_character_class) && c != 0; ) {
 		if (!adjbuf(&buf, &bufsz, bp-buf+3, 500, &bp, "regexpr"))
 			FATAL("out of space for reg expr %.10s...", buf);
 		if (c == '\n') {
@@ -539,6 +540,11 @@ int regexpr(void)
 			*bp++ = '\\';
 			*bp++ = input();
 		} else {
+			if (c == '[') {
+				in_character_class = true;
+			} else if (c == ']') {
+				in_character_class = false;
+			}
 			*bp++ = c;
 		}
 	}
