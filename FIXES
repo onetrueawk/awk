@@ -25,6 +25,12 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+Nov 22, 2021:
+	Resolve the long standing and previously noted issue of a parse
+	error when a "/" used in a character class without escape: /[/]/. 
+	while this is not strictly POSIX compliant, it is common in other
+	awk implementations. Thanks to Arnold Robbins for the code.
+	
 Nov 03, 2021:
         getline accesses uninitialized data after getrec()
 	returns 0 on EOF and leaves the contents of buf unchanged.
