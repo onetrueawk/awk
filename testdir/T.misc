@@ -164,10 +164,6 @@ $awk 'BEGIN { unireghf() }
 function unireghf(hfeed) { hfeed[1] = 0 }'
 if test -r core; then echo 1>&2 "BAD: T.misc unireghf dropped core"; fi
 
-echo x | $awk '/[/]/' 2>foo
-grep 'nonterminated character class' foo >/dev/null || error 'BAD: T.misc nonterminated fails'
-if test -r core; then echo 1>&2 "BAD: T.misc nonterminated dropped core"; fi
-
 $awk '
 function f() { return 12345 }
 BEGIN { printf "<%s>\n", f() }
