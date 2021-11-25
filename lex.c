@@ -566,7 +566,9 @@ int regexpr(void)
 				unput(c);
 		} else if (c == ']') {
 			*bp++ = c;
-			brackets--;
+			if (brackets > 0) {
+				brackets--;
+			}
 		} else {
 			*bp++ = c;
 		}
