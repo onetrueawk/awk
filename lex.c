@@ -523,12 +523,11 @@ int regexpr(void)
 	static char *buf = NULL;
 	static int bufsz = 500;
 	char *bp;
-	int brackets = 0;
 
 	if (buf == NULL && (buf = (char *) malloc(bufsz)) == NULL)
-		FATAL("out of space for reg expr");
+		FATAL("out of space for rex expr");
 	bp = buf;
-	for ( ; ((c = input()) != '/' || brackets > 0) && c != 0; ) {
+	for ( ; (c = input()) != '/' && c != 0; ) {
 		if (!adjbuf(&buf, &bufsz, bp-buf+3, 500, &bp, "regexpr"))
 			FATAL("out of space for reg expr %.10s...", buf);
 		if (c == '\n') {
@@ -539,34 +538,6 @@ int regexpr(void)
 		} else if (c == '\\') {
 			*bp++ = '\\';
 			*bp++ = input();
-		} else if (c == '[') {
-			*bp++ = c;
-			brackets++;
-			if ((c = input()) == '^') {
-				*bp++ = c;
-				if ((c = input()) == ']') {
-					*bp++ = c;
-					if ((c = input()) == '[')
-						*bp++ = c;
-					else
-						unput(c);
-				} else if (c == '[') {
-					*bp++ = c;
-				} else
-					unput(c);
-			} else if (c == ']') {	/* []] is ok */
-				*bp++ = c;
-				if ((c = input()) == '[')
-					*bp++ = c;
-				else
-					unput(c);
-			} else if (brackets == 1 && c == '[') {	/* [[] is also ok */
-				*bp++ = c;
-			} else
-				unput(c);
-		} else if (c == ']') {
-			*bp++ = c;
-			brackets--;
 		} else {
 			*bp++ = c;
 		}
