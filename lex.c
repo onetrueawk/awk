@@ -539,34 +539,50 @@ int regexpr(void)
 		} else if (c == '\\') {
 			*bp++ = '\\';
 			*bp++ = input();
-		} else if (c == '[') {
+		} else if (c == '[' && brackets == 0) {
+			/*
+			 * '[' marks the beginning of a bracket expression if
+			 * not already in one, else it is treated literally.
+			 */
 			*bp++ = c;
-			brackets++;
+			brackets = 1;
 			if ((c = input()) == '^') {
 				*bp++ = c;
-				if ((c = input()) == ']') {
-					*bp++ = c;
-					if ((c = input()) == '[')
-						*bp++ = c;
-					else
-						unput(c);
-				} else if (c == '[') {
-					*bp++ = c;
-				} else
-					unput(c);
-			} else if (c == ']') {	/* []] is ok */
+				c = input();
+			}
+			/*
+			 * ']' shall be treated literally if it is the first
+			 * character in a bracket expression.
+			 */
+			if (c == ']') {
 				*bp++ = c;
-				if ((c = input()) == '[')
-					*bp++ = c;
-				else
-					unput(c);
-			} else if (brackets == 1 && c == '[') {	/* [[] is also ok */
-				*bp++ = c;
-			} else
+			} else {
 				unput(c);
-		} else if (c == ']') {
+			}
+		} else if (c == '[' && brackets == 1) {
 			*bp++ = c;
-			brackets--;
+			c = input();
+			if (c == ':' || c == '.' || c == '=') {
+				*bp++ = c;
+				brackets = 2;
+			} else {
+				unput(c);
+			}
+		} else if (c == ']' && brackets == 1) {
+			*bp++ = c;
+			brackets = 0;
+		} else if (brackets == 2 && (c == ':' || c == '.' || c == '=')) {
+			/*
+			 * ":]", ".]" and "=]" should end the character class /
+			 * collating symbol / equivalence class.
+			 */
+			*bp++ = c;
+			if ((c = input()) == ']') {
+				*bp++ = c;
+				brackets = 1;
+			} else {
+				unput(c);
+			}
 		} else {
 			*bp++ = c;
 		}
