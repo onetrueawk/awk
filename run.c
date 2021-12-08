@@ -1860,8 +1860,8 @@ const char *filename(FILE *fp)
 	return "???";
 }
 
- Cell *closefile(Node **a, int n)
- {
+Cell *closefile(Node **a, int n)
+{
  	Cell *x;
 	size_t i;
 	bool stat;
@@ -1893,7 +1893,7 @@ const char *filename(FILE *fp)
  	x = gettemp();
 	setfval(x, (Awkfloat) (stat ? -1 : 0));
  	return(x);
- }
+}
 
 void closeall(void)
 {
