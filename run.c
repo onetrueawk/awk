@@ -1872,7 +1872,8 @@ Cell *closefile(Node **a, int n)
  	for (i = 0; i < nfiles; i++) {
 		if (!files[i].fname || strcmp(x->sval, files[i].fname) != 0)
 			continue;
-		fflush(files[i].fp);
+		if (files[i].mode == GT || files[i].mode == '|')
+			fflush(files[i].fp);
 		if (ferror(files[i].fp)) {
 			if ((files[i].mode == GT && files[i].fp != stderr)
 			  || files[i].mode == '|')
@@ -1909,7 +1910,8 @@ void closeall(void)
 	for (i = 0; i < nfiles; i++) {
 		if (! files[i].fp)
 			continue;
-		fflush(files[i].fp);
+		if (files[i].mode == GT || files[i].mode == '|')
+			fflush(files[i].fp);
 		if (ferror(files[i].fp)) {
 			if ((files[i].mode == GT && files[i].fp != stderr)
 			  || files[i].mode == '|')
