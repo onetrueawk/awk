@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+December 8, 2021:
+	The error handling in closefile and closeall was mangled. Long
+	standing warnings had been made fatal and some fatal errors went
+	undetected. Thanks to Miguel Pineiro Jr. <mpj@pineiro.cc>.
+
 Nov 03, 2021:
         getline accesses uninitialized data after getrec()
 	returns 0 on EOF and leaves the contents of buf unchanged.
