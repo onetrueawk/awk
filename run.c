@@ -1955,8 +1955,8 @@ const char *filename(FILE *fp)
 	return "???";
 }
 
- Cell *closefile(Node **a, int n)
- {
+Cell *closefile(Node **a, int n)
+{
  	Cell *x;
 	size_t i;
 	bool stat;
@@ -1967,8 +1967,15 @@ const char *filename(FILE *fp)
  	for (i = 0; i < nfiles; i++) {
 		if (!files[i].fname || strcmp(x->sval, files[i].fname) != 0)
 			continue;
-		if (ferror(files[i].fp))
-			FATAL("i/o error occurred on %s", files[i].fname);
+		if (files[i].mode == GT || files[i].mode == '|')
+			fflush(files[i].fp);
+		if (ferror(files[i].fp)) {
+			if ((files[i].mode == GT && files[i].fp != stderr)
+			  || files[i].mode == '|')
+				FATAL("write error on %s", files[i].fname);
+			else
+				WARNING("i/o error occurred on %s", files[i].fname);
+		}
 		if (files[i].fp == stdin || files[i].fp == stdout ||
 		    files[i].fp == stderr)
 			stat = freopen("/dev/null", "r+", files[i].fp) == NULL;
@@ -1977,7 +1984,7 @@ const char *filename(FILE *fp)
 		else
 			stat = fclose(files[i].fp) == EOF;
 		if (stat)
-			FATAL("i/o error occurred closing %s", files[i].fname);
+			WARNING("i/o error occurred closing %s", files[i].fname);
 		if (i > 2)	/* don't do /dev/std... */
 			xfree(files[i].fname);
 		files[i].fname = NULL;	/* watch out for ref thru this */
@@ -1988,7 +1995,7 @@ const char *filename(FILE *fp)
  	x = gettemp();
 	setfval(x, (Awkfloat) (stat ? -1 : 0));
  	return(x);
- }
+}
 
 void closeall(void)
 {
@@ -1998,18 +2005,24 @@ void closeall(void)
 	for (i = 0; i < nfiles; i++) {
 		if (! files[i].fp)
 			continue;
-		if (ferror(files[i].fp))
-			FATAL( "i/o error occurred on %s", files[i].fname );
-		if (files[i].fp == stdin)
+		if (files[i].mode == GT || files[i].mode == '|')
+			fflush(files[i].fp);
+		if (ferror(files[i].fp)) {
+			if ((files[i].mode == GT && files[i].fp != stderr)
+			  || files[i].mode == '|')
+				FATAL("write error on %s", files[i].fname);
+			else
+				WARNING("i/o error occurred on %s", files[i].fname);
+		}
+		if (files[i].fp == stdin || files[i].fp == stdout ||
+		    files[i].fp == stderr)
 			continue;
 		if (files[i].mode == '|' || files[i].mode == LE)
 			stat = pclose(files[i].fp) == -1;
-		else if (files[i].fp == stdout || files[i].fp == stderr)
-			stat = fflush(files[i].fp) == EOF;
 		else
 			stat = fclose(files[i].fp) == EOF;
 		if (stat)
-			FATAL( "i/o error occurred while closing %s", files[i].fname );
+			WARNING("i/o error occurred while closing %s", files[i].fname);
 	}
 }
 
