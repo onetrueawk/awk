@@ -55,7 +55,7 @@ a.out:	awkgram.tab.o $(OFILES)
 $(OFILES):	awk.h awkgram.tab.h proto.h
 
 awkgram.tab.c awkgram.tab.h:	awk.h proto.h awkgram.y
-	$(YACC) $(YFLAGS) awkgram.y
+	$(YACC) -o awkgram.tab.c $(YFLAGS) awkgram.y
 
 proctab.c:	maketab
 	./maketab awkgram.tab.h >proctab.c
