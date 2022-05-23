@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+May 23, 2022:
+	Memory leak when assigning a string to some of the built-in
+	variables. Thanks to Miguel Pineiro Jr. <mpj@pineiro.cc>.
+
 Mar 3, 2022:
 	Fixed file management memory leak that appears to have been
 	there since the files array was first initialized with stdin,
