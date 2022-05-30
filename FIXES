@@ -25,10 +25,16 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the AWK book
 was sent to the printers in August, 1987.
 
+
+May 23, 2022:
+	Memory leak when assigning a string to some of the built-in
+	variables. allocated string erroneously marked DONTFREE.
+	Thanks to Miguel Pineiro Jr. <mpj@pineiro.cc>.
+
 Mar 14, 2022:
-	The fulfillment of an assignment operand had been truncating its
-	entry in ARGV (since circa 1989). Thanks to Miguel Pineiro Jr.
-	<mpj@pineiro.cc>.
+	Historic bug: command-line "name=value" assignment had been
+	truncating its entry in ARGV. (circa 1989) Thanks to 
+	Miguel Pineiro Jr. <mpj@pineiro.cc>.
 
 Mar 3, 2022:
 	Fixed file management memory leak that appears to have been
