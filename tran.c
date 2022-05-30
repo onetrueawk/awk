@@ -70,18 +70,6 @@ Cell	*literal0;
 
 extern Cell **fldtab;
 
-static void
-setfree(Cell *vp)
-{
-	if (&vp->sval == FS || &vp->sval == RS ||
-	    &vp->sval == OFS || &vp->sval == ORS ||
-	    &vp->sval == OFMT || &vp->sval == CONVFMT ||
-	    &vp->sval == FILENAME || &vp->sval == SUBSEP)
-		vp->tval |= DONTFREE;
-	else
-		vp->tval &= ~DONTFREE;
-}
-
 void syminit(void)	/* initialize symbol table with builtin vars */
 {
 	literal0 = setsymtab("0", "0", 0.0, NUM|STR|CON|DONTFREE, symtab);
@@ -377,10 +365,9 @@ char *setsval(Cell *vp, const char *s)	/* set string val of a Cell */
 	t = s ? tostring(s) : tostring("");	/* in case it's self-assign */
 	if (freeable(vp))
 		xfree(vp->sval);
-	vp->tval &= ~(NUM|CONVC|CONVO);
+	vp->tval &= ~(NUM|DONTFREE|CONVC|CONVO);
 	vp->tval |= STR;
 	vp->fmt = NULL;
-	setfree(vp);
 	DPRINTF("setsval %p: %s = \"%s (%p) \", t=%o r,f=%d,%d\n",
 		(void*)vp, NN(vp->nval), t, (void*)t, vp->tval, donerec, donefld);
 	vp->sval = t;
