@@ -2,3 +2,6 @@ a.out
 maketab
 proctab.c
 *.o
+ytab* 
+testdir/foo*
+testdir/temp*

@@ -236,12 +236,19 @@ typedef struct rrow {
 		int i;
 		Node *np;
 		uschar *up;
+		int *rp; /* rune representation of char class */
 	} lval;		/* because Al stores a pointer in it! */
 	int	*lfollow;
 } rrow;
 
+typedef struct gtt { /* gototab entry */
+	unsigned int ch;
+	unsigned int state;
+} gtt;
+
 typedef struct fa {
-	unsigned int	**gototab;
+	gtt	**gototab;
+	int	gototab_len;
 	uschar	*out;
 	uschar	*restr;
 	int	**posns;

@@ -40,6 +40,7 @@ THIS SOFTWARE.
 #include "awk.h"
 #include "awkgram.tab.h"
 
+
 static void stdinit(void);
 static void flush_all(void);
 
@@ -579,11 +580,159 @@ Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 }
 
 
+/* ======== utf-8 code ========== */
+
+/* 
+ * Awk strings can contain ascii, random 8-bit items (eg Latin-1),
+ * or utf-8.  u8_isutf tests whether a string starts with a valid
+ * utf-8 sequence, and returns 0 if not (e.g., high bit set).
+ * u8_nextlen returns length of next valid sequence, which is
+ * 1 for ascii, 2..4 for utf-8, or 1 for high bit non-utf.
+ * u8_strlen returns length of string in valid utf-8 sequences
+ * and/or high-bit bytes.  Conversion functions go between byte
+ * number and character number.
+ *
+ * In theory, this behaves the same as before for non-utf8 bytes.
+ *
+ * Limited checking! This is a potential security hole.
+ */
+
+/* is s the beginning of a valid utf-8 string? */
+/* return length 1..4 if yes, 0 if no */
+int u8_isutf(const char *s)
+{
+	int n, ret;
+	unsigned char c;
+
+	c = s[0];
+	if (c < 128)
+		return 1; /* what if it's 0? */
+
+	n = strlen(s);
+	if (n >= 2 && ((c>>5) & 0x7) == 0x6 && (s[1] & 0xC0) == 0x80) {
+		ret = 2; /* 110xxxxx 10xxxxxx */
+	} else if (n >= 3 && ((c>>4) & 0xF) == 0xE && (s[1] & 0xC0) == 0x80
+			 && (s[2] & 0xC0) == 0x80) {
+		ret = 3; /* 1110xxxx 10xxxxxx 10xxxxxx */
+	} else if (n >= 4 && ((c>>3) & 0x1F) == 0x1E && (s[1] & 0xC0) == 0x80
+			 && (s[2] & 0xC0) == 0x80 && (s[3] & 0xC0) == 0x80) {
+		ret = 4; /* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+	} else {
+		ret = 0;
+	}
+	return ret;
+}
+
+/* Convert (prefix of) utf8 string to utf-32 rune. */
+/* Sets *rune to the value, returns the length. */
+/* No error checking: watch out. */
+int u8_rune(int *rune, const char *s)
+{
+	int n, ret;
+	unsigned char c;
+
+	c = s[0];
+	if (c < 128) {
+		*rune = c;
+		return 1;
+	}
+
+	n = strlen(s);
+	if (n >= 2 && ((c>>5) & 0x7) == 0x6 && (s[1] & 0xC0) == 0x80) {
+		*rune = ((c & 0x1F) << 6) | (s[1] & 0x3F); /* 110xxxxx 10xxxxxx */
+		ret = 2;
+	} else if (n >= 3 && ((c>>4) & 0xF) == 0xE && (s[1] & 0xC0) == 0x80
+			  && (s[2] & 0xC0) == 0x80) {
+		*rune = ((c & 0xF) << 12) | ((s[1] & 0x3F) << 6) | (s[2] & 0x3F);
+			/* 1110xxxx 10xxxxxx 10xxxxxx */
+		ret = 3;
+	} else if (n >= 4 && ((c>>3) & 0x1F) == 0x1E && (s[1] & 0xC0) == 0x80
+			  && (s[2] & 0xC0) == 0x80 && (s[3] & 0xC0) == 0x80) {
+		*rune = ((c & 0x7) << 18) | ((s[1] & 0x3F) << 12) | ((s[2] & 0x3F) << 6) | (s[3] & 0x3F);
+			/* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+		ret = 4;
+	} else {
+		*rune = c;
+		ret = 1;
+	}
+	return ret; /* returns one byte if sequence doesn't look like utf */
+}
+
+/* return length of next sequence: 1 for ascii or random, 2..4 for valid utf8 */
+int u8_nextlen(const char *s)
+{
+	int len;
+
+	len = u8_isutf(s);
+	if (len == 0)
+		len = 1;
+	return len;
+}
+
+/* return number of utf characters or single non-utf bytes */
+int u8_strlen(const char *s)
+{
+	int i, len, n, totlen;
+	unsigned char c;
+
+	n = strlen(s);
+	totlen = 0;
+	for (i = 0; i < n; i += len) {
+		c = s[i];
+		if (c < 128) {
+			len = 1;
+		} else {
+			len = u8_nextlen(&s[i]);
+		}
+		totlen++;
+		if (i > n)
+			FATAL("bad utf count [%s] n=%d i=%d\n", s, n, i);
+	}
+	return totlen;
+}
+
+/* convert utf-8 char number in a string to its byte offset */
+int u8_char2byte(const char *s, int charnum)
+{
+	int n;
+	int bytenum = 0;
+
+	while (charnum > 0) {
+		n = u8_nextlen(s);
+		s += n;
+		bytenum += n;
+		charnum--;
+	}
+	return bytenum;
+}
+
+/* convert byte offset in s to utf-8 char number that starts there */
+int u8_byte2char(const char *s, int bytenum)
+{
+	int i, len, b;
+	int charnum = 0; /* BUG: what origin? */
+	/* should be 0 to match start==0 which means no match */	
+
+	b = strlen(s);
+	if (bytenum >= b) {
+		return -1; /* ??? */
+	}
+	for (i = 0; i <= bytenum; i += len) {
+		len = u8_nextlen(s+i);
+		charnum++;
+	}
+	return charnum;
+}
+
+/* ========== end of utf8 code =========== */
+
+
 Cell *matchop(Node **a, int n)	/* ~ and match() */
 {
 	Cell *x, *y;
 	char *s, *t;
 	int i;
+	int cstart, cpatlen, len;
 	fa *pfa;
 	int (*mf)(fa *, const char *) = match, mode = 0;
 
@@ -604,9 +753,21 @@ Cell *matchop(Node **a, int n)	/* ~ and match() */
 	}
 	tempfree(x);
 	if (n == MATCHFCN) {
-		int start = patbeg - s + 1;
-		if (patlen < 0)
-			start = 0;
+		int start = patbeg - s + 1; /* origin 1 */
+		if (patlen < 0) {
+			start = 0; /* not found */
+		} else {
+			cstart = u8_byte2char(s, start-1);
+			cpatlen = 0;
+			for (i = 0; i < patlen; i += len) {
+				len = u8_nextlen(patbeg+i);
+				cpatlen++;
+			}
+
+			start = cstart;
+			patlen = cpatlen;
+		}
+
 		setfval(rstartloc, (Awkfloat) start);
 		setfval(rlengthloc, (Awkfloat) patlen);
 		x = gettemp();
@@ -742,6 +903,7 @@ Cell *indirect(Node **a, int n)	/* $( a[0] ) */
 Cell *substr(Node **a, int nnn)		/* substr(a[0], a[1], a[2]) */
 {
 	int k, m, n;
+	int mb, nb;
 	char *s;
 	int temp;
 	Cell *x, *y, *z = NULL;
@@ -777,12 +939,16 @@ Cell *substr(Node **a, int nnn)		/* substr(a[0], a[1], a[2]) */
 		n = 0;
 	else if (n > k - m)
 		n = k - m;
+	/* m is start, n is length from there */
 	DPRINTF("substr: m=%d, n=%d, s=%s\n", m, n, s);
 	y = gettemp();
-	temp = s[n+m-1];	/* with thanks to John Linderman */
-	s[n+m-1] = '\0';
-	setsval(y, s + m - 1);
-	s[n+m-1] = temp;
+	mb = u8_char2byte(s, m-1); /* byte offset of start char in s */
+	nb = u8_char2byte(s, m-1+n);  /* byte offset of end+1 char in s */
+
+	temp = s[nb];	/* with thanks to John Linderman */
+	s[nb] = '\0';
+	setsval(y, s + mb);
+	s[nb] = temp;
 	tempfree(x);
 	return(y);
 }
@@ -803,7 +969,15 @@ Cell *sindex(Node **a, int nnn)		/* index(a[0], a[1]) */
 		for (q = p1, p2 = s2; *p2 != '\0' && *q == *p2; q++, p2++)
 			continue;
 		if (*p2 == '\0') {
-			v = (Awkfloat) (p1 - s1 + 1);	/* origin 1 */
+			/* v = (Awkfloat) (p1 - s1 + 1);	 origin 1 */
+
+		   /* should be a function: used in match() as well */
+			int i, len;
+			v = 0;
+			for (i = 0; i < p1-s1+1; i += len) {
+				len = u8_nextlen(s1+i);
+				v++;
+			}
 			break;
 		}
 	}
@@ -1262,6 +1436,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	int sep;
 	char temp, num[50];
 	int n, tempstat, arg3type;
+	int j;
 	double result;
 
 	y = execute(a[0]);	/* source string */
@@ -1356,12 +1531,16 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 				s++;
 		}
 	} else if (sep == 0) {	/* new: split(s, a, "") => 1 char/elem */
-		for (n = 0; *s != '\0'; s++) {
-			char buf[2];
+		for (n = 0; *s != '\0'; s += u8_nextlen(s)) {
+			char buf[10];
 			n++;
 			snprintf(num, sizeof(num), "%d", n);
-			buf[0] = *s;
-			buf[1] = '\0';
+
+			for (j = 0; j < u8_nextlen(s); j++) {
+				buf[j] = s[j];
+			}
+			buf[j] = '\0';
+
 			if (isdigit((uschar)buf[0]))
 				setsymtab(num, buf, atof(buf), STR|NUM, (Array *) ap->sval);
 			else
@@ -1527,6 +1706,7 @@ static char *nawk_convert(const char *s, int (*fun_c)(int),
 	size_t n       = 0;
 	wchar_t wc;
 	size_t sz = MB_CUR_MAX;
+	int unused;
 
 	if (sz == 1) {
 		buf = tostring(s);
@@ -1546,7 +1726,7 @@ static char *nawk_convert(const char *s, int (*fun_c)(int),
 		 * doesn't work.)
 		 * Increment said variable to avoid a different warning.
 		 */
-		int unused = wctomb(NULL, L'\0');
+		unused = wctomb(NULL, L'\0');
 		unused++;
 
 		ps   = s;
@@ -1600,6 +1780,8 @@ static char *nawk_tolower(const char *s)
 	return nawk_convert(s, tolower, towlower);
 }
 
+
+
 Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg list */
 {
 	Cell *x, *y;
@@ -1619,7 +1801,7 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 		if (isarr(x))
 			u = ((Array *) x->sval)->nelem;	/* GROT.  should be function*/
 		else
-			u = strlen(getsval(x));
+			u = u8_strlen(getsval(x));
 		break;
 	case FLOG:
 		errno = 0;
