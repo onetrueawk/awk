@@ -534,7 +534,7 @@ int regexpr(void)
 	char *bp;
 
 	if (buf == NULL && (buf = (char *) malloc(bufsz)) == NULL)
-		FATAL("out of space for rex expr");
+		FATAL("out of space for reg expr");
 	bp = buf;
 	for ( ; (c = input()) != '/' && c != 0; ) {
 		if (!adjbuf(&buf, &bufsz, bp-buf+3, 500, &bp, "regexpr"))
