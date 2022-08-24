@@ -1,7 +1,7 @@
 #!/bin/sh
 
 uname -a
-gcc echo.c -o echo && echo echo compiled
+gcc echo.c -o echo && echo compiled echo
 
 oldawk=${oldawk-awk}
 awk=${awk-../a.out}
