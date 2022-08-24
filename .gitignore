@@ -5,3 +5,5 @@ proctab.c
 ytab* 
 testdir/foo*
 testdir/temp*
+*.pdf
+*.mail

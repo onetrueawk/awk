@@ -441,8 +441,13 @@ int *cclenter(const char *argp)	/* add a character class */
 				continue;
 			}
 		}
-		if (!adjbuf((char **) &buf, &bufsz, bp-buf+8, 100, (char **) &bp, "cclenter2"))
-			FATAL("out of space for character class [%.10s...] 3", p);
+		if (i >= bufsz) {
+			bufsz *= 2;
+			buf = (int *) realloc(buf, bufsz * sizeof(int));
+			if (buf == NULL)
+				FATAL("out of space for character class [%.10s...] 2", p);
+			bp = buf + i;
+		}
 		*bp++ = c;
 		i++;
 	}

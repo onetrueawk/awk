@@ -301,6 +301,9 @@ void setclvar(char *s)	/* set var=value from s */
 	Cell *q;
 	double result;
 
+/* commit f3d9187d4e0f02294fb1b0e31152070506314e67 broke T.argv test */
+/* I don't understand why it was changed. */
+
 	for (p=s; *p != '='; p++)
 		;
 	e = p;
@@ -324,7 +327,7 @@ void fldbld(void)	/* create fields from current record */
 	/* possibly with a final trailing \0 not associated with any field */
 	char *r, *fr, sep;
 	Cell *p;
-	int i, j, n;
+	int i, j, n, quote;
 
 	if (donefld)
 		return;
@@ -360,6 +363,57 @@ void fldbld(void)	/* create fields from current record */
 			do
 				*fr++ = *r++;
 			while (*r != ' ' && *r != '\t' && *r != '\n' && *r != '\0');
+			*fr++ = 0;
+		}
+		*fr = 0;
+	} else if ((sep = *inputFS) == ',') {	/* CSV: handle quotes, \x, etc. */
+		for (i = 0; *r != '\0'; ) {
+			i++;
+			if (i > nfields)
+				growfldtab(i);
+			if (freeable(fldtab[i]))
+				xfree(fldtab[i]->sval);
+			fldtab[i]->sval = fr;
+			fldtab[i]->tval = FLD | STR | DONTFREE;
+
+/* printf("fldbld 1 [%s] [%d:] [%s]\n", r, i, fr); */
+
+			if (*r == '"' /* || *r == '\'' */ ) { /* "..."; do not include '...' */
+				quote = *r++;
+				for ( ; *r != '\0'; ) {
+/* printf("fldbld 2   [%s]\n", r); */
+					if (*r == quote && r[1] != '\0' && r[1] == quote) {
+						r += 2; /* doubled quote */
+						*fr++ = quote;
+					} else if (*r == '\\') { /* BUG: off end? */
+						r++; /* backslashes inside "..." ??? */
+						*fr++ = *r++;
+					} else if (*r == quote && (r[1] == '\0' || r[1] == ',')) {
+						r++;
+						if (*r == ',')
+							r++;
+						break;
+					} else {
+						*fr++ = *r++;
+					}
+				}
+				*fr++ = 0;
+				continue;
+			}
+
+			/* unquoted field */
+			for ( ; *r != '\0'; ) {
+				if (*r == ',') { /* bare comma ends field */
+					r++;
+					*fr++ = 0;
+					break;
+				} else if (*r == '\\') { /* BUG: could walk off end */
+					r++;
+					*fr++ = *r++;
+				} else {
+					*fr++ = *r++;
+				}
+			}
 			*fr++ = 0;
 		}
 		*fr = 0;
@@ -797,11 +851,11 @@ bool is_valid_number(const char *s, bool trailing_stuff_ok,
 	while (isspace(*s))
 		s++;
 
-	// no hex floating point, sorry
+	/* no hex floating point, sorry */
 	if (s[0] == '0' && tolower(s[1]) == 'x')
 		return false;
 
-	// allow +nan, -nan, +inf, -inf, any other letter, no
+	/* allow +nan, -nan, +inf, -inf, any other letter, no */
 	if (s[0] == '+' || s[0] == '-') {
 		is_nan = (strncasecmp(s+1, "nan", 3) == 0);
 		is_inf = (strncasecmp(s+1, "inf", 3) == 0);
@@ -835,7 +889,7 @@ convert:
 	if (no_trailing != NULL)
 		*no_trailing = (*ep == '\0');
 
-        // return true if found the end, or trailing stuff is allowed
+        /* return true if found the end, or trailing stuff is allowed */
 	retval = *ep == '\0' || trailing_stuff_ok;
 
 	return retval;
