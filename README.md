@@ -31,7 +31,7 @@ THIS SOFTWARE.
 ## Distribution and Reporting Problems
 
 Changes, mostly bug fixes and occasional enhancements, are listed
-in `FIXES`.  If you distribute this code further, please please please
+in `FIXES`.  If you distribute this code further, please, please, please
 distribute `FIXES` with it.
 
 If you find errors, please report them
