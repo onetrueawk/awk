@@ -78,7 +78,7 @@ cmp -s /etc/passwd foo || echo 'BAD: T.getline (cat arg | getline x)'
 
 $awk ' BEGIN { print getline <"/glop/glop/glop" } ' >foo
 echo '-1' >foo1
-cmp -s foo foo1 || echo 'BAD: T.getline (non-existent file)'
+cmp -s foo foo1 || echo 'BAD: T.getline (nonexistent file)'
 
 echo 'false false equal' >foo1
 $awk 'BEGIN {

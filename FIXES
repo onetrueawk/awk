@@ -1337,7 +1337,7 @@ Oct 20, 1988:
 Oct 12, 1988:
 	Fixed bug in call() that freed local arrays twice.
 
-	Fixed to handle deletion of non-existent array right;
+	Fixed to handle deletion of nonexistent array right;
 	complains about attempt to delete non-array element.
 
 Sep 30, 1988:
