@@ -135,7 +135,7 @@ echo 'ARGV[3] is /dev/null
 ARGV[0] is ../a.out
 ARGV[1] is /dev/null' >foo1
 
-$awk 'BEGIN {   # this is a variant of arnolds original example
+$awk 'BEGIN {   # this is a variant of the original example from arnold
         ARGV[1] = "/dev/null"
         ARGV[2] = "glotch"  # file open must skipped deleted argv
         ARGV[3] = "/dev/null"
