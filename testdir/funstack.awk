@@ -341,7 +341,7 @@ function get_abbrev(s)
 function get_key(s)
 {	# return kay from ``key = "value",''
 	sub(/^ */,"",s)		# discard leading space
-	sub(/ *=.*$/,"",s)	# discard everthing after key
+	sub(/ *=.*$/,"",s)	# discard everything after key
 
 	return (s)
 }
