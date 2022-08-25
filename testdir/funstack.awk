@@ -332,7 +332,7 @@ function do_year()
 function get_abbrev(s)
 {	# return abbrev from ``key = abbrev,''
 	sub(/^[^=]*= */,"",s)	# discard text up to start of non-blank value
-	sub(/ *,? *$/,"",s)	# discard trailing optional whitspace, quote,
+	sub(/ *,? *$/,"",s)	# discard trailing optional whitespace, quote,
 				# optional comma, and optional space
 	return (s)
 }
@@ -350,7 +350,7 @@ function get_key(s)
 function get_value(s)
 {	# return value from ``key = "value",''
 	sub(/^[^\"]*\" */,"",s)	# discard text up to start of non-blank value
-	sub(/ *\",? *$/,"",s)	# discard trailing optional whitspace, quote,
+	sub(/ *\",? *$/,"",s)	# discard trailing optional whitespace, quote,
 				# optional comma, and optional space
 	return (s)
 }
