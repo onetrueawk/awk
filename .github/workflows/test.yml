@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  push:
+    branches: ["**"]
+    tags-ignore: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    concurrency:
+      group: test-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Requirements
+      run: |
+        if ! command -v bison > /dev/null; then
+          apt-get update &&
+          apt-get install -y bison
+        fi
+    - name: Build
+      run: |
+        make a.out
+    - name: Test
+      run: |
+        make test check
