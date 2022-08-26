@@ -18,4 +18,4 @@ $awk '
 	n2 = 0; for (i in x) n2++
 	print n, n1, n2
 }' foo0 >foo1
-diff foo1 foo2 || echo 'BAD: T.delete (1)'
+diff -u foo1 foo2 || echo 'BAD: T.delete (1)'

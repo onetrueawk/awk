@@ -22,7 +22,7 @@ echo '1
 0
 0
 1' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (function return type)'
+diff -u foo1 foo2 || echo 'BAD: T.func (function return type)'
 
 echo 'data: data' >foo1
 $awk '
@@ -30,7 +30,7 @@ function test1(array) { array["test"] = "data" }
 function test2(array) { return(array["test"]) }
 BEGIN { test1(foo); print "data: " test2(foo) }
 ' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (array type)'
+diff -u foo1 foo2 || echo 'BAD: T.func (array type)'
 
 $awk '
 BEGIN	{ code() }
@@ -39,7 +39,7 @@ function code() { ; }
 function codeout(ex) { print ex }
 ' /dev/null >foo1
 echo x >foo2
-diff foo1 foo2 || echo 'BAD: T.func (argument passing)'
+diff -u foo1 foo2 || echo 'BAD: T.func (argument passing)'
 
 $awk '
 BEGIN { unireghf() }
@@ -57,7 +57,7 @@ function rcell(cellname,hfeed) {
 ' >foo1
 echo "foo
 bar" >foo2
-diff foo1 foo2 || echo 'BAD: T.func (convert arg to array)'
+diff -u foo1 foo2 || echo 'BAD: T.func (convert arg to array)'
 
 $awk '
 function f(n) {
@@ -91,7 +91,7 @@ cat <<! >foo1
 40320
 362880
 !
-diff foo1 foo2 || echo 'BAD: T.func (factorial)'
+diff -u foo1 foo2 || echo 'BAD: T.func (factorial)'
 
 $awk '
 function ack(m,n) {
@@ -117,7 +117,7 @@ cat <<! >foo1
 125 (10307 calls)
 253 (42438 calls)
 !
-diff foo1 foo2 || echo 'BAD: T.func (ackermann)'
+diff -u foo1 foo2 || echo 'BAD: T.func (ackermann)'
 
 $awk '
 END { print "end" }
@@ -142,7 +142,7 @@ begin
 89
 end
 !
-diff foo1 foo2 || echo 'BAD: T.func (fib)'
+diff -u foo1 foo2 || echo 'BAD: T.func (fib)'
 
 $awk '
 function foo() {
@@ -167,12 +167,12 @@ function eprocess(file, first, contig) {
 function process(file) {
 	close(file)
 }' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (eqn)'
+diff -u foo1 foo2 || echo 'BAD: T.func (eqn)'
 
 echo 1 >foo1
 $awk 'function f() { n = 1; exit }
 	BEGIN { n = 0; f(); n = 2 }; END { print n}' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (exit in function)'
+diff -u foo1 foo2 || echo 'BAD: T.func (exit in function)'
 
 echo 1 >foo1
 $awk '
@@ -187,10 +187,10 @@ BEGIN {	n = 10
 	print (k == n^2)
       }
 ' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (multi-dim subscript)'
+diff -u foo1 foo2 || echo 'BAD: T.func (multi-dim subscript)'
 
 echo '<> 0' >foo1
 $awk '
 function foo() { i = 0 }
         BEGIN { x = foo(); printf "<%s> %d\n", x, x }' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (fall off end)'
+diff -u foo1 foo2 || echo 'BAD: T.func (fall off end)'

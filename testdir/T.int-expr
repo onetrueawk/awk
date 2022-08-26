@@ -120,5 +120,5 @@ EOF
 
 
 $awk -f prog foo.in > foo2
-diff foo1 foo2 || echo 'BAD: T.int-expr (1)'
+diff -u foo1 foo2 || echo 'BAD: T.int-expr (1)'
 rm -f prog

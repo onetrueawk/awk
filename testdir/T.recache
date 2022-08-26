@@ -30,4 +30,4 @@ BEGIN {
         print x
 }
 ' >foo2
-diff foo1 foo2 || echo 'BAD: T.recache'
+diff -u foo1 foo2 || echo 'BAD: T.recache'

@@ -13,7 +13,7 @@ $awk '
 { print $0; nextfile }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 1'
+diff -u foo0 foo1 || echo 'BAD: T.nextfile 1'
 
 $awk '	# same test but in a for loop
 { print $0; 
@@ -24,7 +24,7 @@ $awk '	# same test but in a for loop
 }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 1f'
+diff -u foo0 foo1 || echo 'BAD: T.nextfile 1f'
 
 $awk '	# same test but in a while loop
 { print $0; 
@@ -36,7 +36,7 @@ $awk '	# same test but in a while loop
 }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 1w'
+diff -u foo0 foo1 || echo 'BAD: T.nextfile 1w'
 
 $awk '	# same test but in a do loop
 { print $0; 
@@ -49,7 +49,7 @@ $awk '	# same test but in a do loop
 }
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 1d'
+diff -u foo0 foo1 || echo 'BAD: T.nextfile 1d'
 
 
 # 100 lines of some files
@@ -64,13 +64,13 @@ $awk '
 FNR == 100 { nextfile }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 2'
+diff -u foo0 foo1 || echo 'BAD: T.nextfile 2'
 
 
 >foo0	# empty
 $awk ' { nextfile; print $0 }' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 3'
+diff -u foo0 foo1 || echo 'BAD: T.nextfile 3'
 
 # skip weird args
 rm -f foo0
@@ -83,4 +83,4 @@ $awk '
 { print $0; nextfile }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 4'
+diff -u foo0 foo1 || echo 'BAD: T.nextfile 4'

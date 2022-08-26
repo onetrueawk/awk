@@ -7,11 +7,11 @@ echo oldawk=$oldawk, awk=$awk
 for i
 do
 	echo "$i:"
-	$oldawk -f $i test.countries test.countries >foo1 
-	$awk -f $i test.countries test.countries >foo2 
-	if cmp -s foo1 foo2
+	$oldawk -f $i test.countries test.countries >old.output
+	$awk -f $i test.countries test.countries >awk.output
+	if cmp -s old.output awk.output
 	then true
-	else echo -n "$i:	BAD ..."
+	else echo "$i:	BAD ..."
 	fi
-	diff -b foo1 foo2 | sed -e 's/^/	/' -e 10q
+	diff  -u -b old.output awk.output | sed -e 's/^/	/' -e 10q
 done

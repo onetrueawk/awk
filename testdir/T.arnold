@@ -15,5 +15,5 @@ do
   name=$(basename $i .awk)
   #echo $name:
   $awk -f $name.awk >foo.$name
-  diff $name.ok foo.$name || echo "BAD: T.arnold ($name)"
+  diff  -u $name.ok foo.$name || echo "BAD: T.arnold ($name)"
 done

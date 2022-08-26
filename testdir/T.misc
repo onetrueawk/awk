@@ -53,16 +53,16 @@ echo 'a
 s p
 x' >foo1
 $awk '{ NF -= 2; $1 = $1; print }' <foo >foo2
-diff foo1 foo2 || echo 1>&2 "BAD: T.misc bad field self-assignment"
+diff -u foo1 foo2 || echo 1>&2 "BAD: T.misc bad field self-assignment"
 
 echo '1
 1' >foo1
 $awk 'BEGIN {x = 1; print x; x = x; print x}' >foo2
-diff foo1 foo2 || echo 1>&2 "BAD: T.misc bad self-assignment"
+diff -u foo1 foo2 || echo 1>&2 "BAD: T.misc bad self-assignment"
 
 echo 573109312 | $awk '{print $1*4}' >foo1
 echo 2292437248 >foo2
-diff foo1 foo2 || echo 1>&2 "BAD: T.misc bad overflow"
+diff -u foo1 foo2 || echo 1>&2 "BAD: T.misc bad overflow"
 
 # note that there are 8-bit characters in the echo
 # some shells will probably screw this up.
@@ -71,7 +71,7 @@ code  1
 code  2' |
 $awk '/^#/' >foo1
 echo '#' >foo2
-diff foo1 foo2 || echo 1>&2 "BAD: T.misc bad match of 8-bit char"
+diff -u foo1 foo2 || echo 1>&2 "BAD: T.misc bad match of 8-bit char"
 
 echo hello |
 $awk 'BEGIN	{ FILENAME = "/etc/passwd" }
@@ -191,7 +191,7 @@ echo a | $awk 1 RS='a\n' > foo1
 cat << \EOF > foo2
 
 EOF
-diff foo1 foo2 || echo 'BAD: T.misc RS regex matching an empty record at EOF fails'
+diff -u foo1 foo2 || echo 'BAD: T.misc RS regex matching an empty record at EOF fails'
 
 # Test for RS regex being reapplied
 echo aaa1a2a | $awk 1 RS='^a' >foo1
@@ -200,7 +200,7 @@ cat << \EOF > foo2
 aa1a2a
 
 EOF
-diff foo1 foo2 || echo 'BAD: T.misc ^regex reapplied fails'
+diff -u foo1 foo2 || echo 'BAD: T.misc ^regex reapplied fails'
 
 # ^-anchored RS matching should be active at the start of each input file
 tee foo1 foo2 >foo3 << \EOF
@@ -218,7 +218,7 @@ aa
 aa
 
 EOF
-diff foo4 foo5 || echo 'BAD: T.misc ^RS matches the start of every input file fails'
+diff -u foo4 foo5 || echo 'BAD: T.misc ^RS matches the start of every input file fails'
 
 # The following should not produce a warning about changing a constant
 # nor about a curdled tempcell list
@@ -234,14 +234,14 @@ grep '^' foo && echo 'BAD: test tempcell list fails'
 $awk 'BEGIN { print 9, a=10, 11; print a; exit }' >foo1
 echo '9 10 11
 10' >foo2
-diff foo1 foo2 || echo 'BAD: T.misc (embedded expression)'
+diff -u foo1 foo2 || echo 'BAD: T.misc (embedded expression)'
 
 echo "abc defgh ijkl" | $awk '
   { $1 = ""; line = $0; print line; print $0; $0 = line; print $0 }' >foo1
 echo " defgh ijkl
  defgh ijkl
  defgh ijkl" >foo2
-diff foo1 foo2 || echo 'BAD: T.misc (assignment to $0)'
+diff -u foo1 foo2 || echo 'BAD: T.misc (assignment to $0)'
 
 $awk '
 function min(a, b)
@@ -323,7 +323,8 @@ $awk '#
 ' >/dev/null 2>foo
 grep 'line [45]' foo >/dev/null || echo 'BAD: T.misc lineno'
 
-echo 'x\y' >foo1
+echo 'x
+\y' >foo1
 $awk 'BEGIN { print "x\f\r\b\v\a\\y" }' >foo2
 cmp -s foo1 foo2 || echo 'BAD: T.misc weird chars'
 

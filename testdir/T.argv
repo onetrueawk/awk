@@ -14,7 +14,7 @@ BEGIN {
 	exit
 }' * >foo1
 echo * >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (echo1 *)'
+diff -u foo1 foo2 || echo 'BAD: T.argv (echo1 *)'
 
 $awk '
 BEGIN {
@@ -27,7 +27,7 @@ BEGIN {
 	exit
 }' * >foo1
 echo * >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (echo2 *)'
+diff -u foo1 foo2 || echo 'BAD: T.argv (echo2 *)'
 
 $awk '
 BEGIN {
@@ -44,7 +44,7 @@ a
 bc
 def
 " >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (argc *)'
+diff -u foo1 foo2 || echo 'BAD: T.argv (argc *)'
 
 echo '1
 2
@@ -53,7 +53,7 @@ echo 'foo1
 foo2
 foo3' >foo1
 $awk '{print L $0}' L=foo <foo0 >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (L=foo <foo1)'
+diff -u foo1 foo2 || echo 'BAD: T.argv (L=foo <foo1)'
 
 echo '1
 2
@@ -62,7 +62,7 @@ echo 'foo1
 foo2
 foo3' >foo1
 $awk '{print L $0}' L=foo foo0 >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (L=foo foo1)'
+diff -u foo1 foo2 || echo 'BAD: T.argv (L=foo foo1)'
 
 echo '1
 2
@@ -71,7 +71,7 @@ echo 'foo1
 foo2
 foo3' >foo1
 cat foo0 | $awk '{print L $0}' L=foo - >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (L=foo -)'
+diff -u foo1 foo2 || echo 'BAD: T.argv (L=foo -)'
 
 echo '1
 2
@@ -83,7 +83,7 @@ glop1
 glop2
 glop3' >foo1
 $awk '{print L $0}' L=foo foo0 L=glop foo0 >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (L=foo L=glop)'
+diff -u foo1 foo2 || echo 'BAD: T.argv (L=foo L=glop)'
 
 echo '1
 2
@@ -95,21 +95,21 @@ echo '111
 222
 223' >foo1
 $awk '{print L $0}' L=11 foo0 L=22 foo0 >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (L=11 L=22)'
+diff -u foo1 foo2 || echo 'BAD: T.argv (L=11 L=22)'
 
 echo >foo0
 echo 'name=value
 name=value' >foo1
 $awk 'BEGIN { print ARGV[1] } { print ARGV[1] }' name=value foo0 >foo2
-diff foo1 foo2 || echo 'BAD: T.argv assignment operand modified'
+diff -u foo1 foo2 || echo 'BAD: T.argv assignment operand modified'
 
 echo 3.345 >foo1
 $awk 'BEGIN { print ARGV[1] + ARGV[2]}' 1 2.345 >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (ARGV[1] + ARGV[2])'
+diff -u foo1 foo2 || echo 'BAD: T.argv (ARGV[1] + ARGV[2])'
 
 echo 3.345 >foo1
 x1=1 x2=2.345 $awk 'BEGIN { print ENVIRON["x1"] + ENVIRON["x2"]}' 1 2.345 >foo2
-diff foo1 foo2 || echo 'BAD: T.argv (ENVIRON[x1] + ENVIRON[x2])'
+diff -u foo1 foo2 || echo 'BAD: T.argv (ENVIRON[x1] + ENVIRON[x2])'
 
 
 echo 'foo1' >foo1
@@ -119,14 +119,14 @@ $awk 'BEGIN { ARGV[2] = "" }
 	{ print }' foo1 foo2 foo3 >foo4
 echo 'foo1
 foo3' >foo5
-diff foo4 foo5 || echo 'BAD: T.argv zap ARGV[2]'
+diff -u foo4 foo5 || echo 'BAD: T.argv zap ARGV[2]'
 
 echo hi > foo1 ; mv foo1 foo2
 $awk 'BEGIN { ARGV[1] = "foo2" ; print FILENAME }
              { print FILENAME }' foo1 >foo3
 echo '
 foo2' >foo4
-diff foo3 foo4 || echo 'BAD: T.argv startup FILENAME'
+diff -u foo3 foo4 || echo 'BAD: T.argv startup FILENAME'
 	# assumes that startup FILENAME is ""
 
 
@@ -147,4 +147,4 @@ END {
         for (i in ARGV)
                 printf("ARGV[%d] is %s\n", i, ARGV[i])
 }' >foo2
-diff foo1 foo2 || echo 'BAD: T.argv delete ARGV[2]'
+diff -u foo1 foo2 || echo 'BAD: T.argv delete ARGV[2]'

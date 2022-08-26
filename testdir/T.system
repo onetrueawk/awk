@@ -12,4 +12,4 @@ $awk 'BEGIN {
 echo $? >>foo
 echo "3
 4" >foo1
-diff foo foo1 || echo 'BAD: T.system (1)'
+diff -u foo foo1 || echo 'BAD: T.system (1)'
