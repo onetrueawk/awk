@@ -29,4 +29,9 @@ jobs:
         make a.out
     - name: Test
       run: |
-        make test check
+        output=$(mktemp)
+        make test check | tee "$output"
+        if egrep -q -- --- "$output"; then
+          echo Test appears to have failed
+          exit 1
+        fi
