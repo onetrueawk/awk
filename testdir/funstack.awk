@@ -828,7 +828,7 @@ function print_toc_line(author,title,pages, extra,leaders,n,t)
 	Title_prefix = ""	# forget any hypertext
 	Title_suffix = ""	# link material
 
-	# Efficency note: an earlier version accumulated the body in a
+	# Efficiency note: an earlier version accumulated the body in a
 	# single scalar like this: "Body = Body t".  Profiling revealed
 	# this statement as the major hot spot, and the change to array
 	# storage made the program more than twice as fast.  This
