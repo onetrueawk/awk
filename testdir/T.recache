@@ -17,7 +17,7 @@ BEGIN {
                 }
         }
         #
-        # Now evalutate an expression that uses two run-time REs
+        # Now evaluate an expression that uses two run-time REs
         # that have never been used before.  The second RE will
         # push the first out of the cache while the first RE is 
         # still needed.
