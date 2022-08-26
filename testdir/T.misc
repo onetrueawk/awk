@@ -336,12 +336,12 @@ cmp -s foo1 foo2 || echo 'BAD: T.misc BEGIN exit'
 echo 1 >foo1
 $awk '	{ exit }
 	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.misc immmediate exit'
+cmp -s foo1 foo2 || echo 'BAD: T.misc immediate exit'
 
 echo 1 >foo1
 $awk '	{i = 1; while (i <= NF) {if (i == NF) exit; i++ } }
 	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.misc immmediate exit 2'
+cmp -s foo1 foo2 || echo 'BAD: T.misc immediate exit 2'
 
 echo 1 >foo1
 $awk '	function f() {
@@ -363,7 +363,7 @@ cmp -s foo1 foo2 || echo 'BAD: T.misc while return'
 echo 1 >foo1
 $awk '	{i = 1; do { if (i == NF) exit; i++ } while (i <= NF) }
 	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.misc immmediate exit 3'
+cmp -s foo1 foo2 || echo 'BAD: T.misc immediate exit 3'
 
 echo 1 >foo1
 $awk '	function f() {
@@ -376,7 +376,7 @@ cmp -s foo1 foo2 || echo 'BAD: T.misc do return'
 echo 1 >foo1
 $awk '	{i = 1; do { if (i == NF) break; i++ } while (i <= NF); exit }
 	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.misc immmediate exit 4'
+cmp -s foo1 foo2 || echo 'BAD: T.misc immediate exit 4'
 
 echo 1 >foo1
 $awk '	{ n = split($0, x)
@@ -384,7 +384,7 @@ $awk '	{ n = split($0, x)
 	 	if (i == 1)
 			exit } }
 	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.misc immmediate exit 5'
+cmp -s foo1 foo2 || echo 'BAD: T.misc immediate exit 5'
 
 echo XXXXXXXX >foo1
 $awk 'BEGIN { s = "ab\fc\rd\be"
