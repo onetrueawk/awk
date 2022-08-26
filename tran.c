@@ -168,7 +168,7 @@ Array *makesymtab(int n)	/* make a new symbol table */
 	return(ap);
 }
 
-void freesymtab(Cell *ap)	/* free a symbol table */
+void freesymtab2(Cell *ap, Cell *y)	/* free a symbol table but preserve y */
 {
 	Cell *cp, *temp;
 	Array *tp;
@@ -181,11 +181,13 @@ void freesymtab(Cell *ap)	/* free a symbol table */
 		return;
 	for (i = 0; i < tp->size; i++) {
 		for (cp = tp->tab[i]; cp != NULL; cp = temp) {
-			xfree(cp->nval);
-			if (freeable(cp))
-				xfree(cp->sval);
 			temp = cp->cnext;	/* avoids freeing then using */
-			free(cp);
+			if (cp != y) {
+			    xfree(cp->nval);
+			    if (freeable(cp))
+				    xfree(cp->sval);
+			    free(cp);
+			}
 			tp->nelem--;
 		}
 		tp->tab[i] = NULL;
@@ -194,6 +196,11 @@ void freesymtab(Cell *ap)	/* free a symbol table */
 		WARNING("can't happen: inconsistent element count freeing %s", ap->nval);
 	free(tp->tab);
 	free(tp);
+}
+
+void freesymtab(Cell *ap)	/* free a symbol table */
+{
+    freesymtab2(ap, NULL);
 }
 
 void freeelem(Cell *ap, const char *s)	/* free elem s from ap (i.e., ap["s"] */

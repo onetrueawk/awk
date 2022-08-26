@@ -293,7 +293,7 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 		if (isarr(t)) {
 			if (t->csub == CCOPY) {
 				if (i >= ncall) {
-					freesymtab(t);
+					freesymtab2(t, y);
 					t->csub = CTEMP;
 					tempfree(t);
 				} else {
@@ -1279,7 +1279,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		FATAL("illegal type of split");
 	sep = *fs;
 	ap = execute(a[1]);	/* array name */
-	freesymtab(ap);
+	freesymtab2(ap, y);
 	DPRINTF("split: s=|%s|, a=%s, sep=|%s|\n", s, NN(ap->nval), fs);
 	ap->tval &= ~STR;
 	ap->tval |= ARR;

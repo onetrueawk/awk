@@ -98,6 +98,7 @@ extern	void	syminit(void);
 extern	void	arginit(int, char **);
 extern	void	envinit(char **);
 extern	Array	*makesymtab(int);
+extern	void	freesymtab2(Cell *, Cell *);
 extern	void	freesymtab(Cell *);
 extern	void	freeelem(Cell *, const char *);
 extern	Cell	*setsymtab(const char *, const char *, double, unsigned int, Array *);
