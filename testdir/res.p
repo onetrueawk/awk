@@ -16,7 +16,7 @@ R5:	ring with .V1 at R4.V3
 	back bond down from R5.V4 ; O
 	CH3 right of O
 	bond 120 from R5.V3 ; O
-	bond right lenght .1 from O ; C
+	bond right length .1 from O ; C
 	double bond down ; O
 	bond right length .1 from C 
 B:	benzene pointing right
