@@ -434,7 +434,7 @@ Jun 12, 2011:
 	ruslan ermilov for spotting this and providing the patch.
 
 	removed fixed limit on number of open files; thanks to aleksey
-	cheusov and christos zoulos.
+	cheusov and christos zoulas.
 
 	fixed day 1 bug that resurrected deleted elements of ARGV when
 	used as filenames (in lib.c).
