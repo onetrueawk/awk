@@ -34,6 +34,8 @@ THIS SOFTWARE.
 #include <math.h>
 #include "awk.h"
 
+extern int u8_nextlen(const char *s);
+
 char	EMPTY[] = { '\0' };
 FILE	*infile	= NULL;
 bool	innew;		/* true = infile has not been read by readrec */
@@ -327,7 +329,7 @@ void fldbld(void)	/* create fields from current record */
 	/* possibly with a final trailing \0 not associated with any field */
 	char *r, *fr, sep;
 	Cell *p;
-	int i, j, n, quote;
+	int i, j, n;
 
 	if (donefld)
 		return;
@@ -366,8 +368,8 @@ void fldbld(void)	/* create fields from current record */
 			*fr++ = 0;
 		}
 		*fr = 0;
-	} else if ((sep = *inputFS) == ',') {	/* CSV: handle quotes, \x, etc. */
-		for (i = 0; *r != '\0'; ) {
+	} else if ((sep = *inputFS) == ',') {	/* CSV processing.  no error handling */
+		for (;;) {
 			i++;
 			if (i > nfields)
 				growfldtab(i);
@@ -375,68 +377,47 @@ void fldbld(void)	/* create fields from current record */
 				xfree(fldtab[i]->sval);
 			fldtab[i]->sval = fr;
 			fldtab[i]->tval = FLD | STR | DONTFREE;
-
-/* printf("fldbld 1 [%s] [%d:] [%s]\n", r, i, fr); */
-
-			if (*r == '"' /* || *r == '\'' */ ) { /* "..."; do not include '...' */
-				quote = *r++;
-				for ( ; *r != '\0'; ) {
-/* printf("fldbld 2   [%s]\n", r); */
-					if (*r == quote && r[1] != '\0' && r[1] == quote) {
+			if (*r == '"' ) { /* start of "..." */
+				for (r++ ; *r != '\0'; ) {
+					if (*r == '"' && r[1] != '\0' && r[1] == '"') {
 						r += 2; /* doubled quote */
-						*fr++ = quote;
-					} else if (*r == '\\') { /* BUG: off end? */
-						r++; /* backslashes inside "..." ??? */
-						*fr++ = *r++;
-					} else if (*r == quote && (r[1] == '\0' || r[1] == ',')) {
-						r++;
-						if (*r == ',')
-							r++;
+						*fr++ = '"';
+					} else if (*r == '"' && (r[1] == '\0' || r[1] == ',')) {
+						r++; /* skip over closing quote */
 						break;
 					} else {
 						*fr++ = *r++;
 					}
 				}
 				*fr++ = 0;
-				continue;
+			} else {	/* unquoted field */
+				while (*r != ',' && *r != '\0')
+					*fr++ = *r++;
+				*fr++ = 0;
 			}
+			if (*r++ == 0)
+				break;
 
-			/* unquoted field */
-			for ( ; *r != '\0'; ) {
-				if (*r == ',') { /* bare comma ends field */
-					r++;
-					*fr++ = 0;
-					break;
-				} else if (*r == '\\') { /* BUG: could walk off end */
-					r++;
-					*fr++ = *r++;
-				} else {
-					*fr++ = *r++;
-				}
-			}
-			*fr++ = 0;
 		}
 		*fr = 0;
-	} else if ((sep = *inputFS) == 0) {		/* new: FS="" => 1 char/field */
-		for (i = 0; *r != '\0'; r += n) {
-			char buf[MB_LEN_MAX + 1];
-
+	} else if ((sep = *inputFS) == 0) {	/* new: FS="" => 1 char/field */
+		for (i = 0; *r != '\0'; ) {
+			char buf[10];
 			i++;
 			if (i > nfields)
 				growfldtab(i);
 			if (freeable(fldtab[i]))
 				xfree(fldtab[i]->sval);
-			n = mblen(r, MB_LEN_MAX);
-			if (n < 0)
-				n = 1;
-			memcpy(buf, r, n);
-			buf[n] = '\0';
+			n = u8_nextlen(r);
+			for (j = 0; j < n; j++)
+				buf[j] = *r++;
+			buf[j] = '\0';
 			fldtab[i]->sval = tostring(buf);
 			fldtab[i]->tval = FLD | STR;
 		}
 		*fr = 0;
 	} else if (*r != 0) {	/* if 0, it's a null field */
-		/* subtlecase : if length(FS) == 1 && length(RS > 0)
+		/* subtle case: if length(FS) == 1 && length(RS > 0)
 		 * \n is NOT a field separator (cf awk book 61,84).
 		 * this variable is tested in the inner while loop.
 		 */
