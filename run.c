@@ -1266,6 +1266,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 
 	y = execute(a[0]);	/* source string */
 	origs = s = strdup(getsval(y));
+	tempfree(y);
 	arg3type = ptoi(a[3]);
 	if (a[2] == NULL)		/* fs string */
 		fs = getsval(fsloc);
@@ -1386,7 +1387,6 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		}
 	}
 	tempfree(ap);
-	tempfree(y);
 	xfree(origs);
 	xfree(origfs);
 	x = gettemp();
