@@ -1712,8 +1712,10 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 	setfval(x, u);
 	if (nextarg != NULL) {
 		WARNING("warning: function has too many arguments");
-		for ( ; nextarg; nextarg = nextarg->nnext)
-			execute(nextarg);
+		for ( ; nextarg; nextarg = nextarg->nnext) {
+			y = execute(nextarg);
+			tempfree(y);
+		}
 	}
 	return(x);
 }
