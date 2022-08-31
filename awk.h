@@ -37,7 +37,7 @@ typedef double	Awkfloat;
 
 typedef	unsigned char uschar;
 
-#define	xfree(a)	{ if ((a) != NULL) { free((void *)(intptr_t)(a)); (a) = NULL; } }
+#define	xfree(a)	{ free((void *)(intptr_t)(a)); (a) = NULL; }
 /*
  * We sometimes cheat writing read-only pointers to NUL-terminate them
  * and then put back the original value
