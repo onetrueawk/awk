@@ -378,17 +378,19 @@ term:
 	| GENSUB '(' reg_expr comma pattern comma pattern ')'
 		{ $$ = op5(GENSUB, NIL, (Node*)makedfa($3, 1), $5, $7, rectonode()); }
 	| GENSUB '(' pattern comma pattern comma pattern ')'
-		{ if (constnode($3))
+		{ if (constnode($3)) {
 			$$ = op5(GENSUB, NIL, (Node *)makedfa(strnode($3), 1), $5, $7, rectonode());
-		  else
+			free($3);
+		  } else
 			$$ = op5(GENSUB, (Node *)1, $3, $5, $7, rectonode());
 		}
 	| GENSUB '(' reg_expr comma pattern comma pattern comma pattern ')'
 		{ $$ = op5(GENSUB, NIL, (Node*)makedfa($3, 1), $5, $7, $9); }
 	| GENSUB '(' pattern comma pattern comma pattern comma pattern ')'
-		{ if (constnode($3))
+		{ if (constnode($3)) {
 			$$ = op5(GENSUB, NIL, (Node *)makedfa(strnode($3),1), $5,$7,$9);
-		  else
+			free($3);
+		  } else
 			$$ = op5(GENSUB, (Node *)1, $3, $5, $7, $9);
 		}
 	| GETLINE var LT term		{ $$ = op3(GETLINE, $2, itonp($3), $4); }
