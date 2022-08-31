@@ -206,9 +206,10 @@ ppattern:
 		{ $$ = op2(AND, notnull($1), notnull($3)); }
 	| ppattern MATCHOP reg_expr	{ $$ = op3($2, NIL, $1, (Node*)makedfa($3, 0)); }
 	| ppattern MATCHOP ppattern
-		{ if (constnode($3))
+		{ if (constnode($3)) {
 			$$ = op3($2, NIL, $1, (Node*)makedfa(strnode($3), 0));
-		  else
+			free($3);
+		  } else
 			$$ = op3($2, (Node *)1, $1, $3); }
 	| ppattern IN varname		{ $$ = op2(INTEST, $1, makearr($3)); }
 	| '(' plist ')' IN varname	{ $$ = op2(INTEST, $2, makearr($5)); }
@@ -233,9 +234,10 @@ pattern:
 	| pattern NE pattern		{ $$ = op2($2, $1, $3); }
 	| pattern MATCHOP reg_expr	{ $$ = op3($2, NIL, $1, (Node*)makedfa($3, 0)); }
 	| pattern MATCHOP pattern
-		{ if (constnode($3))
+		{ if (constnode($3)) {
 			$$ = op3($2, NIL, $1, (Node*)makedfa(strnode($3), 0));
-		  else
+			free($3);
+		  } else
 			$$ = op3($2, (Node *)1, $1, $3); }
 	| pattern IN varname		{ $$ = op2(INTEST, $1, makearr($3)); }
 	| '(' plist ')' IN varname	{ $$ = op2(INTEST, $2, makearr($5)); }
@@ -404,9 +406,10 @@ term:
 	| MATCHFCN '(' pattern comma reg_expr ')'
 		{ $$ = op3(MATCHFCN, NIL, $3, (Node*)makedfa($5, 1)); }
 	| MATCHFCN '(' pattern comma pattern ')'
-		{ if (constnode($5))
+		{ if (constnode($5)) {
 			$$ = op3(MATCHFCN, NIL, $3, (Node*)makedfa(strnode($5), 1));
-		  else
+			free($5);
+		  } else
 			$$ = op3(MATCHFCN, (Node *)1, $3, $5); }
 	| NUMBER			{ $$ = celltonode($1, CCON); }
 	| SPLIT '(' pattern comma varname comma pattern ')'     /* string */
@@ -420,16 +423,18 @@ term:
 	| subop '(' reg_expr comma pattern ')'
 		{ $$ = op4($1, NIL, (Node*)makedfa($3, 1), $5, rectonode()); }
 	| subop '(' pattern comma pattern ')'
-		{ if (constnode($3))
+		{ if (constnode($3)) {
 			$$ = op4($1, NIL, (Node*)makedfa(strnode($3), 1), $5, rectonode());
-		  else
+			free($3);
+		  } else
 			$$ = op4($1, (Node *)1, $3, $5, rectonode()); }
 	| subop '(' reg_expr comma pattern comma var ')'
 		{ $$ = op4($1, NIL, (Node*)makedfa($3, 1), $5, $7); }
 	| subop '(' pattern comma pattern comma var ')'
-		{ if (constnode($3))
+		{ if (constnode($3)) {
 			$$ = op4($1, NIL, (Node*)makedfa(strnode($3), 1), $5, $7);
-		  else
+			free($3);
+		  } else
 			$$ = op4($1, (Node *)1, $3, $5, $7); }
 	| SUBSTR '(' pattern comma pattern comma pattern ')'
 		{ $$ = op3(SUBSTR, $3, $5, $7); }
