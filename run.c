@@ -1029,7 +1029,6 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			s += 2;
 			continue;
 		}
-		/* have to be real careful in case this is a huge number, eg, %100000d */
 		fmtwd = atoi(s+1);
 		if (fmtwd < 0)
 			fmtwd = -fmtwd;
@@ -1116,25 +1115,47 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		case 'f':	snprintf(p, BUFSZ(p), fmt, getfval(x)); break;
 		case 'd':	snprintf(p, BUFSZ(p), fmt, (intmax_t) getfval(x)); break;
 		case 'u':	snprintf(p, BUFSZ(p), fmt, (uintmax_t) getfval(x)); break;
+
 		case 's':
 			t = getsval(x);
 			n = strlen(t);
-			if (fmtwd > n)
-				n = fmtwd;
-			if (!adjbuf(&buf, &bufsize, 1+n+p-buf, recsize, &p, "format7"))
-				FATAL("huge string/format (%d chars) in printf %.30s... ran format() out of memory", n, t);
-			snprintf(p, BUFSZ(p), fmt, t);
+			if (1 || u8_strlen(t) == n) { /* no utf-8 here */
+				if (fmtwd > n)
+					n = fmtwd;
+				if (!adjbuf(&buf, &bufsize, 1+n+p-buf, recsize, &p, "format7"))
+					FATAL("huge string/format (%d chars) in printf %.30s..." \
+						" ran format() out of memory", n, t);
+				snprintf(p, BUFSZ(p), fmt, t);
+				break;
+			}
+
+/*	"%-w.ps", where -, w and .p are all optional
+	if p
+		t = first p characters of t
+	if w && len(t) < w
+		if ljust
+			t = t + "pad"
+		else
+			t = "pad" + t
+	print t with fmt
+*/
+			//int ljust = fmt[1] == '-' ? 1 : 0;
 			break;
+
+
 		case 'c':
 			if (isnum(x)) {
-				if ((int)getfval(x))
+				if ((int)getfval(x)) {
 					snprintf(p, BUFSZ(p), fmt, (int) getfval(x));
-				else {
+				} else {
 					*p++ = '\0'; /* explicit null byte */
 					*p = '\0';   /* next output will start here */
 				}
-			} else
+			} else if (u8_nextlen((getsval(x))) > 1) { /* utf-8? */
+				snprintf(p, BUFSZ(p), "%s", getsval(x)); /* BUG: ignoring %[something]c */
+                        } else {
 				snprintf(p, BUFSZ(p), fmt, getsval(x)[0]);
+			}
 			break;
 		default:
 			FATAL("can't happen: bad conversion %c in format()", flag);
@@ -1547,6 +1568,41 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			else
 				setsymtab(num, buf, 0.0, STR, (Array *) ap->sval);
 		}
+
+
+	} else if (sep == ',') {	/* CSV processing.  no error handling */
+		t = (char *) malloc(strlen(s)); /* for building new string; reuse for each field */
+		for (;;) {
+			char *fr = (char *) t; 
+			n++;
+			if (*s == '"' ) { /* start of "..." */
+				for (s++ ; *s != '\0'; ) {
+					if (*s == '"' && s[1] != '\0' && s[1] == '"') {
+						s += 2; /* doubled quote */
+						*fr++ = '"';
+					} else if (*s == '"' && (s[1] == '\0' || s[1] == ',')) {
+						s++; /* skip over closing quote */
+						break;
+					} else {
+						*fr++ = *s++;
+					}
+				}
+				*fr++ = 0;
+			} else {	/* unquoted field */
+				while (*s != ',' && *s != '\0')
+					*fr++ = *s++;
+				*fr++ = 0;
+			}
+			snprintf(num, sizeof(num), "%d", n);
+			if (is_number(t, &result))
+				setsymtab(num, t, result, STR|NUM, (Array *) ap->sval);
+			else
+				setsymtab(num, t, 0.0, STR, (Array *) ap->sval);
+			if (*s++ == '\0')
+				break;
+		}
+		free((char *) t);
+
 	} else if (*s != '\0') {
 		for (;;) {
 			n++;

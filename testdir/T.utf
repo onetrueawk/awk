@@ -14,7 +14,7 @@ NF == 0 || $1 ~ /^#/ {
 }
 $1 ~ /try/ {	# new test
 	nt++
-	sub(/try [a-z0-9]+ /, "")
+	sub(/try [a-zA-Z_0-9]+ /, "")
 	prog = $0
 	printf("try %3d %s\n", nt, prog)
 	prog = sprintf("%s -F\"\\t\" '"'"'%s'"'"'", awk, prog)
@@ -154,5 +154,12 @@ try emptyFS BEGIN {FS=""} {print NF}
 😀	1
 🖕 finger	8
 
+# printf(%c) for utf
+try printfc {printf("%c %c\n", substr($1,1,1), substr($1,2,1))}
+すべての善人のために	す べ
+の今がその時だ	の 今
+Сейчас	С е
+现在是时候了	现 在
+😀🖕	😀 🖕
 
 !!!!
