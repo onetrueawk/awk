@@ -1,5 +1,5 @@
-name: Bug Report
-description: File a bug report
+name: "表单模板"
+description: "填写表单并提交你的 bug"
 title: "[Bug]: "
 labels: ["bug", "triage"]
 body:
