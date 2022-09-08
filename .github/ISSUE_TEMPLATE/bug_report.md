@@ -1,9 +1,9 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+name: "BUG 报告"
+about: "向我们报告你在使用过程中遇到的问题或者 bug，以便我们改进产品"
+title: "【BUG】:"
+labels: 'BUG',"产品优化"
+assignees: '@xiongjiamu'
 
 ---
 
