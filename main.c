@@ -225,6 +225,29 @@ int main(int argc, char *argv[])
 	return(errorflag);
 }
 
+int pgetc(void)		/* get 1 character from awk program */
+{
+	int c;
+
+	for (;;) {
+		if (yyin == NULL) {
+			if (curpfile >= npfile)
+				return EOF;
+			if (strcmp(pfile[curpfile], "-") == 0)
+				yyin = stdin;
+			else if ((yyin = fopen(pfile[curpfile], "r")) == NULL)
+				FATAL("can't open file %s", pfile[curpfile]);
+			lineno = 1;
+		}
+		if ((c = getc(yyin)) != EOF)
+			return c;
+		if (yyin != stdin)
+			fclose(yyin);
+		yyin = NULL;
+		curpfile++;
+	}
+}
+
 char *cursource(void)	/* current source file name */
 {
 	if (npfile > 0)
