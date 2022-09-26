@@ -987,6 +987,18 @@ Cell *sindex(Node **a, int nnn)		/* index(a[0], a[1]) */
 	return(z);
 }
 
+int has_utf8(char *s)	/* return 1 if s contains any utf-8 (2 bytes or more) character */
+{
+	int n;
+
+	for (n = 0; *s != 0; s += n) {
+		n = u8_nextlen(s);
+		if (n > 1)
+			return 1;
+	}
+	return 0;
+}
+
 #define	MAXNUMSIZE	50
 
 int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like conversions */
@@ -1101,7 +1113,8 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			n = fmtwd;
 		adjbuf(&buf, &bufsize, 1+n+p-buf, recsize, &p, "format5");
 		switch (flag) {
-		case '?':	snprintf(p, BUFSZ(p), "%s", fmt);	/* unknown, so dump it too */
+		case '?':
+			snprintf(p, BUFSZ(p), "%s", fmt);	/* unknown, so dump it too */
 			t = getsval(x);
 			n = strlen(t);
 			if (fmtwd > n)
@@ -1116,10 +1129,11 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		case 'd':	snprintf(p, BUFSZ(p), fmt, (intmax_t) getfval(x)); break;
 		case 'u':	snprintf(p, BUFSZ(p), fmt, (uintmax_t) getfval(x)); break;
 
-		case 's':
+		case 's': {
 			t = getsval(x);
 			n = strlen(t);
-			if (1 || u8_strlen(t) == n) { /* no utf-8 here */
+			/* if simple format or no utf-8 in the string, sprintf works */
+			if (!has_utf8(t) || strcmp(fmt,"%s") == 0) {
 				if (fmtwd > n)
 					n = fmtwd;
 				if (!adjbuf(&buf, &bufsize, 1+n+p-buf, recsize, &p, "format7"))
@@ -1129,19 +1143,54 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				break;
 			}
 
-/*	"%-w.ps", where -, w and .p are all optional
-	if p
-		t = first p characters of t
-	if w && len(t) < w
-		if ljust
-			t = t + "pad"
-		else
-			t = "pad" + t
-	print t with fmt
-*/
-			//int ljust = fmt[1] == '-' ? 1 : 0;
+			/* get here if string has utf-8 chars and fmt is not plain %s */
+			/* "%-w.ps", where -, w and .p are all optional */
+			/* fmt points at % */
+			int ljust = 0, wid = 0, prec = n, pad = 0;
+			char *f = fmt+1;
+			if (f[0] == '-') {
+				ljust = 1;
+				f++;
+			}
+			if (isdigit(f[0])) { /* there is a wid */
+				wid = strtol(f, &f, 10);
+			}
+			if (f[0] == '.') { /* there is a .prec */
+				prec = strtol(++f, &f, 10);
+			}
+			if (prec > u8_strlen(t))
+				prec = u8_strlen(t);
+			pad = wid>prec ? wid - prec : 0;  // has to be >= 0
+//printf("f %s ljust %d wid %d prec %d pad %d t [%s]\n", f, ljust, wid, prec, pad, t);
+//printf("{");
+			int i, k, n;
+			
+			if (ljust) { // print prec chars from t, then pad blanks
+				n = u8_char2byte(t, prec);
+				for (k = 0; k < n; k++) {
+					//putchar(t[k]);
+					*p++ = t[k];
+				}
+				for (i = 0; i < pad; i++) {
+					//printf(" ");
+					*p++ = ' ';
+				}
+			} else { // print pad blanks, then prec chars from t
+				for (i = 0; i < pad; i++) {
+					//printf(" ");
+					*p++ = ' ';
+				}
+				n = u8_char2byte(t, prec);
+				for (k = 0; k < n; k++) {
+					//putchar(t[k]);
+					*p++ = t[k];
+				}
+			}
+//printf("}\n");
+			*p++ = 0;
+			*p = 0;
 			break;
-
+		}
 
 		case 'c':
 			if (isnum(x)) {
@@ -1152,7 +1201,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 					*p = '\0';   /* next output will start here */
 				}
 			} else if (u8_nextlen((getsval(x))) > 1) { /* utf-8? */
-				snprintf(p, BUFSZ(p), "%s", getsval(x)); /* BUG: ignoring %[something]c */
+				snprintf(p, BUFSZ(p), "%s", getsval(x)); /* BUG: ignore %[something]c */
                         } else {
 				snprintf(p, BUFSZ(p), fmt, getsval(x)[0]);
 			}
@@ -1160,6 +1209,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		default:
 			FATAL("can't happen: bad conversion %c in format()", flag);
 		}
+
 		tempfree(x);
 		p += strlen(p);
 		s++;
@@ -1574,9 +1624,9 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 
 
 	} else if (sep == ',') {	/* CSV processing.  no error handling */
-		t = (char *) malloc(strlen(s)); /* for building new string; reuse for each field */
+		char *newt = (char *) malloc(strlen(s)); /* for building new string; reuse for each field */
 		for (;;) {
-			char *fr = (char *) t; 
+			char *fr = newt; 
 			n++;
 			if (*s == '"' ) { /* start of "..." */
 				for (s++ ; *s != '\0'; ) {
@@ -1597,14 +1647,14 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 				*fr++ = 0;
 			}
 			snprintf(num, sizeof(num), "%d", n);
-			if (is_number(t, &result))
-				setsymtab(num, t, result, STR|NUM, (Array *) ap->sval);
+			if (is_number(newt, &result))
+				setsymtab(num, newt, result, STR|NUM, (Array *) ap->sval);
 			else
-				setsymtab(num, t, 0.0, STR, (Array *) ap->sval);
+				setsymtab(num, newt, 0.0, STR, (Array *) ap->sval);
 			if (*s++ == '\0')
 				break;
 		}
-		free((char *) t);
+		free(newt);
 
 	} else if (*s != '\0') {
 		for (;;) {
