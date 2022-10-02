@@ -162,4 +162,33 @@ try printfc {printf("%c %c\n", substr($1,1,1), substr($1,2,1))}
 现在是时候了	现 在
 😀🖕	😀 🖕
 
+# printf(%N.Ns) for utf8 strings
+try printfs1 {printf("[%5.2s][%-5.2s]\n"), $1, $1}
+abcd	[   ab][ab   ]
+现在abc	[   现在][现在   ]
+现ωabc	[   现ω][现ω   ]
+ωabc	[   ωa][ωa   ]
+Сейчас	[   Се][Се   ]
+Сейxyz	[   Се][Се   ]
+😀	[    😀][😀    ]
+
+# printf(%N.Ns) for utf8 strings
+try printfs2 {printf("[%5s][%-5s]\n"), $1, $1}
+abcd	[ abcd][abcd ]
+现在ab	[ 现在ab][现在ab ]
+a现在ab	[a现在ab][a现在ab]
+a现在abc	[a现在abc][a现在abc]
+现ωab	[ 现ωab][现ωab ]
+ωabc	[ ωabc][ωabc ]
+Сейчас	[Сейчас][Сейчас]
+😀	[    😀][😀    ]
+
+# printf(%N.Ns) for utf8 strings
+try printfs3 {printf("[%.2s][%-.2s]\n"), $1, $1}
+abcd	[ab][ab]
+现在abc	[现在][现在]
+现ωabc	[现ω][现ω]
+ω	[ω][ω]
+😀	[😀][😀]
+
 !!!!

@@ -1187,7 +1187,6 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				}
 			}
 //printf("}\n");
-			*p++ = 0;
 			*p = 0;
 			break;
 		}
