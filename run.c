@@ -1161,8 +1161,6 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			if (prec > u8_strlen(t))
 				prec = u8_strlen(t);
 			pad = wid>prec ? wid - prec : 0;  // has to be >= 0
-//printf("f %s ljust %d wid %d prec %d pad %d t [%s]\n", f, ljust, wid, prec, pad, t);
-//printf("{");
 			int i, k, n;
 			
 			if (ljust) { // print prec chars from t, then pad blanks
@@ -1186,7 +1184,6 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 					*p++ = t[k];
 				}
 			}
-//printf("}\n");
 			*p = 0;
 			break;
 		}
@@ -1199,11 +1196,18 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 					*p++ = '\0'; /* explicit null byte */
 					*p = '\0';   /* next output will start here */
 				}
-			} else if (u8_nextlen((getsval(x))) > 1) { /* utf-8? */
-				snprintf(p, BUFSZ(p), "%s", getsval(x)); /* BUG: ignore %[something]c */
-                        } else {
-				snprintf(p, BUFSZ(p), fmt, getsval(x)[0]);
+				break;
 			}
+			t = getsval(x);
+			n = u8_nextlen(t);
+			if (n < 2) { /* not utf8 */
+				snprintf(p, BUFSZ(p), fmt, getsval(x)[0]);
+				break;
+			}
+			// utf8 character
+			for (int i = 0; i < n; i++)
+				*p++ = t[i];
+			*p = 0;
 			break;
 		default:
 			FATAL("can't happen: bad conversion %c in format()", flag);
