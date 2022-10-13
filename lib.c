@@ -105,6 +105,7 @@ void initgetrec(void)
 			return;
 		}
 		setclvar(p);	/* a commandline assignment before filename */
+		savefs(); /* in case FS is changed at commandline */
 		argno++;
 	}
 	infile = stdin;		/* no filenames, so use stdin */
@@ -167,6 +168,7 @@ int getrec(char **pbuf, int *pbufsize, bool isrecord)	/* get next input record *
 			}
 			if (isclvar(file)) {	/* a var=value arg */
 				setclvar(file);
+				savefs(); /* in case FS is changed at commandline */
 				argno++;
 				continue;
 			}
