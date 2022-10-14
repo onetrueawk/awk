@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "One True Awk 20221002";
+const char	*version = "One True Awk 20221014";
 
 #define DEBUG
 #include <stdio.h>

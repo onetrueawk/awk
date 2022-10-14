@@ -582,7 +582,7 @@ Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 
 /* ======== utf-8 code ========== */
 
-/* 
+/*
  * Awk strings can contain ascii, random 8-bit items (eg Latin-1),
  * or utf-8.  u8_isutf tests whether a string starts with a valid
  * utf-8 sequence, and returns 0 if not (e.g., high bit set).
@@ -1145,11 +1145,17 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 
 			/* get here if string has utf-8 chars and fmt is not plain %s */
 			/* "%-w.ps", where -, w and .p are all optional */
+			/* '0' before the w is a flag character */
 			/* fmt points at % */
 			int ljust = 0, wid = 0, prec = n, pad = 0;
+			char padchar = ' ';
 			char *f = fmt+1;
 			if (f[0] == '-') {
 				ljust = 1;
+				f++;
+			}
+			if (f[0] == '0') {	/* '0' is a flag, pad with zeroes, even %s */
+				padchar = '0';
 				f++;
 			}
 			if (isdigit(f[0])) { /* there is a wid */
@@ -1171,12 +1177,12 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				}
 				for (i = 0; i < pad; i++) {
 					//printf(" ");
-					*p++ = ' ';
+					*p++ = padchar;
 				}
 			} else { // print pad blanks, then prec chars from t
 				for (i = 0; i < pad; i++) {
 					//printf(" ");
-					*p++ = ' ';
+					*p++ = padchar;
 				}
 				n = u8_char2byte(t, prec);
 				for (k = 0; k < n; k++) {
@@ -1188,7 +1194,18 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			break;
 		}
 
-		case 'c':
+               case 'c': {
+                       /*
+                        * FIXME: Once upon a time, if a numeric value was given,
+                        * awk just turned it into a character and printed it:
+                        *      BEGIN { printf("%c\n", 65) }
+                        * printed "A".
+                        *
+                        * But nowadays, what if the numeric value is > 256 and
+                        * represents a valid Unicode code point?!?
+                        *
+                        * We're punting on this for the moment...
+                        */
 			if (isnum(x)) {
 				if ((int)getfval(x)) {
 					snprintf(p, BUFSZ(p), fmt, (int) getfval(x));
@@ -1204,11 +1221,48 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				snprintf(p, BUFSZ(p), fmt, getsval(x)[0]);
 				break;
 			}
-			// utf8 character
-			for (int i = 0; i < n; i++)
-				*p++ = t[i];
+
+                       // utf8 character, almost same song and dance as for %s
+                       int ljust = 0, wid = 0, prec = n, pad = 0;
+                       char padchar = ' ';
+                       char *f = fmt+1;
+                       if (f[0] == '-') {
+                               ljust = 1;
+                               f++;
+                       }
+                       if (f[0] == '0') {      /* '0' is a flag, pad with zeroes, even %s */
+                               padchar = '0';
+                               f++;
+                       }
+                       if (isdigit(f[0])) { /* there is a wid */
+                               wid = strtol(f, &f, 10);
+                       }
+                       if (f[0] == '.') { /* there is a .prec */
+                               prec = strtol(++f, &f, 10);
+                       }
+                       if (prec > 1)           // %c --> only one character
+                               prec = 1;
+                       pad = wid>prec ? wid - prec : 0;  // has to be >= 0
+                       int i;
+
+                       if (ljust) { // print one char from t, then pad blanks
+                               for (int i = 0; i < n; i++)
+                                       *p++ = t[i];
+                               for (i = 0; i < pad; i++) {
+                                       //printf(" ");
+                                       *p++ = padchar;
+                               }
+                       } else { // print pad blanks, then prec chars from t
+                               for (i = 0; i < pad; i++) {
+                                       //printf(" ");
+                                       *p++ = padchar;
+                               }
+                               for (int i = 0; i < n; i++)
+                                       *p++ = t[i];
+                       }
 			*p = 0;
 			break;
+		}
 		default:
 			FATAL("can't happen: bad conversion %c in format()", flag);
 		}
@@ -1630,7 +1684,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	} else if (sep == ',') {	/* CSV processing.  no error handling */
 		char *newt = (char *) malloc(strlen(s)); /* for building new string; reuse for each field */
 		for (;;) {
-			char *fr = newt; 
+			char *fr = newt;
 			n++;
 			if (*s == '"' ) { /* start of "..." */
 				for (s++ ; *s != '\0'; ) {

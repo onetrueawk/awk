@@ -400,12 +400,11 @@ int *cclenter(const char *argp)	/* add a character class */
 {
 	int i, c, c2;
 	int n;
-	const uschar *op, *p = (const uschar *) argp;
+	const uschar *p = (const uschar *) argp;
 	int *bp, *retp;
 	static int *buf = NULL;
 	static int bufsz = 100;
 
-	op = p;
 	if (buf == NULL && (buf = (int *) calloc(bufsz, sizeof(int))) == NULL)
 		FATAL("out of space for character class [%.10s...] 1", p);
 	bp = buf;
