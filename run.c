@@ -1148,15 +1148,21 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			/* '0' before the w is a flag character */
 			/* fmt points at % */
 			int ljust = 0, wid = 0, prec = n, pad = 0;
-			char padchar = ' ';
 			char *f = fmt+1;
 			if (f[0] == '-') {
 				ljust = 1;
 				f++;
 			}
-			if (f[0] == '0') {	/* '0' is a flag, pad with zeroes, even %s */
-				padchar = '0';
+			// flags '0' and '+' are recognized but skipped
+			if (f[0] == '0') {
 				f++;
+				if (f[0] == '+')
+					f++;
+			}
+			if (f[0] == '+') {
+				f++;
+				if (f[0] == '0')
+					f++;
 			}
 			if (isdigit(f[0])) { /* there is a wid */
 				wid = strtol(f, &f, 10);
@@ -1177,12 +1183,12 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				}
 				for (i = 0; i < pad; i++) {
 					//printf(" ");
-					*p++ = padchar;
+					*p++ = ' ';
 				}
 			} else { // print pad blanks, then prec chars from t
 				for (i = 0; i < pad; i++) {
 					//printf(" ");
-					*p++ = padchar;
+					*p++ = ' ';
 				}
 				n = u8_char2byte(t, prec);
 				for (k = 0; k < n; k++) {
@@ -1195,17 +1201,17 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 		}
 
                case 'c': {
-                       /*
-                        * FIXME: Once upon a time, if a numeric value was given,
-                        * awk just turned it into a character and printed it:
-                        *      BEGIN { printf("%c\n", 65) }
-                        * printed "A".
-                        *
-                        * But nowadays, what if the numeric value is > 256 and
-                        * represents a valid Unicode code point?!?
-                        *
-                        * We're punting on this for the moment...
-                        */
+			/*
+			 * FIXME: Once upon a time, if a numeric value was given,
+			 * awk just turned it into a character and printed it:
+			 *      BEGIN { printf("%c\n", 65) }
+			 * printed "A".
+			 *
+			 * But nowadays, what if the numeric value is > 256 and
+			 * represents a valid Unicode code point?!?
+			 *
+			 * We're punting on this for the moment...
+			 */
 			if (isnum(x)) {
 				if ((int)getfval(x)) {
 					snprintf(p, BUFSZ(p), fmt, (int) getfval(x));
@@ -1222,44 +1228,50 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				break;
 			}
 
-                       // utf8 character, almost same song and dance as for %s
-                       int ljust = 0, wid = 0, prec = n, pad = 0;
-                       char padchar = ' ';
-                       char *f = fmt+1;
-                       if (f[0] == '-') {
-                               ljust = 1;
-                               f++;
-                       }
-                       if (f[0] == '0') {      /* '0' is a flag, pad with zeroes, even %s */
-                               padchar = '0';
-                               f++;
-                       }
-                       if (isdigit(f[0])) { /* there is a wid */
-                               wid = strtol(f, &f, 10);
-                       }
-                       if (f[0] == '.') { /* there is a .prec */
-                               prec = strtol(++f, &f, 10);
-                       }
-                       if (prec > 1)           // %c --> only one character
-                               prec = 1;
-                       pad = wid>prec ? wid - prec : 0;  // has to be >= 0
-                       int i;
+			// utf8 character, almost same song and dance as for %s
+			int ljust = 0, wid = 0, prec = n, pad = 0;
+			char *f = fmt+1;
+			if (f[0] == '-') {
+				ljust = 1;
+				f++;
+			}
+			// flags '0' and '+' are recognized but skipped
+			if (f[0] == '0') {
+				f++;
+				if (f[0] == '+')
+					f++;
+			}
+			if (f[0] == '+') {
+				f++;
+				if (f[0] == '0')
+					f++;
+			}
+			if (isdigit(f[0])) { /* there is a wid */
+				wid = strtol(f, &f, 10);
+			}
+			if (f[0] == '.') { /* there is a .prec */
+				prec = strtol(++f, &f, 10);
+			}
+			if (prec > 1)           // %c --> only one character
+				prec = 1;
+			pad = wid>prec ? wid - prec : 0;  // has to be >= 0
+			int i;
 
-                       if (ljust) { // print one char from t, then pad blanks
-                               for (int i = 0; i < n; i++)
-                                       *p++ = t[i];
-                               for (i = 0; i < pad; i++) {
-                                       //printf(" ");
-                                       *p++ = padchar;
-                               }
-                       } else { // print pad blanks, then prec chars from t
-                               for (i = 0; i < pad; i++) {
-                                       //printf(" ");
-                                       *p++ = padchar;
-                               }
-                               for (int i = 0; i < n; i++)
-                                       *p++ = t[i];
-                       }
+			if (ljust) { // print one char from t, then pad blanks
+				for (int i = 0; i < n; i++)
+					*p++ = t[i];
+				for (i = 0; i < pad; i++) {
+					//printf(" ");
+					*p++ = ' ';
+				}
+			} else { // print pad blanks, then prec chars from t
+				for (i = 0; i < pad; i++) {
+					//printf(" ");
+					*p++ = ' ';
+				}
+				for (int i = 0; i < n; i++)
+					*p++ = t[i];
+			}
 			*p = 0;
 			break;
 		}
