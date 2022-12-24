@@ -750,6 +750,35 @@ int nematch(fa *f, const char *p0)	/* non-empty match, for sub */
 	return (0);
 }
 
+static int getrune(FILE *fp, char **pbuf, int *pbufsize, int quantum,
+		   int *curpos, int *lastpos)
+{
+	int c = 0;
+	char *buf = *pbuf;
+	static const int max_bytes = 4;	// max multiple bytes in UTF-8 is 4
+	int i, rune;
+	uschar private_buf[max_bytes + 1];
+
+	for (i = 0; i <= max_bytes; i++) {
+		if (++*curpos == *lastpos) {
+			if (*lastpos == *pbufsize)
+				if (!adjbuf((char **) pbuf, pbufsize, *pbufsize+1, quantum, 0, "getrune"))
+					FATAL("stream '%.30s...' too long", buf);
+			buf[(*lastpos)++] = (c = getc(fp)) != EOF ? c : 0;
+			private_buf[i] = c;
+		}
+		if (c == 0 || c < 128 ||  (c >> 6) == 4) { // 10xxxxxx starts a new character
+			ungetc(c, fp);
+			private_buf[i] = 0;
+			break;
+		}
+	}
+
+	u8_rune(& rune, private_buf);
+
+	return rune;
+}
+
 
 /*
  * NAME
@@ -771,6 +800,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 	char *buf = *pbuf;
 	int bufsize = *pbufsize;
 	int c, i, j, k, ns, s;
+	int rune;
 
 	s = pfa->initstat;
 	patlen = 0;
@@ -794,13 +824,19 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 				buf[k++] = (c = getc(f)) != EOF ? c : 0;
 			}
 			c = (uschar)buf[j];
-/* BUG: This is not yet converted to handle utf-8 */
-			/* assert(c < NCHARS); */
+			if (c < 128)
+				rune = c;
+			else {
+				j--;
+				k--;
+				ungetc(c, f);
+				rune = getrune(f, &buf, &bufsize, quantum, &j, &k);
+			}
 
-			if ((ns = get_gototab(pfa, s, c)) != 0)
+			if ((ns = get_gototab(pfa, s, rune)) != 0)
 				s = ns;
 			else
-				s = cgoto(pfa, s, c);
+				s = cgoto(pfa, s, rune);
 
 			if (pfa->out[s]) {	/* final state */
 				patlen = j - i + 1;

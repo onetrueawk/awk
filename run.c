@@ -43,6 +43,7 @@ THIS SOFTWARE.
 
 static void stdinit(void);
 static void flush_all(void);
+static char *wide_char_to_byte_str(wchar_t wc, size_t *outlen);
 
 #if 1
 #define tempfree(x)	do { if (istemp(x)) tfree(x); } while (/*CONSTCOND*/0)
@@ -1202,19 +1203,37 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 
                case 'c': {
 			/*
-			 * FIXME: Once upon a time, if a numeric value was given,
-			 * awk just turned it into a character and printed it:
+			 * If a numeric value is given, awk should just turn
+			 * it into a character and print it:
 			 *      BEGIN { printf("%c\n", 65) }
-			 * printed "A".
+			 * prints "A".
 			 *
-			 * But nowadays, what if the numeric value is > 256 and
-			 * represents a valid Unicode code point?!?
-			 *
-			 * We're punting on this for the moment...
+			 * But what if the numeric value is > 256 and
+			 * represents a valid Unicode code point?!? We do
+			 * our best to convert it back into UTF-8. If we
+			 * can't, we output the encoding of the Unicode
+			 * "invalid character", 0xFFFD.
 			 */
 			if (isnum(x)) {
-				if ((int)getfval(x)) {
-					snprintf(p, BUFSZ(p), fmt, (int) getfval(x));
+				int charval = (int) getfval(x);
+
+				if (charval != 0) {
+					if (charval < 128)
+						snprintf(p, BUFSZ(p), fmt, charval);
+					else {
+						// possible unicode character
+						size_t count;
+						char *bs = wide_char_to_byte_str(charval, &count);
+
+						if (bs == NULL)	{ // invalid character
+							// use unicode invalid character, 0xFFFD
+							bs = "\357\277\275";
+							count = 3;
+						}
+						t = bs;
+						n = count;
+						goto format_percent_c;
+					}
 				} else {
 					*p++ = '\0'; /* explicit null byte */
 					*p = '\0';   /* next output will start here */
@@ -1223,6 +1242,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			}
 			t = getsval(x);
 			n = u8_nextlen(t);
+		format_percent_c:
 			if (n < 2) { /* not utf8 */
 				snprintf(p, BUFSZ(p), fmt, getsval(x)[0]);
 				break;
@@ -2501,4 +2521,22 @@ void backsub(char **pb_ptr, const char **sptr_ptr)	/* handle \\& variations */
 
 	*pb_ptr = pb;
 	*sptr_ptr = sptr;
+}
+
+static char *wide_char_to_byte_str(wchar_t wc, size_t *outlen)
+{
+	static char buf[10];
+	mbstate_t mbs;
+	size_t len;
+
+	memset(&mbs, 0, sizeof(mbs));
+	*outlen = 0;
+
+	len = wcrtomb(buf, wc, &mbs);
+	if (len == 0 || len == (size_t)-1)
+		return NULL;
+
+	buf[len] = 0;
+	*outlen = len;
+	return buf;
 }
