@@ -26,7 +26,6 @@ THIS SOFTWARE.
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
-#include <wchar.h>
 #include <wctype.h>
 #include <fcntl.h>
 #include <setjmp.h>
@@ -43,7 +42,7 @@ THIS SOFTWARE.
 
 static void stdinit(void);
 static void flush_all(void);
-static char *wide_char_to_byte_str(wchar_t wc, size_t *outlen);
+static char *wide_char_to_byte_str(int rune, size_t *outlen);
 
 #if 1
 #define tempfree(x)	do { if (istemp(x)) tfree(x); } while (/*CONSTCOND*/0)
@@ -1208,7 +1207,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			 *      BEGIN { printf("%c\n", 65) }
 			 * prints "A".
 			 *
-			 * But what if the numeric value is > 256 and
+			 * But what if the numeric value is > 128 and
 			 * represents a valid Unicode code point?!? We do
 			 * our best to convert it back into UTF-8. If we
 			 * can't, we output the encoding of the Unicode
@@ -2523,20 +2522,40 @@ void backsub(char **pb_ptr, const char **sptr_ptr)	/* handle \\& variations */
 	*sptr_ptr = sptr;
 }
 
-static char *wide_char_to_byte_str(wchar_t wc, size_t *outlen)
+static char *wide_char_to_byte_str(int rune, size_t *outlen)
 {
-	static char buf[10];
-	mbstate_t mbs;
-	size_t len;
+	static char buf[5];
+	int len;
 
-	memset(&mbs, 0, sizeof(mbs));
-	*outlen = 0;
-
-	len = wcrtomb(buf, wc, &mbs);
-	if (len == 0 || len == (size_t)-1)
+	if (rune < 0 || rune > 0x10FFFF)
 		return NULL;
 
-	buf[len] = 0;
+	memset(buf, 0, sizeof(buf));
+
+	len = 0;
+	if (rune <= 0x0000007F) {
+		buf[len++] = rune;
+	} else if (rune <= 0x000007FF) {
+		// 110xxxxx 10xxxxxx
+		buf[len++] = 0xC0 | (rune >> 6);
+		buf[len++] = 0x80 | (rune & 0x3F);
+	} else if (rune <= 0x0000FFFF) {
+		// 1110xxxx 10xxxxxx 10xxxxxx
+		buf[len++] = 0xE0 | (rune >> 12);
+		buf[len++] = 0x80 | ((rune >> 6) & 0x3F);
+		buf[len++] = 0x80 | (rune & 0x3F);
+
+	} else {
+		// 0x00010000 - 0x10FFFF
+		// 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+		buf[len++] = 0xF0 | (rune >> 18);
+		buf[len++] = 0x80 | ((rune >> 12) & 0x3F);
+		buf[len++] = 0x80 | ((rune >> 6) & 0x3F);
+		buf[len++] = 0x80 | (rune & 0x3F);
+	}
+
 	*outlen = len;
+	buf[len++] = '\0';
+
 	return buf;
 }
