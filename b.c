@@ -336,13 +336,13 @@ void freetr(Node *p)	/* free parse tree */
 /* in the parsing of regular expressions, metacharacters like . have */
 /* to be seen literally;  \056 is not a metacharacter. */
 
-int hexstr(const uschar **pp)	/* find and eval hex string at pp, return new p */
+int hexstr(const uschar **pp, int max)	/* find and eval hex string at pp, return new p */
 {			/* only pick up one 8-bit byte (2 chars) */
 	const uschar *p;
 	int n = 0;
 	int i;
 
-	for (i = 0, p = *pp; i < 2 && isxdigit(*p); i++, p++) {
+	for (i = 0, p = *pp; i < max && isxdigit(*p); i++, p++) {
 		if (isdigit(*p))
 			n = 16 * n + *p - '0';
 		else if (*p >= 'a' && *p <= 'f')
@@ -354,6 +354,8 @@ int hexstr(const uschar **pp)	/* find and eval hex string at pp, return new p */
 	return n;
 }
 
+
+
 #define isoctdigit(c) ((c) >= '0' && (c) <= '7')	/* multiple use of arg */
 
 int quoted(const uschar **pp)	/* pick up next thing after a \\ */
@@ -364,24 +366,26 @@ int quoted(const uschar **pp)	/* pick up next thing after a \\ */
 
 /* BUG: should advance by utf-8 char even if makes no sense */
 
-	if ((c = *p++) == 't')
+	if ((c = *p++) == 't') {
 		c = '\t';
-	else if (c == 'n')
+	} else if (c == 'n') {
 		c = '\n';
-	else if (c == 'f')
+	} else if (c == 'f') {
 		c = '\f';
-	else if (c == 'r')
+	} else if (c == 'r') {
 		c = '\r';
-	else if (c == 'b')
+	} else if (c == 'b') {
 		c = '\b';
-	else if (c == 'v')
+	} else if (c == 'v') {
 		c = '\v';
-	else if (c == 'a')
+	} else if (c == 'a') {
 		c = '\a';
-	else if (c == '\\')
+	} else if (c == '\\') {
 		c = '\\';
-	else if (c == 'x') {	/* hexadecimal goo follows */
-		c = hexstr(&p);	/* this adds a null if number is invalid */
+	} else if (c == 'x') {	/* 2 hex digits follow */
+		c = hexstr(&p, 2);	/* this adds a null if number is invalid */
+	} else if (c == 'u') {	/* unicode char number up to 8 hex digits */
+		c = hexstr(&p, 8);
 	} else if (isoctdigit(c)) {	/* \d \dd \ddd */
 		int n = c - '0';
 		if (isoctdigit(*p)) {

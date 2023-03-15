@@ -1671,7 +1671,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	origs = s = strdup(getsval(y));
 	tempfree(y);
 	arg3type = ptoi(a[3]);
-	if (a[2] == NULL) {		/* fs string */
+	if (a[2] == NULL) {		/* BUG: CSV should override implicit fs but not explicit */
 		fs = getsval(fsloc);
 	} else if (arg3type == STRING) {	/* split(str,arr,"string") */
 		x = execute(a[2]);
@@ -1738,48 +1738,8 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 			setsymtab(num, s, 0.0, STR, (Array *) ap->sval);
   spdone:
 		pfa = NULL;
-	} else if (!CSV && sep == ' ') {
-		for (n = 0; ; ) {
-#define ISWS(c)	((c) == ' ' || (c) == '\t' || (c) == '\n')
-			while (ISWS(*s))
-				s++;
-			if (*s == '\0')
-				break;
-			n++;
-			t = s;
-			do
-				s++;
-			while (*s != '\0' && !ISWS(*s));
-			temp = *s;
-			setptr(s, '\0');
-			snprintf(num, sizeof(num), "%d", n);
-			if (is_number(t, & result))
-				setsymtab(num, t, result, STR|NUM, (Array *) ap->sval);
-			else
-				setsymtab(num, t, 0.0, STR, (Array *) ap->sval);
-			setptr(s, temp);
-			if (*s != '\0')
-				s++;
-		}
-	} else if (sep == 0) {	/* new: split(s, a, "") => 1 char/elem */
-		for (n = 0; *s != '\0'; s += u8_nextlen(s)) {
-			char buf[10];
-			n++;
-			snprintf(num, sizeof(num), "%d", n);
 
-			for (j = 0; j < u8_nextlen(s); j++) {
-				buf[j] = s[j];
-			}
-			buf[j] = '\0';
-
-			if (isdigit((uschar)buf[0]))
-				setsymtab(num, buf, atof(buf), STR|NUM, (Array *) ap->sval);
-			else
-				setsymtab(num, buf, 0.0, STR, (Array *) ap->sval);
-		}
-
-
-	} else if (CSV) {	/* CSV processing.  no error handling */
+	} else if (a[2] == NULL && CSV) {	/* CSV only if no explicit separator */
 		char *newt = (char *) malloc(strlen(s)); /* for building new string; reuse for each field */
 		for (;;) {
 			char *fr = newt;
@@ -1812,7 +1772,48 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		}
 		free(newt);
 
-	} else if (*s != '\0') {
+	} else if (!CSV && sep == ' ') { /* usual case: split on white space */
+		for (n = 0; ; ) {
+#define ISWS(c)	((c) == ' ' || (c) == '\t' || (c) == '\n')
+			while (ISWS(*s))
+				s++;
+			if (*s == '\0')
+				break;
+			n++;
+			t = s;
+			do
+				s++;
+			while (*s != '\0' && !ISWS(*s));
+			temp = *s;
+			setptr(s, '\0');
+			snprintf(num, sizeof(num), "%d", n);
+			if (is_number(t, & result))
+				setsymtab(num, t, result, STR|NUM, (Array *) ap->sval);
+			else
+				setsymtab(num, t, 0.0, STR, (Array *) ap->sval);
+			setptr(s, temp);
+			if (*s != '\0')
+				s++;
+		}
+
+	} else if (sep == 0) {	/* new: split(s, a, "") => 1 char/elem */
+		for (n = 0; *s != '\0'; s += u8_nextlen(s)) {
+			char buf[10];
+			n++;
+			snprintf(num, sizeof(num), "%d", n);
+
+			for (j = 0; j < u8_nextlen(s); j++) {
+				buf[j] = s[j];
+			}
+			buf[j] = '\0';
+
+			if (isdigit((uschar)buf[0]))
+				setsymtab(num, buf, atof(buf), STR|NUM, (Array *) ap->sval);
+			else
+				setsymtab(num, buf, 0.0, STR, (Array *) ap->sval);
+		}
+
+	} else if (*s != '\0') {  /* some random single character */
 		for (;;) {
 			n++;
 			t = s;
