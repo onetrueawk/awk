@@ -350,7 +350,7 @@ void fldbld(void)	/* create fields from current record */
 		savefs();
 	if (strlen(inputFS) > 1) {	/* it's a regular expression */
 		i = refldbld(r, inputFS);
-	} else if ((sep = *inputFS) == ' ') {	/* default whitespace */
+	} else if (!CSV && (sep = *inputFS) == ' ') {	/* default whitespace */
 		for (i = 0; ; ) {
 			while (*r == ' ' || *r == '\t' || *r == '\n')
 				r++;
@@ -369,7 +369,7 @@ void fldbld(void)	/* create fields from current record */
 			*fr++ = 0;
 		}
 		*fr = 0;
-	} else if ((sep = *inputFS) == ',') {	/* CSV processing.  no error handling */
+	} else if (CSV) {	/* CSV processing.  no error handling */
 		for (;;) {
 			i++;
 			if (i > nfields)

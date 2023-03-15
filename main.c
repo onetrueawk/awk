@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20221215";
+const char	*version = "version 20230314";
 
 #define DEBUG
 #include <stdio.h>
@@ -48,6 +48,8 @@ static char	**pfile;	/* program filenames from -f's */
 static size_t	maxpfile;	/* max program filename */
 static size_t	npfile;		/* number of filenames */
 static size_t	curpfile;	/* current filename */
+
+bool	CSV = false;	/* true for csv input */
 
 bool	safe = false;	/* true => "safe" mode */
 
@@ -149,6 +151,12 @@ int main(int argc, char *argv[])
 			argc--;
 			argv++;
 			break;
+		}
+		if (strcmp(argv[1], "--csv") == 0) {	/* turn on csv input processing */
+			CSV = true;
+			argc--;
+			argv++;
+			continue;
 		}
 		switch (argv[1][1]) {
 		case 's':
