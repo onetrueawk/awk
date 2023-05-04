@@ -158,7 +158,7 @@ typedef struct Node {
 	struct	Node *nnext;
 	int	lineno;
 	int	nobj;
-	struct	Node *narg[1];	/* variable: actual size set by calling malloc */
+	struct	Node *narg[];	/* variable: actual size set by calling malloc */
 } Node;
 
 #define	NIL	((Node *) 0)
@@ -251,7 +251,7 @@ typedef struct fa {
 	int	initstat;
 	int	curstat;
 	int	accept;
-	struct	rrow re[1];	/* variable: actual size set by calling malloc */
+	struct	rrow re[];	/* variable: actual size set by calling malloc */
 } fa;
 
 
