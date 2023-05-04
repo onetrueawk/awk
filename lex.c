@@ -603,8 +603,8 @@ void unput(int c)	/* put lexical character back on input */
 
 void unputstr(const char *s)	/* put a string back on input */
 {
-	int i;
+	size_t i;
 
-	for (i = strlen(s)-1; i >= 0; i--)
-		unput(s[i]);
+	for (i = strlen(s); i;)
+		unput(s[--i]);
 }
