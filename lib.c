@@ -223,14 +223,19 @@ void nextfile(void)
 	argno++;
 }
 
+extern int readcsvrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag);
+
 int readrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag)	/* read one record into buf */
 {
-	int sep, c, isrec;
-	char *rr, *buf = *pbuf;
+	int sep, c, isrec; // POTENTIAL BUG? isrec is a macro in awk.h
+	char *rr = *pbuf, *buf = *pbuf;
 	int bufsize = *pbufsize;
 	char *rs = getsval(rsloc);
 
-	if (*rs && rs[1]) {
+	if (CSV) {
+		c = readcsvrec(pbuf, pbufsize, inf, newflag);
+		isrec = (c == EOF && rr == buf) ? false : true;
+	} else if (*rs && rs[1]) {
 		bool found;
 
 		fa *pfa = makedfa(rs, 1);
@@ -245,6 +250,7 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag)	/* read one rec
 		if (found)
 			setptr(patbeg, '\0');
 		isrec = (found == 0 && *buf == '\0') ? false : true;
+
 	} else {
 		if ((sep = *rs) == 0) {
 			sep = '\n';
@@ -280,6 +286,61 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag)	/* read one rec
 	*pbufsize = bufsize;
 	DPRINTF("readrec saw <%s>, returns %d\n", buf, isrec);
 	return isrec;
+}
+
+
+int readcsvrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag) /* csv can have \n's */
+{			/* so read a complete record that might be multiple lines */
+	int sep, c;
+	char *rr = *pbuf, *buf = *pbuf;
+	int bufsize = *pbufsize;
+
+	sep = '\n'; /* the only separator; have to skip over \n embedded in "..." */
+	rr = buf;
+	for (; (c=getc(inf)) != sep && c != EOF; ) {
+		if (rr-buf+1 > bufsize)
+			if (!adjbuf(&buf, &bufsize, 1+rr-buf,
+			    recsize, &rr, "readcsvrec 1"))
+				FATAL("input record `%.30s...' too long", buf);
+		*rr++ = c;
+
+		if (c != '"' ) {    	/* unquoted field; read until , or \n */
+			while ((c = getc(inf)) != ',' && c != '\n' && c != EOF) {
+				*rr++ = c;
+			}
+			if (c == ',')
+				*rr++ = c;
+
+		} else { 		/* start of "..." */
+			while ((c = getc(inf)) != EOF) {
+				if (c != '"') {
+					*rr++ = c;
+				} else {
+					*rr++ = c;
+					if ((c = getc(inf)) == ',') {
+						*rr++ = c;
+						break;
+					} else if (c == '\n') {
+						break;
+					} else if (c == '"') {
+						*rr++ = c;
+					} else {
+						FATAL("malformed csv record %.30s...", buf);
+					}
+				}
+			}
+		}
+
+		if (c == '\n' || c == EOF)
+			break;
+	}
+	if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readcsvrec 3"))
+		FATAL("input record `%.30s...' too long", buf);
+	*rr = 0;
+	*pbuf = buf;
+	*pbufsize = bufsize;
+	DPRINTF("readcsvrec saw <%s>, returns %d\n", buf, c);
+	return c;
 }
 
 char *getargv(int n)	/* get ARGV[n] */
@@ -370,35 +431,37 @@ void fldbld(void)	/* create fields from current record */
 		}
 		*fr = 0;
 	} else if (CSV) {	/* CSV processing.  no error handling */
-		for (;;) {
-			i++;
-			if (i > nfields)
-				growfldtab(i);
-			if (freeable(fldtab[i]))
-				xfree(fldtab[i]->sval);
-			fldtab[i]->sval = fr;
-			fldtab[i]->tval = FLD | STR | DONTFREE;
-			if (*r == '"' ) { /* start of "..." */
-				for (r++ ; *r != '\0'; ) {
-					if (*r == '"' && r[1] != '\0' && r[1] == '"') {
-						r += 2; /* doubled quote */
-						*fr++ = '"';
-					} else if (*r == '"' && (r[1] == '\0' || r[1] == ',')) {
-						r++; /* skip over closing quote */
-						break;
-					} else {
-						*fr++ = *r++;
+		if (*r != 0) {
+			for (;;) {
+				i++;
+				if (i > nfields)
+					growfldtab(i);
+				if (freeable(fldtab[i]))
+					xfree(fldtab[i]->sval);
+				fldtab[i]->sval = fr;
+				fldtab[i]->tval = FLD | STR | DONTFREE;
+				if (*r == '"' ) { /* start of "..." */
+					for (r++ ; *r != '\0'; ) {
+						if (*r == '"' && r[1] != '\0' && r[1] == '"') {
+							r += 2; /* doubled quote */
+							*fr++ = '"';
+						} else if (*r == '"' && (r[1] == '\0' || r[1] == ',')) {
+							r++; /* skip over closing quote */
+							break;
+						} else {
+							*fr++ = *r++;
+						}
 					}
+					*fr++ = 0;
+				} else {	/* unquoted field */
+					while (*r != ',' && *r != '\0')
+						*fr++ = *r++;
+					*fr++ = 0;
 				}
-				*fr++ = 0;
-			} else {	/* unquoted field */
-				while (*r != ',' && *r != '\0')
-					*fr++ = *r++;
-				*fr++ = 0;
+				if (*r++ == 0)
+					break;
+	
 			}
-			if (*r++ == 0)
-				break;
-
 		}
 		*fr = 0;
 	} else if ((sep = *inputFS) == 0) {	/* new: FS="" => 1 char/field */

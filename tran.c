@@ -308,7 +308,7 @@ Awkfloat setfval(Cell *vp, Awkfloat f)	/* set float val of a Cell */
 	} else if (&vp->fval == NF) {
 		donerec = false;	/* mark $0 invalid */
 		setlastfld(f);
-		DPRINTF("setting NF to %g\n", f);
+		DPRINTF("setfval: setting NF to %g\n", f);
 	} else if (isrec(vp)) {
 		donefld = false;	/* mark $1... invalid */
 		donerec = true;
@@ -375,7 +375,7 @@ char *setsval(Cell *vp, const char *s)	/* set string val of a Cell */
 		donerec = false;	/* mark $0 invalid */
 		f = getfval(vp);
 		setlastfld(f);
-		DPRINTF("setting NF to %g\n", f);
+		DPRINTF("setsval: setting NF to %g\n", f);
 	}
 
 	return(vp->sval);
