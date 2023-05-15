@@ -325,6 +325,7 @@ int readcsvrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag) /* csv can h
 					} else if (c == '"') {
 						*rr++ = c;
 					} else {
+						*rr++ = c;
 						FATAL("malformed csv record %.30s...", buf);
 					}
 				}
