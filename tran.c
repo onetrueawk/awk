@@ -196,6 +196,40 @@ void freesymtab(Cell *ap)	/* free a symbol table */
 	free(tp);
 }
 
+int freesymtabcheck(Cell *ap, Cell *needle)	/* free a symbol table, return 1 if needle was freed, 0 otherwise */
+{
+	Cell *cp, *temp;
+	Array *tp;
+	int i, retval = 0;
+
+	DPRINTF("insymtab %p: n=%s s=\"%s\" f=%g t=%o\n",
+		(void*)ap, ap->nval, ap->sval, ap->fval, ap->tval);
+
+	if (!isarr(ap))
+		return 0;
+	tp = (Array *) ap->sval;
+	if (tp == NULL)
+		return 0;
+	for (i = 0; i < tp->size; i++) {
+		for (cp = tp->tab[i]; cp != NULL; cp = temp) {
+			if (cp == needle)
+				retval = 1;
+			xfree(cp->nval);
+			if (freeable(cp))
+				xfree(cp->sval);
+			temp = cp->cnext;	/* avoids freeing then using */
+			free(cp);
+			tp->nelem--;
+		}
+		tp->tab[i] = NULL;
+	}
+	if (tp->nelem != 0)
+		WARNING("can't happen: inconsistent element count freeing %s", ap->nval);
+	free(tp->tab);
+	free(tp);
+	return retval;
+}
+
 void freeelem(Cell *ap, const char *s)	/* free elem s from ap (i.e., ap["s"] */
 {
 	Array *tp;

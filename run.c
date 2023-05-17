@@ -293,14 +293,15 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 		if (isarr(t)) {
 			if (t->csub == CCOPY) {
 				if (i >= ncall) {
-					freesymtab(t);
+					if (freesymtabcheck(t, y)) {
+						freed = 1;
+					}
 					t->csub = CTEMP;
 					tempfree(t);
 				} else {
 					oargs[i]->tval = t->tval;
 					oargs[i]->tval &= ~(STR|NUM|DONTFREE);
 					oargs[i]->sval = t->sval;
-					tempfree(t);
 				}
 			}
 		} else if (t != y) {	/* kludge to prevent freeing twice */
@@ -313,9 +314,9 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 		}
 	}
 	tempfree(fcn);
-	if (isexit(y) || isnext(y))
-		return y;
 	if (freed == 0) {
+		if (isexit(y) || isnext(y))
+			return y;
 		tempfree(y);	/* don't free twice! */
 	}
 	z = frp->retval;			/* return value */
