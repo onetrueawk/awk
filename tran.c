@@ -119,7 +119,7 @@ void arginit(int ac, char **av)	/* set up ARGV and ARGC */
 	for (i = 0; i < ac; i++) {
 		double result;
 
-		sprintf(temp, "%d", i);
+		snprintf(temp, 50, "%d", i);
 		if (is_number(*av, & result))
 			setsymtab(temp, *av, result, STR|NUM, ARGVtab);
 		else
