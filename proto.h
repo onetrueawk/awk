@@ -100,7 +100,7 @@ extern	void	envinit(char **);
 extern	Array	*makesymtab(int);
 extern	void	freesymtab(Cell *);
 extern	void	freeelem(Cell *, const char *);
-extern	Cell	*setsymtab(const char *, const char *, double, unsigned int, Array *);
+extern	Cell	*setsymtab(const char *, const char *, double, int, Array *);
 extern	int	hash(const char *, int);
 extern	void	rehash(Array *);
 extern	Cell	*lookup(const char *, Array *);

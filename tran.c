@@ -219,7 +219,7 @@ void freeelem(Cell *ap, const char *s)	/* free elem s from ap (i.e., ap["s"] */
 		}
 }
 
-Cell *setsymtab(const char *n, const char *s, Awkfloat f, unsigned t, Array *tp)
+Cell *setsymtab(const char *n, const char *s, Awkfloat f, int t, Array *tp)
 {
 	int h;
 	Cell *p;
