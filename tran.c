@@ -348,6 +348,10 @@ char *setsval(Cell *vp, const char *s)	/* set string val of a Cell */
 		(void*)vp, NN(vp->nval), s, vp->tval, donerec, donefld);
 	if ((vp->tval & (NUM | STR)) == 0)
 		funnyvar(vp, "assign to");
+	if (CSV && (vp == rsloc))
+		WARNING("danger: don't set RS when --csv is in effect");
+	if (CSV && (vp == fsloc))
+		WARNING("danger: don't set FS when --csv is in effect");
 	if (isfld(vp)) {
 		donerec = false;	/* mark $0 invalid */
 		fldno = atoi(vp->nval);

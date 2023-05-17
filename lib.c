@@ -289,6 +289,14 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag)	/* read one rec
 }
 
 
+/*******************
+ * loose ends here:
+ *   \r\n should become \n
+ *   what about bare \r?  Excel uses that for embedded newlines
+ *   can't have "" in unquoted fields, according to RFC 4180
+*/
+
+
 int readcsvrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag) /* csv can have \n's */
 {			/* so read a complete record that might be multiple lines */
 	int sep, c;
@@ -303,9 +311,15 @@ int readcsvrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag) /* csv can h
 			    recsize, &rr, "readcsvrec 1"))
 				FATAL("input record `%.30s...' too long", buf);
 		*rr++ = c;
+		if (c == ',')
+			continue;
 
 		if (c != '"' ) {    	/* unquoted field; read until , or \n */
 			while ((c = getc(inf)) != ',' && c != '\n' && c != EOF) {
+				if (rr-buf+1 > bufsize)
+					if (!adjbuf(&buf, &bufsize, 1+rr-buf,
+					    recsize, &rr, "readcsvrec 2"))
+						FATAL("input record `%.30s...' too long", buf);
 				*rr++ = c;
 			}
 			if (c == ',')
@@ -313,6 +327,10 @@ int readcsvrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag) /* csv can h
 
 		} else { 		/* start of "..." */
 			while ((c = getc(inf)) != EOF) {
+				if (rr-buf+1 > bufsize)
+					if (!adjbuf(&buf, &bufsize, 1+rr-buf,
+					    recsize, &rr, "readcsvrec 3"))
+						FATAL("input record `%.30s...' too long", buf);
 				if (c != '"') {
 					*rr++ = c;
 				} else {
@@ -335,7 +353,7 @@ int readcsvrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag) /* csv can h
 		if (c == '\n' || c == EOF)
 			break;
 	}
-	if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readcsvrec 3"))
+	if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readcsvrec 4"))
 		FATAL("input record `%.30s...' too long", buf);
 	*rr = 0;
 	*pbuf = buf;

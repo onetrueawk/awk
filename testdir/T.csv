@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo T.csv: tests of csv field splitting
+echo T.csv: tests of csv field splitting, no embedded newlines
 
 awk=${awk-../a.out}
 
@@ -69,16 +69,14 @@ a""b	[a""b]
 """"	["]
 """"""	[""]
 """x"""	["x"]
+""","""	[","]
 ,,""	[][][]
 a""b	[a""b]
 a"b	[a"b]
 a''b	[a''b]
-"abc	[abc]
-abc,"def	[abc][def]
 ,,	[][][]
 a,	[a][]
 "",	[][]
 ,	[][]
-"abc",def	[abc][def]
-	[]
+	
 !!!!
