@@ -247,7 +247,7 @@ typedef struct fa {
 	int	**posns;
 	int	state_count;
 	bool	anchor;
-	int	use;
+	size_t	use;
 	int	initstat;
 	int	curstat;
 	int	accept;

@@ -70,15 +70,15 @@ static const uschar 	*basestr;	/* starts with original, replaced during
 				   repetition processing */
 static const uschar 	*firstbasestr;
 
-static	int setcnt;
-static	int poscnt;
+static	size_t setcnt;
+static	size_t poscnt;
 
 const char	*patbeg;
-int	patlen;
+ssize_t	patlen;
 
 #define	NFA	128	/* cache this many dynamic fa's */
 fa	*fatab[NFA];
-int	nfatab	= 0;	/* entries in fatab */
+size_t	nfatab	= 0;	/* entries in fatab */
 
 static int *
 intalloc(size_t n, const char *f)
@@ -145,9 +145,9 @@ out:
 
 fa *makedfa(const char *s, bool anchor)	/* returns dfa for reg expr s */
 {
-	int i, use, nuse;
+	size_t i, use, nuse;
 	fa *pfa;
-	static int now = 1;
+	static size_t now = 1;
 
 	if (setvec == NULL) {	/* first time through any RE */
 		resizesetvec(__func__);
@@ -360,7 +360,8 @@ int quoted(const uschar **pp)	/* pick up next thing after a \\ */
 
 char *cclenter(const char *argp)	/* add a character class */
 {
-	int i, c, c2;
+	int c, c2;
+	size_t i;
 	const uschar *op, *p = (const uschar *) argp;
 	uschar *bp;
 	static uschar *buf = NULL;
