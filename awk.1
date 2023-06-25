@@ -76,6 +76,12 @@ The
 .I fs
 option defines the input field separator to be the regular expression
 .IR fs .
+The
+.B \-\^\-csv
+option causes
+.I awk
+to process records using (more or less) standard comma-separated values
+(CSV) format.
 .PP
 An input line is normally made up of fields separated by white space,
 or by the regular expression
@@ -576,7 +582,8 @@ to force it to be treated as a string concatenate
 The scope rules for variables in functions are a botch;
 the syntax is worse.
 .PP
-Only eight-bit characters sets are handled correctly.
+Input is expected to be UTF-8 encoded. Other multibyte
+character sets are not handled.
 .SH UNUSUAL FLOATING-POINT VALUES
 .I Awk
 was designed before IEEE 754 arithmetic defined Not-A-Number (NaN)

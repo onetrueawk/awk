@@ -884,10 +884,15 @@ Cell *relop(Node **a, int n)	/* a[0 < a[1], etc. */
 	int i;
 	Cell *x, *y;
 	Awkfloat j;
+	bool x_is_nan, y_is_nan;
 
 	x = execute(a[0]);
 	y = execute(a[1]);
+	x_is_nan = isnan(x->fval);
+	y_is_nan = isnan(y->fval);
 	if (x->tval&NUM && y->tval&NUM) {
+		if ((x_is_nan || y_is_nan) && n != NE)
+			return(False);
 		j = x->fval - y->fval;
 		i = j<0? -1: (j>0? 1: 0);
 	} else {
@@ -900,7 +905,8 @@ Cell *relop(Node **a, int n)	/* a[0 < a[1], etc. */
 			else return(False);
 	case LE:	if (i<=0) return(True);
 			else return(False);
-	case NE:	if (i!=0) return(True);
+	case NE:	if (x_is_nan && y_is_nan) return(True);
+			else if (i!=0) return(True);
 			else return(False);
 	case EQ:	if (i == 0) return(True);
 			else return(False);
