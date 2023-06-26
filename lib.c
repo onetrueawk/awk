@@ -302,57 +302,29 @@ int readcsvrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag) /* csv can h
 	int sep, c;
 	char *rr = *pbuf, *buf = *pbuf;
 	int bufsize = *pbufsize;
+	bool in_quote = false;
 
 	sep = '\n'; /* the only separator; have to skip over \n embedded in "..." */
 	rr = buf;
-	for (; (c=getc(inf)) != sep && c != EOF; ) {
+	while ((c = getc(inf)) != EOF) {
+		if (c == sep) {
+			if (! in_quote)
+				break;
+			if (rr > buf && rr[-1] == '\r')	// remove \r if was \r\n
+				rr--;
+		}
+
 		if (rr-buf+1 > bufsize)
 			if (!adjbuf(&buf, &bufsize, 1+rr-buf,
 			    recsize, &rr, "readcsvrec 1"))
 				FATAL("input record `%.30s...' too long", buf);
 		*rr++ = c;
-		if (c == ',')
-			continue;
+		if (c == '"')
+			in_quote = ! in_quote;
+ 	}
+	if (c == '\n' && rr > buf && rr[-1] == '\r') 	// remove \r if was \r\n
+		rr--;
 
-		if (c != '"' ) {    	/* unquoted field; read until , or \n */
-			while ((c = getc(inf)) != ',' && c != '\n' && c != EOF) {
-				if (rr-buf+1 > bufsize)
-					if (!adjbuf(&buf, &bufsize, 1+rr-buf,
-					    recsize, &rr, "readcsvrec 2"))
-						FATAL("input record `%.30s...' too long", buf);
-				*rr++ = c;
-			}
-			if (c == ',')
-				*rr++ = c;
-
-		} else { 		/* start of "..." */
-			while ((c = getc(inf)) != EOF) {
-				if (rr-buf+1 > bufsize)
-					if (!adjbuf(&buf, &bufsize, 1+rr-buf,
-					    recsize, &rr, "readcsvrec 3"))
-						FATAL("input record `%.30s...' too long", buf);
-				if (c != '"') {
-					*rr++ = c;
-				} else {
-					*rr++ = c;
-					if ((c = getc(inf)) == ',') {
-						*rr++ = c;
-						break;
-					} else if (c == '\n') {
-						break;
-					} else if (c == '"') {
-						*rr++ = c;
-					} else {
-						*rr++ = c;
-						FATAL("malformed csv record %.30s...", buf);
-					}
-				}
-			}
-		}
-
-		if (c == '\n' || c == EOF)
-			break;
-	}
 	if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readcsvrec 4"))
 		FATAL("input record `%.30s...' too long", buf);
 	*rr = 0;
