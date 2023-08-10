@@ -20,6 +20,8 @@ awk \- pattern-directed scanning and processing language
 [
 .BI \-F
 .I fs
+|
+.B \-\^\-csv
 ]
 [
 .BI \-v
@@ -211,6 +213,7 @@ Other built-in functions:
 .TF length
 .TP
 .B length
+\fBlength(\fR[\fIv\^\fR]\fB)\fR
 the length of its argument
 taken as a string,
 number of elements in an array for an array argument,
@@ -218,15 +221,15 @@ or length of
 .B $0
 if no argument.
 .TP
-.B rand
+.B rand()
 random number on [0,1).
 .TP
-.B srand
+\fBsrand(\fR[\fIs\^\fR]\fB)\fR
 sets seed for
 .B rand
 and returns the previous seed.
 .TP
-.B int
+.BI int( x\^ )
 truncates to an integer value.
 .TP
 \fBsubstr(\fIs\fB, \fIm\fR [\fB, \fIn\^\fR]\fB)\fR
@@ -395,7 +398,7 @@ in a pattern.
 A pattern may consist of two patterns separated by a comma;
 in this case, the action is performed for all lines
 from an occurrence of the first pattern
-though an occurrence of the second.
+through an occurrence of the second, inclusive.
 .PP
 A relational expression is one of the following:
 .IP
@@ -405,7 +408,7 @@ A relational expression is one of the following:
 .br
 .IB expression " in " array-name
 .br
-.BI ( expr , expr,... ") in " array-name
+.BI ( expr ,\| expr ,\| ... ") in " array-name
 .PP
 where a
 .I relop
@@ -505,7 +508,7 @@ separates multiple subscripts (default 034).
 Functions may be defined (at the position of a pattern-action statement) thus:
 .IP
 .B
-function foo(a, b, c) { ...; return x }
+function foo(a, b, c) { ... }
 .PP
 Parameters are passed by value if scalar and by reference if array name;
 functions may be called recursively.
@@ -571,8 +574,8 @@ BEGIN	{	# Simulate echo(1)
 .IR sed (1)
 .br
 A. V. Aho, B. W. Kernighan, P. J. Weinberger,
-.IR "The AWK Programming Language" ,
-Addison-Wesley, 1988.  ISBN 0-201-07981-X.
+.IR "The AWK Programming Language, Second Edition" ,
+Addison-Wesley, 2024.  ISBN 978-0-13-826972-2, 0-13-826972-6.
 .SH BUGS
 There are no explicit conversions between numbers and strings.
 To force an expression to be treated as a number add 0 to it;
