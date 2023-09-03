@@ -45,7 +45,7 @@ Sep 1, 2023:
 
 	Regular expressions are processes as UTF-8.
 
-	Unicode literals can be written as \U or \u followed by one
+	Unicode literals can be written as \u followed by one
 	to eight hexadecimal digits.  These may appear in strings and
 	regular expressions.
 
