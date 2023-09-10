@@ -150,11 +150,6 @@ int getrec(char **pbuf, int *pbufsize, bool isrecord)	/* get next input record *
 	}
 	DPRINTF("RS=<%s>, FS=<%s>, ARGC=%g, FILENAME=%s\n",
 		*RS, *FS, *ARGC, *FILENAME);
-	if (isrecord) {
-		donefld = false;
-		donerec = true;
-		savefs();
-	}
 	saveb0 = buf[0];
 	buf[0] = 0;
 	while (argno < *ARGC || infile == stdin) {
@@ -194,6 +189,9 @@ int getrec(char **pbuf, int *pbufsize, bool isrecord)	/* get next input record *
 					fldtab[0]->fval = result;
 					fldtab[0]->tval |= NUM;
 				}
+				donefld = false;
+				donerec = true;
+				savefs();
 			}
 			setfval(nrloc, nrloc->fval+1);
 			setfval(fnrloc, fnrloc->fval+1);

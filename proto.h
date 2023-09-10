@@ -68,7 +68,7 @@ extern	void	freefa(fa *);
 extern	int	pgetc(void);
 extern	char	*cursource(void);
 
-extern	Node	*nodealloc(int);
+extern	Node	*nodealloc(size_t);
 extern	Node	*exptostat(Node *);
 extern	Node	*node1(int, Node *);
 extern	Node	*node2(int, Node *, Node *);
