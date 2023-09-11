@@ -377,6 +377,8 @@ int yylex(void)
 	}
 }
 
+extern int runetochar(char *str, int c);
+
 int string(void)
 {
 	int c, n;
@@ -424,7 +426,7 @@ int string(void)
 				*bp++ = n;
 				break;
 
-			case 'x':	/* hex  \x0-9a-fA-F + */
+			case 'x':	/* hex  \x0-9a-fA-F (exactly two) */
 			    {
 				int i;
 
@@ -447,6 +449,27 @@ int string(void)
 					*bp++ = n;
 				else
 					unput(c);
+				break;
+			    }
+
+			case 'u':	/* utf  \u0-9a-fA-F (1..8) */
+			    {
+				int i;
+
+				n = 0;
+				for (i = 0; i < 8; i++) {
+					c = input();
+					if (!isxdigit(c) || c == 0)
+						break;
+					c = tolower(c);
+					n *= 16;
+					if (isdigit(c))
+						n += (c - '0');
+					else
+						n += 10 + (c - 'a');
+				}
+				unput(c);
+				bp += runetochar(bp, n);
 				break;
 			    }
 
