@@ -714,7 +714,7 @@ int u8_byte2char(const char *s, int bytenum)
 	/* should be 0 to match start==0 which means no match */	
 
 	b = strlen(s);
-	if (bytenum >= b) {
+	if (bytenum > b) {
 		return -1; /* ??? */
 	}
 	for (i = 0; i <= bytenum; i += len) {
