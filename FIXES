@@ -25,6 +25,13 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the 
 second edition of the AWK book was published in September 2023.
 
+Sep 12, 2023:
+	Fixed a length error in u8_byte2char that set RSTART to
+	incorrect (cannot happen) value for EOL match(str, /$/).
+
+
+-----------------------------------------------------------------
+
 [This entry is a summary, not a precise list of changes.]
 
 	Added --csv option to enable processing of comma-separated
