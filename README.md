@@ -2,7 +2,7 @@
 
 This is the version of `awk` described in _The AWK Programming Language_,
 Second Edition, by Al Aho, Brian Kernighan, and Peter Weinberger
-(Addison-Wesley, 2024, ISBN-13 978-0138269722, ISBN-10 0138269726).
+(Addison-Wesley, 2023, ISBN-13 978-0138269722, ISBN-10 0138269726).
 
 ## What's New? ##
 
