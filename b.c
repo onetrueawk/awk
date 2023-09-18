@@ -527,7 +527,7 @@ int first(Node *p)	/* collects initially active leaves of p into setvec */
 			setvec[lp] = 1;
 			setcnt++;
 		}
-		if (type(p) == CCL && (*(char *) right(p)) == '\0')
+		if (type(p) == CCL && (*(int *) right(p)) == 0)
 			return(0);		/* empty CCL */
 		return(1);
 	case PLUS:
