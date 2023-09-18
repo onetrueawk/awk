@@ -1349,7 +1349,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			int i;
 
 			if (ljust) { // print one char from t, then pad blanks
-				for (int i = 0; i < n; i++)
+				for (i = 0; i < n; i++)
 					*p++ = t[i];
 				for (i = 0; i < pad; i++) {
 					//printf(" ");
@@ -1360,7 +1360,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 					//printf(" ");
 					*p++ = ' ';
 				}
-				for (int i = 0; i < n; i++)
+				for (i = 0; i < n; i++)
 					*p++ = t[i];
 			}
 			*p = 0;
