@@ -811,6 +811,7 @@ struct runedata getrune(FILE *fp)
 	return result;
 }
 
+
 /*
  * NAME
  *     fnematch
@@ -857,8 +858,6 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 			memcpy(buf + k, r.bytes, r.len);
 			j += r.len - 1;	// incremented next time around the loop
 			k += r.len;
-			if (r.len > 1)
-				i += r.len - 1;	// also
 
 			if ((ns = get_gototab(pfa, s, r.rune)) != 0)
 				s = ns;
@@ -872,6 +871,8 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 			}
 		} while (buf[j] && s != 1);
 		s = 2;
+		if (r.len > 1)
+			i += r.len - 1;	// i incremented around the loop
 	} while (buf[i] && !patlen);
 
 	/* adjbuf() may have relocated a resized buffer. Inform the world. */
