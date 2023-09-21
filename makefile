@@ -23,9 +23,9 @@
 # ****************************************************************/
 
 CFLAGS = -fsanitize=address -O1 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
-CFLAGS = -g
-CFLAGS =
-CFLAGS = -O2
+CFLAGS = -g3
+#CFLAGS =
+#CFLAGS = -O2
 
 # compiler options
 #CC = gcc -Wall -g -Wwrite-strings
