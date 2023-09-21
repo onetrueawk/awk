@@ -945,7 +945,7 @@ Node *primary(void)
 		rtok = relex();
 		if (rtok == ')') {	/* special pleading for () */
 			rtok = relex();
-			return unary(op2(CCL, NIL, (Node *) tostring("")));
+			return unary(op2(CCL, NIL, (Node *) cclenter("")));
 		}
 		np = regexp();
 		if (rtok == ')') {
@@ -968,7 +968,7 @@ Node *concat(Node *np)
 		return (concat(op2(CAT, np, primary())));
 	case EMPTYRE:
 		rtok = relex();
-		return (concat(op2(CAT, op2(CCL, NIL, (Node *) tostring("")),
+		return (concat(op2(CAT, op2(CCL, NIL, (Node *) cclenter("")),
 				primary())));
 	}
 	return (np);
