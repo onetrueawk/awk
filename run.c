@@ -252,8 +252,8 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	if (ncall > ndef)
 		WARNING("function %s called with %d args, uses only %d",
 			s, ncall, ndef);
-	if (ncall + ndef > NARGS)
-		FATAL("function %s has %d arguments, limit %d", s, ncall+ndef, NARGS);
+	if (ndef > NARGS)
+		FATAL("function %s has %d defined arguments, limit %d", s, ndef, NARGS);
 	for (i = 0, x = a[1]; x != NULL; i++, x = x->nnext) {	/* get call args */
 		DPRINTF("evaluate args[%d], frp=%d:\n", i, (int) (frp-frame));
 		y = execute(x);
