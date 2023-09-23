@@ -257,15 +257,17 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	for (i = 0, x = a[1]; x != NULL; i++, x = x->nnext) {	/* get call args */
 		DPRINTF("evaluate args[%d], frp=%d:\n", i, (int) (frp-frame));
 		y = execute(x);
-		oargs[i] = y;
 		DPRINTF("args[%d]: %s %f <%s>, t=%o\n",
 			i, NN(y->nval), y->fval, isarr(y) ? "(array)" : NN(y->sval), y->tval);
 		if (isfcn(y))
 			FATAL("can't use function %s as argument in %s", y->nval, s);
-		if (isarr(y))
-			args[i] = y;	/* arrays by ref */
-		else
-			args[i] = copycell(y);
+		if (i < ndef) {
+			oargs[i] = y;
+			if (isarr(y))
+				args[i] = y;	/* arrays by ref */
+			else
+				args[i] = copycell(y);
+		}
 		tempfree(y);
 	}
 	for ( ; i < ndef; i++) {	/* add null args for ones not provided */
