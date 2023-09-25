@@ -153,6 +153,29 @@ void envinit(char **envp)	/* set up ENVIRON variable */
 	}
 }
 
+void toarray(Cell *ap)	/* convert from an uninitialized scalar */
+{
+	if (isarr(ap))
+		return;
+
+	DPRINTF("making %s into an array\n", NN(ap->nval));
+	if (ap->sval[0] != '\0' || ap->fval != 0)
+		FATAL("can't happen: toarray scalar must be uninitialized");
+
+	if (freeable(ap))
+		xfree(ap->sval);
+	ap->tval &= ~(STR|NUM|DONTFREE);
+	ap->tval |= ARR;
+	ap->sval = (char *) makesymtab(NSYMTAB);
+
+	/*
+	 * If this is a function argument, it was passed by value but
+	 * should've been passed by reference. Correction required.
+	 */
+	if (ap->csub == CCOPY)
+		updateargs(ap);
+}
+
 Array *makesymtab(int n)	/* make a new symbol table */
 {
 	Array *ap;
@@ -168,17 +191,18 @@ Array *makesymtab(int n)	/* make a new symbol table */
 	return(ap);
 }
 
-void freesymtab(Cell *ap)	/* free a symbol table */
+void clearsymtab(Cell *ap)
 {
 	Cell *cp, *temp;
 	Array *tp;
 	int i;
 
 	if (!isarr(ap))
-		return;
+		FATAL("can't happen: clearsymtab for non-array");
+
 	tp = (Array *) ap->sval;
 	if (tp == NULL)
-		return;
+		FATAL("can't happen: array has no symbol table %s", ap->nval);
 	for (i = 0; i < tp->size; i++) {
 		for (cp = tp->tab[i]; cp != NULL; cp = temp) {
 			xfree(cp->nval);
@@ -191,9 +215,14 @@ void freesymtab(Cell *ap)	/* free a symbol table */
 		tp->tab[i] = NULL;
 	}
 	if (tp->nelem != 0)
-		WARNING("can't happen: inconsistent element count freeing %s", ap->nval);
-	free(tp->tab);
-	free(tp);
+		FATAL("can't happen: inconsistent element count freeing %s", ap->nval);
+}
+
+void freesymtab(Cell *ap)	/* free a symbol table */
+{
+	clearsymtab(ap);
+	free(((Array *)ap->sval)->tab);
+	free(ap->sval);
 }
 
 void freeelem(Cell *ap, const char *s)	/* free elem s from ap (i.e., ap["s"] */

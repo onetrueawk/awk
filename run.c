@@ -228,11 +228,9 @@ struct Frame *frp = NULL;	/* frame pointer. bottom level unused */
 
 Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 {
-	static const Cell newcopycell = { OCELL, CCOPY, 0, EMPTY, 0.0, NUM|STR|DONTFREE, NULL, NULL };
 	int i, ncall, ndef;
-	int freed = 0; /* handles potential double freeing when fcn & param share a tempcell */
 	Node *x;
-	Cell *args[NARGS], *oargs[NARGS];	/* BUG: fixed size arrays */
+	Cell *args[NARGS];	/* BUG: fixed size arrays */
 	Cell *y, *z, *fcn;
 	char *s;
 
@@ -262,17 +260,12 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 		if (isfcn(y))
 			FATAL("can't use function %s as argument in %s", y->nval, s);
 		if (i < ndef) {
-			oargs[i] = y;
-			if (isarr(y))
-				args[i] = y;	/* arrays by ref */
-			else
-				args[i] = copycell(y);
+			args[i] = copycell(y);
 		}
 		tempfree(y);
 	}
 	for ( ; i < ndef; i++) {	/* add null args for ones not provided */
-		args[i] = gettemp();
-		*args[i] = newcopycell;
+		args[i] = copycell(NULL);
 	}
 	frp++;	/* now ok to up frame */
 	if (frp >= frame + nframe) {
@@ -290,38 +283,41 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	DPRINTF("start exec of %s, frp=%d\n", s, (int) (frp-frame));
 	y = execute((Node *)(fcn->sval));	/* execute body */
 	DPRINTF("finished exec of %s, frp=%d\n", s, (int) (frp-frame));
-
-	for (i = 0; i < ndef; i++) {
-		Cell *t = frp->args[i];
-		if (isarr(t)) {
-			if (t->csub == CCOPY) {
-				if (i >= ncall) {
-					freesymtab(t);
-					t->csub = CTEMP;
-					tempfree(t);
-				} else {
-					oargs[i]->tval = t->tval;
-					oargs[i]->tval &= ~(STR|NUM|DONTFREE);
-					oargs[i]->sval = t->sval;
-					tempfree(t);
-				}
-			}
-		} else if (t != y) {	/* kludge to prevent freeing twice */
-			t->csub = CTEMP;
-			tempfree(t);
-		} else if (t == y && t->csub == CCOPY) {
-			t->csub = CTEMP;
-			tempfree(t);
-			freed = 1;
-		}
-	}
 	tempfree(fcn);
-	if (isexit(y) || isnext(y))
-		return y;
-	if (freed == 0) {
-		tempfree(y);	/* don't free twice! */
+
+	/*
+	 * If y is ...
+	 *
+	 * ret  -> jump() has already set the return value.
+	 * exit -> Set return value.
+	 * next -> Set return value.
+	 * copy -> To be visited while freeing args.
+	 * temp -> Useless. Return it to the templist.
+	 *
+	 * Ignore everything else.
+	 */
+
+	if (isexit(y) || isnext(y)) {
+		tempfree(frp->retval);
+		frp->retval = y;
+	} else {
+		tempfree(y);
 	}
-	z = frp->retval;			/* return value */
+
+	/* free args */
+	for (i = 0; i < ndef; i++) {
+		y = frp->args[i];
+		if (isarr(y)) {
+			if (y->cnext == NULL)
+				freesymtab(y);
+			else if (y->cnext->sval != y->sval)
+				FATAL("can't happen: symbol table moved %s", y->cnext->nval);
+		}
+		y->csub = CTEMP;
+		tempfree(y);
+	}
+
+	z = frp->retval;                        /* return value */
 	DPRINTF("%s returns %g |%s| %o\n", s, getfval(z), getsval(z), z->tval);
 	frp--;
 	return(z);
@@ -331,19 +327,115 @@ Cell *copycell(Cell *x)	/* make a copy of a cell in a temp */
 {
 	Cell *y;
 
-	/* copy is not constant or field */
-
 	y = gettemp();
+	y->csub = CCOPY;
+
+	/* default to the uninitialized value */
+	if (x == NULL)
+		return y;
+
+	/* copy is not constant or field */
 	y->tval = x->tval & ~(CON|FLD|REC);
-	y->csub = CCOPY;	/* prevents freeing until call is over */
-	y->nval = x->nval;	/* BUG? */
-	if (isstr(x) /* || x->ctype == OCELL */) {
+
+	/*
+	 * What should we name this argument? The parser does not preserve
+	 * the names of parameters, so we don't know what the source calls
+	 * it. Is it worth the effort to change that?
+	 *
+	 * Note: Simply pointing to the incoming cell's name (as had been
+	 * done for a long time) creates a dangling pointer if that cell
+	 * is deleted (think array element).
+	 *
+	 * For now, args are anonymous. Debugging can use frame/arg indices.
+	 */
+	y->nval = NULL;
+	if (isstr(x)) {
 		y->sval = tostring(x->sval);
 		y->tval &= ~DONTFREE;
-	} else
+	} else {
+		y->sval = x->sval;    /* by ref */
 		y->tval |= DONTFREE;
+	}
 	y->fval = x->fval;
+	y->fmt = x->fmt;
+
+	/*
+	 * When a tempcell leaves the templist, cnext can be repurposed.
+	 * Arguments use it to maintain a direct link to their origin.
+	 * If an argument that should have been passed by reference was
+	 * passed by value, updateargs() uses these links to determine
+	 * which cells need updating.
+	 *
+	 * An origin is either a global variable, an array element, or a
+	 * function argument without an origin.
+	 *
+	 * A missing value or a tempcell produces an argument without an
+	 * origin. If passed along, it becomes an origin.
+	 *
+	 * If an argument has an origin, it can't become an origin. When
+	 * passed along, its origin becomes the receiver's origin.
+	 *
+	 * Intermediaries between an argument and its origin all point to
+	 * the same origin.
+	 */
+	if (x == NULL || istemp(x)) {
+		y->cnext = NULL;
+	} else if (x->csub == CCOPY && x->cnext != NULL) {
+		y->cnext = x->cnext;
+	} else {
+		y->cnext = x;
+	}
 	return y;
+}
+
+void updateargs(Cell *a)    /* convert by-value to by-reference */
+{
+	struct Frame *f;
+	Cell *o;
+	int i;
+
+	/*
+	 * The argument, a, was an uninitialized function argument that
+	 * has become an array. It was passed by-value but should have
+	 * been passed by-reference.  To compensate for the mistake, we
+	 * must update a's origin, o, and every other descendant of o,
+	 * so that they share a symbol table.
+	 *
+	 * We start at the top of the stack and work our way down.
+	 * If we encounter the origin on the stack, the scan concludes
+	 * because all of its descendants are in higher frames that
+	 * have already been visited. Otherwise, we continue until
+	 * we've inspected every argument.
+	 */
+
+	#define UPDATE_CELL(d) \
+		if (freeable((d))) \
+			xfree((d)->sval) \
+		(d)->sval = a->sval; \
+		(d)->tval = a->tval;
+
+	o = a->cnext;
+	DPRINTF("updateargs triggered by %p for %p\n", (void *) a, (void *) o);
+	if (o == NULL)  /* nothing to update */
+		return;
+
+	UPDATE_CELL(o);  /* may not be on the stack */
+	for (f = frp; f > frame; --f) {
+		DPRINTF("frame %td\n", f-frame);
+		for (i = 0; i < f->nargs; i++) {
+			if (f->args[i] == o)
+				return;
+			if (f->args[i]->cnext == o) {
+				if (f->args[i] == a) {
+					DPRINTF("\ttrigger  arg %d\n", i);
+					continue;
+				}
+				UPDATE_CELL(f->args[i]);
+				DPRINTF("\tupdating arg %d\n", i);
+			}
+		}
+	}
+	#undef UPDATE_CELL
 }
 
 Cell *arg(Node **a, int n)	/* nth argument of a function */
@@ -518,12 +610,7 @@ Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
 	x = execute(a[0]);	/* Cell* for symbol table */
 	buf = makearraystring(a[1], __func__);
 	if (!isarr(x)) {
-		DPRINTF("making %s into an array\n", NN(x->nval));
-		if (freeable(x))
-			xfree(x->sval);
-		x->tval &= ~(STR|NUM|DONTFREE);
-		x->tval |= ARR;
-		x->sval = (char *) makesymtab(NSYMTAB);
+		toarray(x);
 	}
 	z = setsymtab(buf, "", 0.0, STR|NUM, (Array *) x->sval);
 	z->ctype = OCELL;
@@ -544,10 +631,7 @@ Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts *
 	if (!isarr(x))
 		return True;
 	if (a[1] == NULL) {	/* delete the elements, not the table */
-		freesymtab(x);
-		x->tval &= ~STR;
-		x->tval |= ARR;
-		x->sval = (char *) makesymtab(NSYMTAB);
+		clearsymtab(x);
 	} else {
 		char *buf = makearraystring(a[1], __func__);
 		freeelem(x, buf);
@@ -1692,12 +1776,11 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	}
 	sep = *fs;
 	ap = execute(a[1]);	/* array name */
-/* BUG 7/26/22: this appears not to reset array: see C1/asplit */
-	freesymtab(ap);
+	if (isarr(ap))
+		clearsymtab(ap);
+	else
+		toarray(ap);
 	DPRINTF("split: s=|%s|, a=%s, sep=|%s|\n", s, NN(ap->nval), fs);
-	ap->tval &= ~STR;
-	ap->tval |= ARR;
-	ap->sval = (char *) makesymtab(NSYMTAB);
 
 	n = 0;
         if (arg3type == REGEXPR && strlen((char*)((fa*)a[2])->restr) == 0) {
