@@ -229,6 +229,7 @@ struct Frame *frp = NULL;	/* frame pointer. bottom level unused */
 Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 {
 	int i, ncall, ndef;
+	Function *f;
 	Node *x;
 	Cell *args[NARGS];	/* BUG: fixed size arrays */
 	Cell *y, *z, *fcn;
@@ -238,6 +239,7 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	s = fcn->nval;
 	if (!isfcn(fcn))
 		FATAL("calling undefined function %s", s);
+	f = (Function *) fcn->sval;
 	if (frame == NULL) {
 		frp = frame = (struct Frame *) calloc(nframe += 100, sizeof(*frame));
 		if (frame == NULL)
@@ -245,7 +247,9 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	}
 	for (ncall = 0, x = a[1]; x != NULL; x = x->nnext)	/* args in call */
 		ncall++;
-	ndef = (int) fcn->fval;			/* args in defn */
+	if (f->nargs > INT_MAX)
+		FATAL("function %s nargs out of range", s);
+	ndef = f->nargs;			/* args in defn */
 	DPRINTF("calling %s, %d args (%d in defn), frp=%d\n", s, ncall, ndef, (int) (frp-frame));
 	if (ncall > ndef)
 		WARNING("function %s called with %d args, uses only %d",
@@ -260,12 +264,12 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 		if (isfcn(y))
 			FATAL("can't use function %s as argument in %s", y->nval, s);
 		if (i < ndef) {
-			args[i] = copycell(y);
+			args[i] = copycell(y, f->argnames[i]);
 		}
 		tempfree(y);
 	}
 	for ( ; i < ndef; i++) {	/* add null args for ones not provided */
-		args[i] = copycell(NULL);
+		args[i] = copycell(NULL, f->argnames[i]);
 	}
 	frp++;	/* now ok to up frame */
 	if (frp >= frame + nframe) {
@@ -281,7 +285,7 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	frp->retval = gettemp();
 
 	DPRINTF("start exec of %s, frp=%d\n", s, (int) (frp-frame));
-	y = execute((Node *)(fcn->sval));	/* execute body */
+	y = execute(f->body);	/* execute body */
 	DPRINTF("finished exec of %s, frp=%d\n", s, (int) (frp-frame));
 	tempfree(fcn);
 
@@ -323,11 +327,12 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	return(z);
 }
 
-Cell *copycell(Cell *x)	/* make a copy of a cell in a temp */
+Cell *copycell(Cell *x, char *name)	/* make a copy of a cell in a temp */
 {
 	Cell *y;
 
 	y = gettemp();
+	y->nval = name;
 	y->csub = CCOPY;
 
 	/* default to the uninitialized value */
@@ -336,19 +341,6 @@ Cell *copycell(Cell *x)	/* make a copy of a cell in a temp */
 
 	/* copy is not constant or field */
 	y->tval = x->tval & ~(CON|FLD|REC);
-
-	/*
-	 * What should we name this argument? The parser does not preserve
-	 * the names of parameters, so we don't know what the source calls
-	 * it. Is it worth the effort to change that?
-	 *
-	 * Note: Simply pointing to the incoming cell's name (as had been
-	 * done for a long time) creates a dangling pointer if that cell
-	 * is deleted (think array element).
-	 *
-	 * For now, args are anonymous. Debugging can use frame/arg indices.
-	 */
-	y->nval = NULL;
 	if (isstr(x)) {
 		y->sval = tostring(x->sval);
 		y->tval &= ~DONTFREE;

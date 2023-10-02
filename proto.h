@@ -156,7 +156,7 @@ extern	void	run(Node *);
 extern	Cell	*execute(Node *);
 extern	Cell	*program(Node **, int);
 extern	Cell	*call(Node **, int);
-extern	Cell	*copycell(Cell *);
+extern	Cell	*copycell(Cell *, char *);
 extern	void	updateargs(Cell *);
 extern	Cell	*arg(Node **, int);
 extern	Cell	*jump(Node **, int);

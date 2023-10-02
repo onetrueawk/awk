@@ -163,6 +163,12 @@ typedef struct Node {
 	struct	Node *narg[1];	/* variable: actual size set by calling malloc */
 } Node;
 
+typedef struct Function {	/* user-defined function */
+	size_t	nargs;		/* number of defined arguments */
+	char	**argnames;	/* the names of those arguments */
+	Node	*body;		/* the function's parse tree */
+} Function;
+
 #define	NIL	((Node *) 0)
 
 extern Node	*winner;
