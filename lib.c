@@ -236,6 +236,7 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf, bool newflag)	/* read one rec
 	} else if (*rs && rs[1]) {
 		bool found;
 
+		memset(buf, 0, bufsize);
 		fa *pfa = makedfa(rs, 1);
 		if (newflag)
 			found = fnematch(pfa, inf, &buf, &bufsize, recsize);
