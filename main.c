@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20230913";
+const char	*version = "version 20231001";
 
 #define DEBUG
 #include <stdio.h>
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 	cmdname = argv[0];
 	if (argc == 1) {
 		fprintf(stderr,
-		  "usage: %s [-F fs] [-v var=value] [-f progfile | 'prog'] [file ...]\n",
+		  "usage: %s [-F fs | --csv] [-v var=value] [-f progfile | 'prog'] [file ...]\n",
 		  cmdname);
 		exit(1);
 	}
