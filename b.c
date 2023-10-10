@@ -96,9 +96,8 @@ extern int u8_nextlen(const char *s);
    mechanism of the goto table used 8-bit byte indices into the
    gototab entries to compute the next state.  Unicode is a lot
    bigger, so the gototab entries are now structs with a character
-   and a next state, and there is a linear search of the characters
-   to find the state.  (Yes, this is slower, by a significant
-   amount.  Tough.)
+   and a next state. These are sorted by code point and binary
+   searched.
 
    Throughout the RE mechanism in b.c, utf-8 characters are
    converted to their utf-32 value.  This mostly shows up in
@@ -113,6 +112,7 @@ extern int u8_nextlen(const char *s);
 
  */
 
+static int entry_cmp(const void *l, const void *r);
 static int get_gototab(fa*, int, int);
 static int set_gototab(fa*, int, int, int);
 extern int u8_rune(int *, const uschar *);
@@ -597,6 +597,7 @@ int member(int c, int *sarg)	/* is c in s? */
 
 static int get_gototab(fa *f, int state, int ch) /* hide gototab inplementation */
 {
+#if 0
 	int i;
 	for (i = 0; i < f->gototab[state].allocated; i++) {
 		if (f->gototab[state].entries[i].ch == 0)
@@ -605,6 +606,32 @@ static int get_gototab(fa *f, int state, int ch) /* hide gototab inplementation 
 			return f->gototab[state].entries[i].state;
 	}
 	return 0;
+#else
+
+	gtte key;
+	gtte *item;
+
+	key.ch = ch;
+	key.state = 0;	/* irrelevant */
+	item = bsearch(& key, f->gototab[state].entries,
+			f->gototab[state].allocated, sizeof(gtte),
+			entry_cmp);
+
+	if (item == NULL)
+		return 0;
+	else
+		return item->state;
+#endif
+}
+
+static int entry_cmp(const void *l, const void *r)
+{
+	const gtte *left, *right;
+
+	left = (const gtte *) l;
+	right = (const gtte *) r;
+
+	return left->ch - right->ch;
 }
 
 static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplementation */
@@ -625,6 +652,8 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplem
 	f->gototab[state].entries = p;
 	f->gototab[state].entries[i].ch = ch;
 	f->gototab[state].entries[i].state = val;
+
+	qsort(p, f->gototab[state].allocated, sizeof(gtte), entry_cmp);
 
 	return val; /* not used anywhere at the moment */
 }
