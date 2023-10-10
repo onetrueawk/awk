@@ -142,7 +142,7 @@ resizesetvec(const char *f)
 static void
 resize_state(fa *f, int state)
 {
-	gtt **p;
+	gtt *p;
 	uschar *p2;
 	int **p3;
 	int i, new_count;
@@ -152,7 +152,7 @@ resize_state(fa *f, int state)
 
 	new_count = state + 10; /* needs to be tuned */
 
-	p = (gtt **) realloc(f->gototab, new_count * sizeof(f->gototab[0]));
+	p = (gtt *) realloc(f->gototab, new_count * sizeof(gtt));
 	if (p == NULL)
 		goto out;
 	f->gototab = p;
@@ -168,13 +168,13 @@ resize_state(fa *f, int state)
 	f->posns = p3;
 
 	for (i = f->state_count; i < new_count; ++i) {
-		f->gototab[i] = (gtt *) calloc(NCHARS, sizeof(**f->gototab));
-		if (f->gototab[i] == NULL)
+		f->gototab[i].entries = (gtte *) calloc(NCHARS, sizeof(gtte));
+		if (f->gototab[i].entries == NULL)
 			goto out;
-		f->out[i]  = 0;
+		f->gototab[i].allocated = NCHARS;
+		f->out[i] = 0;
 		f->posns[i] = NULL;
 	}
-	f->gototab_len = NCHARS; /* should be variable, growable */
 	f->state_count = new_count;
 	return;
 out:
@@ -268,7 +268,7 @@ int makeinit(fa *f, bool anchor)
 	}
 	if ((f->posns[2])[1] == f->accept)
 		f->out[2] = 1;
-	for (i = 0; i < NCHARS; i++)
+	for (i = 0; i < f->gototab[2].allocated; i++)
 		set_gototab(f, 2, 0, 0); /* f->gototab[2][i] = 0; */
 	f->curstat = cgoto(f, 2, HAT);
 	if (anchor) {
@@ -598,11 +598,11 @@ int member(int c, int *sarg)	/* is c in s? */
 static int get_gototab(fa *f, int state, int ch) /* hide gototab inplementation */
 {
 	int i;
-	for (i = 0; i < f->gototab_len; i++) {
-		if (f->gototab[state][i].ch == 0)
+	for (i = 0; i < f->gototab[state].allocated; i++) {
+		if (f->gototab[state].entries[i].ch == 0)
 			break;
-		if (f->gototab[state][i].ch == ch)
-			return f->gototab[state][i].state;
+		if (f->gototab[state].entries[i].ch == ch)
+			return f->gototab[state].entries[i].state;
 	}
 	return 0;
 }
@@ -610,14 +610,22 @@ static int get_gototab(fa *f, int state, int ch) /* hide gototab inplementation 
 static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplementation */
 {
 	int i;
-	for (i = 0; i < f->gototab_len; i++) {
-		if (f->gototab[state][i].ch == 0 || f->gototab[state][i].ch == ch) {
-			f->gototab[state][i].ch = ch;
-			f->gototab[state][i].state = val;
+	gtte *p;
+	for (i = 0; i < f->gototab[state].allocated; i++) {
+		if (f->gototab[state].entries[i].ch == 0 || f->gototab[state].entries[i].ch == ch) {
+			f->gototab[state].entries[i].ch = ch;
+			f->gototab[state].entries[i].state = val;
 			return val;
 		}
 	}
-	overflo(__func__);
+	p = realloc(f->gototab[state].entries, ++(f->gototab[state].allocated) * sizeof(gtte));
+	if (p == NULL)
+		overflo(__func__);
+
+	f->gototab[state].entries = p;
+	f->gototab[state].entries[i].ch = ch;
+	f->gototab[state].entries[i].state = val;
+
 	return val; /* not used anywhere at the moment */
 }
 
@@ -1511,7 +1519,7 @@ void freefa(fa *f)	/* free a finite automaton */
 	if (f == NULL)
 		return;
 	for (i = 0; i < f->state_count; i++)
-		xfree(f->gototab[i])
+		xfree(f->gototab[i].entries)
 	for (i = 0; i <= f->curstat; i++)
 		xfree(f->posns[i]);
 	for (i = 0; i <= f->accept; i++) {

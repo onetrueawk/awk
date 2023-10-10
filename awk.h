@@ -244,14 +244,18 @@ typedef struct rrow {
 	int	*lfollow;
 } rrow;
 
-typedef struct gtt { /* gototab entry */
+typedef struct gtte { /* gototab entry */
 	unsigned int ch;
 	unsigned int state;
+} gtte;
+
+typedef struct gtt {	/* gototab */
+	size_t	allocated;
+	gtte	*entries;
 } gtt;
 
 typedef struct fa {
-	gtt	**gototab;
-	int	gototab_len;
+	gtt	*gototab;
 	uschar	*out;
 	uschar	*restr;
 	int	**posns;
