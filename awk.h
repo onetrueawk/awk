@@ -251,6 +251,7 @@ typedef struct gtte { /* gototab entry */
 
 typedef struct gtt {	/* gototab */
 	size_t	allocated;
+	size_t	inuse;
 	gtte	*entries;
 } gtt;
 

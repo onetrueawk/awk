@@ -172,6 +172,7 @@ resize_state(fa *f, int state)
 		if (f->gototab[i].entries == NULL)
 			goto out;
 		f->gototab[i].allocated = NCHARS;
+		f->gototab[i].inuse = 0;
 		f->out[i] = 0;
 		f->posns[i] = NULL;
 	}
@@ -268,7 +269,7 @@ int makeinit(fa *f, bool anchor)
 	}
 	if ((f->posns[2])[1] == f->accept)
 		f->out[2] = 1;
-	for (i = 0; i < f->gototab[2].allocated; i++)
+	for (i = 0; i < f->gototab[2].inuse; i++)
 		set_gototab(f, 2, 0, 0); /* f->gototab[2][i] = 0; */
 	f->curstat = cgoto(f, 2, HAT);
 	if (anchor) {
@@ -597,31 +598,19 @@ int member(int c, int *sarg)	/* is c in s? */
 
 static int get_gototab(fa *f, int state, int ch) /* hide gototab inplementation */
 {
-#if 0
-	int i;
-	for (i = 0; i < f->gototab[state].allocated; i++) {
-		if (f->gototab[state].entries[i].ch == 0)
-			break;
-		if (f->gototab[state].entries[i].ch == ch)
-			return f->gototab[state].entries[i].state;
-	}
-	return 0;
-#else
-
 	gtte key;
 	gtte *item;
 
 	key.ch = ch;
 	key.state = 0;	/* irrelevant */
 	item = bsearch(& key, f->gototab[state].entries,
-			f->gototab[state].allocated, sizeof(gtte),
+			f->gototab[state].inuse, sizeof(gtte),
 			entry_cmp);
 
 	if (item == NULL)
 		return 0;
 	else
 		return item->state;
-#endif
 }
 
 static int entry_cmp(const void *l, const void *r)
@@ -636,8 +625,8 @@ static int entry_cmp(const void *l, const void *r)
 
 static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplementation */
 {
+#if 0
 	int i;
-	gtte *p;
 	for (i = 0; i < f->gototab[state].allocated; i++) {
 		if (f->gototab[state].entries[i].ch == 0 || f->gototab[state].entries[i].ch == ch) {
 			f->gototab[state].entries[i].ch = ch;
@@ -645,15 +634,36 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplem
 			return val;
 		}
 	}
-	p = realloc(f->gototab[state].entries, ++(f->gototab[state].allocated) * sizeof(gtte));
-	if (p == NULL)
-		overflo(__func__);
+#else
+	gtte key;
+	gtte *item, *p;
 
-	f->gototab[state].entries = p;
-	f->gototab[state].entries[i].ch = ch;
-	f->gototab[state].entries[i].state = val;
+	key.ch = ch;
+	key.state = 0;	/* irrelevant */
+	item = bsearch(& key, f->gototab[state].entries,
+			f->gototab[state].inuse, sizeof(gtte),
+			entry_cmp);
 
-	qsort(p, f->gototab[state].allocated, sizeof(gtte), entry_cmp);
+	if (item != NULL) {
+		item->state = state;
+		return item->state;
+	}
+#endif
+	gtt *tab = & f->gototab[state];
+	if (tab->inuse + 1 >= tab->allocated) {
+		size_t new_size = tab->allocated * 2;
+		p = realloc(f->gototab[state].entries, new_size * sizeof(gtte));
+		if (p == NULL)
+			overflo(__func__);
+		f->gototab[state].allocated = new_size;
+		f->gototab[state].entries = p;
+	}
+	++tab->inuse;
+	f->gototab[state].entries[tab->inuse].ch = ch;
+	f->gototab[state].entries[tab->inuse].state = val;
+
+	qsort(f->gototab[state].entries,
+		f->gototab[state].inuse, sizeof(gtte), entry_cmp);
 
 	return val; /* not used anywhere at the moment */
 }
