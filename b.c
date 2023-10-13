@@ -269,7 +269,7 @@ int makeinit(fa *f, bool anchor)
 	}
 	if ((f->posns[2])[1] == f->accept)
 		f->out[2] = 1;
-	for (i = 0; i < f->gototab[2].inuse; i++)
+	for (i = 0; i < f->gototab[2].allocated; i++)
 		set_gototab(f, 2, 0, 0); /* f->gototab[2][i] = 0; */
 	f->curstat = cgoto(f, 2, HAT);
 	if (anchor) {
@@ -645,7 +645,7 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplem
 			entry_cmp);
 
 	if (item != NULL) {
-		item->state = state;
+		item->state = val;
 		return item->state;
 	}
 #endif
