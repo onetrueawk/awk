@@ -115,6 +115,7 @@ extern int u8_nextlen(const char *s);
 static int entry_cmp(const void *l, const void *r);
 static int get_gototab(fa*, int, int);
 static int set_gototab(fa*, int, int, int);
+static void clear_gototab(fa*, int);
 extern int u8_rune(int *, const uschar *);
 
 static int *
@@ -269,8 +270,7 @@ int makeinit(fa *f, bool anchor)
 	}
 	if ((f->posns[2])[1] == f->accept)
 		f->out[2] = 1;
-	for (i = 0; i < f->gototab[2].allocated; i++)
-		set_gototab(f, 2, 0, 0); /* f->gototab[2][i] = 0; */
+	clear_gototab(f, 2);
 	f->curstat = cgoto(f, 2, HAT);
 	if (anchor) {
 		*f->posns[2] = k-1;	/* leave out position 0 */
@@ -666,6 +666,13 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplem
 		f->gototab[state].inuse, sizeof(gtte), entry_cmp);
 
 	return val; /* not used anywhere at the moment */
+}
+
+static void clear_gototab(fa *f, int state)
+{
+	memset(f->gototab[state].entries, 0,
+		f->gototab[state].allocated * sizeof(gtte));
+	f->gototab[state].inuse = 0;
 }
 
 int match(fa *f, const char *p0)	/* shortest match ? */
@@ -1533,8 +1540,7 @@ int cgoto(fa *f, int s, int c)
 	/* add tmpset to current set of states */
 	++(f->curstat);
 	resize_state(f, f->curstat);
-	for (i = 0; i < NCHARS; i++)
-		set_gototab(f, f->curstat, 0, 0);
+	clear_gototab(f, f->curstat);
 	xfree(f->posns[f->curstat]);
 	p = intalloc(setcnt + 1, __func__);
 
