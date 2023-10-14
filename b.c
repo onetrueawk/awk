@@ -625,34 +625,50 @@ static int entry_cmp(const void *l, const void *r)
 
 static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplementation */
 {
-#if 0
-	int i;
-	for (i = 0; i < f->gototab[state].allocated; i++) {
-		if (f->gototab[state].entries[i].ch == 0 || f->gototab[state].entries[i].ch == ch) {
-			f->gototab[state].entries[i].ch = ch;
-			f->gototab[state].entries[i].state = val;
-			return val;
+	if (f->gototab[state].inuse == 0) {
+		f->gototab[state].entries[0].ch = ch;
+		f->gototab[state].entries[0].state = val;
+		f->gototab[state].inuse++;
+		return val;
+	} else if (ch > f->gototab[state].entries[f->gototab[state].inuse-1].ch) {
+		// not seen yet, insert and return
+		// FIXME: (Oz, hint, hint): Resizing should be pulled out into a function...
+		gtt *tab = & f->gototab[state];
+		if (tab->inuse + 1 >= tab->allocated) {
+			size_t new_size = tab->allocated * 2;
+			gtte *p = (gtte *) realloc(f->gototab[state].entries, new_size * sizeof(gtte));
+			if (p == NULL)
+				overflo(__func__);
+			f->gototab[state].allocated = new_size;
+			f->gototab[state].entries = p;
 		}
-	}
-#else
-	gtte key;
-	gtte *item, *p;
+		f->gototab[state].entries[f->gototab[state].inuse-1].ch = ch;
+		f->gototab[state].entries[f->gototab[state].inuse-1].state = val;
+		f->gototab[state].inuse++;
+		return val;
+	} else {
+		// maybe we have it, maybe we don't
+		gtte key;
+		gtte *item;
 
-	key.ch = ch;
-	key.state = 0;	/* irrelevant */
-	item = bsearch(& key, f->gototab[state].entries,
-			f->gototab[state].inuse, sizeof(gtte),
-			entry_cmp);
+		key.ch = ch;
+		key.state = 0;	/* irrelevant */
+		item = bsearch(& key, f->gototab[state].entries,
+				f->gototab[state].inuse, sizeof(gtte),
+				entry_cmp);
 
-	if (item != NULL) {
-		item->state = val;
-		return item->state;
+		if (item != NULL) {
+			// we have it, update state and return
+			item->state = val;
+			return item->state;
+		}
+		// otherwise, fall through to insert and reallocate.
 	}
-#endif
+
 	gtt *tab = & f->gototab[state];
 	if (tab->inuse + 1 >= tab->allocated) {
 		size_t new_size = tab->allocated * 2;
-		p = realloc(f->gototab[state].entries, new_size * sizeof(gtte));
+		gtte *p = (gtte *) realloc(f->gototab[state].entries, new_size * sizeof(gtte));
 		if (p == NULL)
 			overflo(__func__);
 		f->gototab[state].allocated = new_size;
