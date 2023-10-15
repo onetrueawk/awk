@@ -28,7 +28,7 @@ when expanded.
 
 The option `--csv` turns on CSV processing of input:
 fields are separated by commas, fields may be quoted with
-double-quote (`"`) characters, fields may contain embedded newlines.
+double-quote (`"`) characters, quoted fields may contain embedded newlines.
 In CSV mode, `FS` is ignored.
 
 If no explicit separator argument is provided,
@@ -145,4 +145,4 @@ is not at the top of our priority list.
 
 #### Last Updated
 
-Sun Sep  3 09:26:43 EDT 2023
+Sun 15 Oct 2023 06:28:36 IDT
