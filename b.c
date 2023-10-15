@@ -596,6 +596,16 @@ int member(int c, int *sarg)	/* is c in s? */
 	return(0);
 }
 
+static void resize_gototab(fa *f, int state)
+{
+	size_t new_size = f->gototab[state].allocated * 2;
+	gtte *p = (gtte *) realloc(f->gototab[state].entries, new_size * sizeof(gtte));
+	if (p == NULL)
+		overflo(__func__);
+	f->gototab[state].allocated = new_size;
+	f->gototab[state].entries = p;
+}
+
 static int get_gototab(fa *f, int state, int ch) /* hide gototab inplementation */
 {
 	gtte key;
@@ -632,16 +642,10 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplem
 		return val;
 	} else if (ch > f->gototab[state].entries[f->gototab[state].inuse-1].ch) {
 		// not seen yet, insert and return
-		// FIXME: (Oz, hint, hint): Resizing should be pulled out into a function...
 		gtt *tab = & f->gototab[state];
-		if (tab->inuse + 1 >= tab->allocated) {
-			size_t new_size = tab->allocated * 2;
-			gtte *p = (gtte *) realloc(f->gototab[state].entries, new_size * sizeof(gtte));
-			if (p == NULL)
-				overflo(__func__);
-			f->gototab[state].allocated = new_size;
-			f->gototab[state].entries = p;
-		}
+		if (tab->inuse + 1 >= tab->allocated)
+			resize_gototab(f, state);
+
 		f->gototab[state].entries[f->gototab[state].inuse-1].ch = ch;
 		f->gototab[state].entries[f->gototab[state].inuse-1].state = val;
 		f->gototab[state].inuse++;
@@ -666,14 +670,8 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplem
 	}
 
 	gtt *tab = & f->gototab[state];
-	if (tab->inuse + 1 >= tab->allocated) {
-		size_t new_size = tab->allocated * 2;
-		gtte *p = (gtte *) realloc(f->gototab[state].entries, new_size * sizeof(gtte));
-		if (p == NULL)
-			overflo(__func__);
-		f->gototab[state].allocated = new_size;
-		f->gototab[state].entries = p;
-	}
+	if (tab->inuse + 1 >= tab->allocated)
+		resize_gototab(f, state);
 	++tab->inuse;
 	f->gototab[state].entries[tab->inuse].ch = ch;
 	f->gototab[state].entries[tab->inuse].state = val;
