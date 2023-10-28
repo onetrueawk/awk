@@ -985,7 +985,7 @@ Cell *substr(Node **a, int nnn)		/* substr(a[0], a[1], a[2]) */
 	if (a[2] != NULL)
 		z = execute(a[2]);
 	s = getsval(x);
-	k = strlen(s) + 1;
+	k = u8_strlen(s) + 1;
 	if (k <= 1) {
 		tempfree(x);
 		tempfree(y);
