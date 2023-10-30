@@ -778,7 +778,7 @@ struct runedata getrune(FILE *fp)
 	c = getc(fp);
 	if (c == EOF)
 		return result;	// result.rune == 0 --> EOF
-	else if (c < 128) {
+	else if (c < 128 || awk_mb_cur_max == 1) {
 		result.bytes[0] = c;
 		result.len = 1;
 		result.rune = c;
