@@ -605,7 +605,7 @@ int u8_isutf(const char *s)
 	unsigned char c;
 
 	c = s[0];
-	if (c < 128)
+	if (c < 128 || awk_mb_cur_max == 1)
 		return 1; /* what if it's 0? */
 
 	n = strlen(s);
@@ -632,7 +632,7 @@ int u8_rune(int *rune, const char *s)
 	unsigned char c;
 
 	c = s[0];
-	if (c < 128) {
+	if (c < 128 || awk_mb_cur_max == 1) {
 		*rune = c;
 		return 1;
 	}
@@ -679,7 +679,7 @@ int u8_strlen(const char *s)
 	totlen = 0;
 	for (i = 0; i < n; i += len) {
 		c = s[i];
-		if (c < 128) {
+		if (c < 128 || awk_mb_cur_max == 1) {
 			len = 1;
 		} else {
 			len = u8_nextlen(&s[i]);
@@ -985,7 +985,7 @@ Cell *substr(Node **a, int nnn)		/* substr(a[0], a[1], a[2]) */
 	if (a[2] != NULL)
 		z = execute(a[2]);
 	s = getsval(x);
-	k = strlen(s) + 1;
+	k = u8_strlen(s) + 1;
 	if (k <= 1) {
 		tempfree(x);
 		tempfree(y);
@@ -1289,7 +1289,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				int charval = (int) getfval(x);
 
 				if (charval != 0) {
-					if (charval < 128)
+					if (charval < 128 || awk_mb_cur_max == 1)
 						snprintf(p, BUFSZ(p), fmt, charval);
 					else {
 						// possible unicode character
@@ -1349,7 +1349,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 			int i;
 
 			if (ljust) { // print one char from t, then pad blanks
-				for (int i = 0; i < n; i++)
+				for (i = 0; i < n; i++)
 					*p++ = t[i];
 				for (i = 0; i < pad; i++) {
 					//printf(" ");
@@ -1360,7 +1360,7 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 					//printf(" ");
 					*p++ = ' ';
 				}
-				for (int i = 0; i < n; i++)
+				for (i = 0; i < n; i++)
 					*p++ = t[i];
 			}
 			*p = 0;
@@ -1977,7 +1977,7 @@ static char *nawk_convert(const char *s, int (*fun_c)(int),
 	const char *ps = NULL;
 	size_t n       = 0;
 	wchar_t wc;
-	size_t sz = MB_CUR_MAX;
+	const size_t sz = awk_mb_cur_max;
 	int unused;
 
 	if (sz == 1) {

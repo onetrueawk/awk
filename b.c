@@ -530,7 +530,7 @@ int first(Node *p)	/* collects initially active leaves of p into setvec */
 			setvec[lp] = 1;
 			setcnt++;
 		}
-		if (type(p) == CCL && (*(char *) right(p)) == '\0')
+		if (type(p) == CCL && (*(int *) right(p)) == 0)
 			return(0);		/* empty CCL */
 		return(1);
 	case PLUS:
@@ -846,7 +846,7 @@ struct runedata getrune(FILE *fp)
 	c = getc(fp);
 	if (c == EOF)
 		return result;	// result.rune == 0 --> EOF
-	else if (c < 128) {
+	else if (c < 128 || awk_mb_cur_max == 1) {
 		result.bytes[0] = c;
 		result.len = 1;
 		result.rune = c;
@@ -1038,7 +1038,7 @@ Node *primary(void)
 		rtok = relex();
 		if (rtok == ')') {	/* special pleading for () */
 			rtok = relex();
-			return unary(op2(CCL, NIL, (Node *) tostring("")));
+			return unary(op2(CCL, NIL, (Node *) cclenter("")));
 		}
 		np = regexp();
 		if (rtok == ')') {
@@ -1061,7 +1061,7 @@ Node *concat(Node *np)
 		return (concat(op2(CAT, np, primary())));
 	case EMPTYRE:
 		rtok = relex();
-		return (concat(op2(CAT, op2(CCL, NIL, (Node *) tostring("")),
+		return (concat(op2(CAT, op2(CCL, NIL, (Node *) cclenter("")),
 				primary())));
 	}
 	return (np);

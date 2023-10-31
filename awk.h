@@ -64,6 +64,8 @@ extern bool	safe;		/* false => unsafe, true => safe */
 #define	RECSIZE	(8 * 1024)	/* sets limit on records, fields, etc., etc. */
 extern int	recsize;	/* size of current record, orig RECSIZE */
 
+extern size_t	awk_mb_cur_max;	/* max size of a multi-byte character */
+
 extern char	EMPTY[];	/* this avoid -Wwritable-strings issues */
 extern char	**FS;
 extern char	**RS;
