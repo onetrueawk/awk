@@ -850,13 +850,15 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 		j = i++;
 		do {
 			r = getrune(f);
-			if ((++j + r.len) >= k) {
-				if (k >= bufsize)
-					if (!adjbuf((char **) &buf, &bufsize, bufsize+1, quantum, 0, "fnematch"))
-						FATAL("stream '%.30s...' too long", buf);
+			if (r.len == 0) {
+				r.len = 1;	// store NUL byte for EOF
+			}
+			j += r.len;
+			if (j >= bufsize) {
+				if (!adjbuf((char **) &buf, &bufsize, j+1, quantum, 0, "fnematch"))
+					FATAL("stream '%.30s...' too long", buf);
 			}
 			memcpy(buf + k, r.bytes, r.len);
-			j += r.len - 1;	// incremented next time around the loop
 			k += r.len;
 
 			if ((ns = get_gototab(pfa, s, r.rune)) != 0)
