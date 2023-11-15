@@ -892,12 +892,12 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 		 * (except for EOF's nullbyte, if present) and null
 		 * terminate the buffer.
 		 */
-		do
-			for (int ii = r.len; ii > 0; ii--)
-				if (buf[--k] && ungetc(buf[k], f) == EOF)
-					FATAL("unable to ungetc '%c'", buf[k]);
-		while (k > i + patlen);
-		buf[k] = '\0';
+
+		for (int ii = r.len; ii > 0; ii--)
+			if (buf[--k] && ungetc(buf[k], f) == EOF)
+				FATAL("unable to ungetc '%c'", buf[k]);
+
+		buf[k-patlen] = '\0';
 		return true;
 	}
 	else
