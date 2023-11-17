@@ -759,59 +759,6 @@ int nematch(fa *f, const char *p0)	/* non-empty match, for sub */
 
 #define MAX_UTF_BYTES	4	// UTF-8 is up to 4 bytes long
 
-// Read one rune at a time from the given FILE*. Return both
-// the bytes and the actual rune.
-
-struct runedata {
-	int rune;
-	size_t len;
-	char bytes[6];
-};
-
-struct runedata getrune(FILE *fp)
-{
-	struct runedata result;
-	int c, next;
-
-	memset(&result, 0, sizeof(result));
-
-	c = getc(fp);
-	if (c == EOF)
-		return result;	// result.rune == 0 --> EOF
-	else if (c < 128 || awk_mb_cur_max == 1) {
-		result.bytes[0] = c;
-		result.len = 1;
-		result.rune = c;
-
-		return result;
-	}
-
-	// need to get bytes and fill things in
-	result.bytes[0] = c;
-	result.len = 1;
-
-	next = 1;
-	for (int i = 1; i < MAX_UTF_BYTES; i++) {
-		c = getc(fp);
-		if (c == EOF)
-			break;
-		result.bytes[next++] = c;
-		result.len++;
-	}
-
-	// put back any extra input bytes
-	int actual_len = u8_nextlen(result.bytes);
-	while (result.len > actual_len) {
-		ungetc(result.bytes[--result.len], fp);
-	}
-
-	result.bytes[result.len] = '\0';
-	(void) u8_rune(& result.rune, (uschar *) result.bytes);
-
-	return result;
-}
-
-
 /*
  * NAME
  *     fnematch
@@ -829,58 +776,76 @@ struct runedata getrune(FILE *fp)
 
 bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 {
-	char *buf = *pbuf;
+	char *i, *j, *k, *buf = *pbuf;
 	int bufsize = *pbufsize;
-	int i, j, k, ns, s;
-	struct runedata r;
+	int c, n, ns, s;
 
 	s = pfa->initstat;
 	patlen = 0;
 
 	/*
-	 * All indices relative to buf.
-	 * i <= j <= k <= bufsize
+	 * buf <= i <= j <= k <= buf+bufsize
 	 *
-	 * i: origin of active substring (first byte of first character)
-	 * j: current character		(last byte of current character)
-	 * k: destination of next getc()
+	 * i: origin of active substring
+	 * j: current character
+	 * k: destination of the next getc
 	 */
-	i = -1, k = 0;
-        do {
-		j = i++;
-		do {
-			r = getrune(f);
-			if ((++j + r.len) >= k) {
-				if (k >= bufsize)
-					if (!adjbuf((char **) &buf, &bufsize, bufsize+1, quantum, 0, "fnematch"))
-						FATAL("stream '%.30s...' too long", buf);
-			}
-			memcpy(buf + k, r.bytes, r.len);
-			j += r.len - 1;	// incremented next time around the loop
-			k += r.len;
 
-			if ((ns = get_gototab(pfa, s, r.rune)) != 0)
-				s = ns;
-			else
-				s = cgoto(pfa, s, r.rune);
+	i = j = k = buf;
 
-			if (pfa->out[s]) {	/* final state */
-				patlen = j - i + 1;
-				if (r.rune == 0)	/* don't count $ */
-					patlen--;
+	do {
+		/*
+		 * Call u8_rune with at least MAX_UTF_BYTES ahead in
+		 * the buffer until EOF interferes.
+		 */
+		if (k - j < MAX_UTF_BYTES) {
+			if (k + MAX_UTF_BYTES > buf + bufsize) {
+				adjbuf((char **) &buf, &bufsize,
+				    bufsize + MAX_UTF_BYTES,
+				    quantum, 0, "fnematch");
 			}
-		} while (buf[j] && s != 1);
+			for (n = MAX_UTF_BYTES ; n > 0; n--) {
+				*k++ = (c = getc(f)) != EOF ? c : 0;
+				if (c == EOF) {
+					if (ferror(f))
+						FATAL("fnematch: getc error");
+					break;
+				}
+			}
+		}
+
+		j += u8_rune(&c, (uschar *)j);
+
+		if ((ns = get_gototab(pfa, s, c)) != 0)
+			s = ns;
+		else
+			s = cgoto(pfa, s, c);
+
+		if (pfa->out[s]) {	/* final state */
+			patbeg = i;
+			patlen = j - i;
+			if (c == 0)	/* don't count $ */
+				patlen--;
+		}
+
+		if (c && s != 1)
+			continue;  /* origin i still viable, next j */
+		if (patlen)
+			break;     /* best match found */
+
+		/* no match at origin i, next i and start over */
+		i += u8_rune(&c, (uschar *)i);
+		if (c == 0)
+			break;    /* no match */
+		j = i;
 		s = 2;
-		if (r.len > 1)
-			i += r.len - 1;	// i incremented around the loop
-	} while (buf[i] && !patlen);
+	} while (1);
 
 	/* adjbuf() may have relocated a resized buffer. Inform the world. */
 	*pbuf = buf;
 	*pbufsize = bufsize;
 
 	if (patlen) {
-		patbeg = (char *) buf + i;
 		/*
 		 * Under no circumstances is the last character fed to
 		 * the automaton part of the match. It is EOF's nullbyte,
@@ -893,11 +858,10 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 		 * terminate the buffer.
 		 */
 		do
-			for (int ii = r.len; ii > 0; ii--)
-				if (buf[--k] && ungetc(buf[k], f) == EOF)
-					FATAL("unable to ungetc '%c'", buf[k]);
-		while (k > i + patlen);
-		buf[k] = '\0';
+			if (*--k && ungetc(*k, f) == EOF)
+				FATAL("unable to ungetc '%c'", *k);
+		while (k > patbeg + patlen);
+		*k = '\0';
 		return true;
 	}
 	else
