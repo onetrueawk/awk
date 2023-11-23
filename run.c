@@ -1540,8 +1540,9 @@ Cell *assign(Node **a, int n)	/* a[0] = a[1], a[0] += a[1], etc. */
 		if (x == y && !(x->tval & (FLD|REC)) && x != nfloc)
 			;	/* self-assignment: leave alone unless it's a field or NF */
 		else if ((y->tval & (STR|NUM)) == (STR|NUM)) {
+			yf = getfval(y);
 			setsval(x, getsval(y));
-			x->fval = getfval(y);
+			x->fval = yf;
 			x->tval |= NUM;
 		}
 		else if (isstr(y))
