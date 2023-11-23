@@ -421,8 +421,12 @@ int string(void)
 			    {
 				int i;
 
+				if (!isxdigit(peek())) {
+					unput(c);
+					break;
+				}
 				n = 0;
-				for (i = 1; i <= 2; i++) {
+				for (i = 0; i < 2; i++) {
 					c = input();
 					if (c == 0)
 						break;
@@ -433,13 +437,13 @@ int string(void)
 							n += (c - '0');
 						else
 							n += 10 + (c - 'a');
-					} else
+					} else {
+						unput(c);
 						break;
+					}
 				}
-				if (n)
+				if (i)
 					*bp++ = n;
-				else
-					unput(c);
 				break;
 			    }
 
