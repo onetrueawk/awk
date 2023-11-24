@@ -602,7 +602,12 @@ static void resize_gototab(fa *f, int state)
 	gtte *p = (gtte *) realloc(f->gototab[state].entries, new_size * sizeof(gtte));
 	if (p == NULL)
 		overflo(__func__);
-	f->gototab[state].allocated = new_size;
+
+	// need to initialized the new memory to zero
+	size_t orig_size = f->gototab[state].allocated;		// 2nd half of new mem is this size
+	memset(p + orig_size, 0, orig_size * sizeof(gtte));	// clean it out
+
+	f->gototab[state].allocated = new_size;			// update gotottab info
 	f->gototab[state].entries = p;
 }
 
