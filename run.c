@@ -2108,7 +2108,7 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 		break;
 	case FSYSTEM:
 		fflush(stdout);		/* in case something is buffered already */
-		status = system(getsval(x));
+		estatus = status = system(getsval(x));
 		if (status != -1) {
 			if (WIFEXITED(status)) {
 				estatus = WEXITSTATUS(status);
@@ -2121,6 +2121,7 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 			} else	/* something else?!? */
 				estatus = 0;
 		}
+		/* else estatus was set to -1 */
 		u = estatus;
 		break;
 	case FRAND:
