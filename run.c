@@ -2065,6 +2065,7 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 	Node *nextarg;
 	FILE *fp;
 	int status = 0;
+	int estatus = 0;
 
 	t = ptoi(a[0]);
 	x = execute(a[1]);
@@ -2108,19 +2109,19 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 	case FSYSTEM:
 		fflush(stdout);		/* in case something is buffered already */
 		status = system(getsval(x));
-		u = status;
 		if (status != -1) {
 			if (WIFEXITED(status)) {
-				u = WEXITSTATUS(status);
+				estatus = WEXITSTATUS(status);
 			} else if (WIFSIGNALED(status)) {
-				u = WTERMSIG(status) + 256;
+				estatus = WTERMSIG(status) + 256;
 #ifdef WCOREDUMP
 				if (WCOREDUMP(status))
-					u += 256;
+					estatus += 256;
 #endif
 			} else	/* something else?!? */
-				u = 0;
+				estatus = 0;
 		}
+		u = estatus;
 		break;
 	case FRAND:
 		/* random() returns numbers in [0..2^31-1]
