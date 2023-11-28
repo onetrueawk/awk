@@ -399,7 +399,7 @@ void fldbld(void)	/* create fields from current record */
 	i = 0;	/* number of fields accumulated here */
 	if (inputFS == NULL)	/* make sure we have a copy of FS */
 		savefs();
-	if (strlen(inputFS) > 1) {	/* it's a regular expression */
+	if (!CSV && strlen(inputFS) > 1) {	/* it's a regular expression */
 		i = refldbld(r, inputFS);
 	} else if (!CSV && (sep = *inputFS) == ' ') {	/* default whitespace */
 		for (i = 0; ; ) {
