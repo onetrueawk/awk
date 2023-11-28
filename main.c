@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20231124";
+const char	*version = "version 20231127";
 
 #define DEBUG
 #include <stdio.h>
@@ -157,6 +157,8 @@ int main(int argc, char *argv[])
 		}
 		if (strcmp(argv[1], "--csv") == 0) {	/* turn on csv input processing */
 			CSV = true;
+			if (fs)
+				WARNING("danger: don't set FS when --csv is in effect");
 			argc--;
 			argv++;
 			continue;
@@ -178,6 +180,8 @@ int main(int argc, char *argv[])
  			break;
 		case 'F':	/* set field separator */
 			fs = setfs(getarg(&argc, &argv, "no field separator"));
+			if (CSV)
+				WARNING("danger: don't set FS when --csv is in effect");
 			break;
 		case 'v':	/* -v a=1 to be done NOW.  one -v for each */
 			vn = getarg(&argc, &argv, "no variable name");
