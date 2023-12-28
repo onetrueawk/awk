@@ -795,7 +795,7 @@ int runetochar(char *str, int c)
 
 Cell *matchop(Node **a, int n)	/* ~ and match() */
 {
-	Cell *x, *y;
+	Cell *x, *y, *z;
 	char *s, *t;
 	int i;
 	int cstart, cpatlen, len;
@@ -817,7 +817,7 @@ Cell *matchop(Node **a, int n)	/* ~ and match() */
 		i = (*mf)(pfa, s);
 		tempfree(y);
 	}
-	tempfree(x);
+	z = x;
 	if (n == MATCHFCN) {
 		int start = patbeg - s + 1; /* origin 1 */
 		if (patlen < 0) {
@@ -839,11 +839,13 @@ Cell *matchop(Node **a, int n)	/* ~ and match() */
 		x = gettemp();
 		x->tval = NUM;
 		x->fval = start;
-		return x;
 	} else if ((n == MATCH && i == 1) || (n == NOTMATCH && i == 0))
-		return(True);
+		x = True;
 	else
-		return(False);
+		x = False;
+
+	tempfree(z);
+	return x;
 }
 
 
