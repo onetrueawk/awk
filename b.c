@@ -346,7 +346,7 @@ int hexstr(const uschar **pp, int max)	/* find and eval hex string at pp, return
 	int i;
 
 	for (i = 0, p = *pp; i < max && isxdigit(*p); i++, p++) {
-		if (isdigit(*p))
+		if (isdigit((int) *p))
 			n = 16 * n + *p - '0';
 		else if (*p >= 'a' && *p <= 'f')
 			n = 16 * n + *p - 'a' + 10;
@@ -1389,7 +1389,7 @@ rescan:
 		}
 		break;
 	case '{':
-		if (isdigit(*(prestr))) {
+		if (isdigit((int) *(prestr))) {
 			num = 0;	/* Process as a repetition */
 			n = -1; m = -1;
 			commafound = false;
