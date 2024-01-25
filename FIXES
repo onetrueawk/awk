@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the 
 second edition of the AWK book was published in September 2023.
 
+Jan 22, 2024:
+	Restore the ability to compile with g++. Thanks to
+	Arnold Robbins.
+
 Dec 24, 2023:
 	matchop dereference after free problem fix when the first
 	argument is a function call. thanks to Oguz Ismail Uysal.

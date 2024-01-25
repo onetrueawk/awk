@@ -1300,7 +1300,8 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 
 						if (bs == NULL)	{ // invalid character
 							// use unicode invalid character, 0xFFFD
-							bs = "\357\277\275";
+							static char invalid_char[] = "\357\277\275";
+							bs = invalid_char;
 							count = 3;
 						}
 						t = bs;
@@ -2543,7 +2544,7 @@ Cell *dosub(Node **a, int subop)        /* sub and gsub */
 	start = getsval(x);
 	while (pmatch(pfa, start)) {
 		if (buf == NULL) {
-			if ((pb = buf = malloc(bufsz)) == NULL)
+			if ((pb = buf = (char *) malloc(bufsz)) == NULL)
 				FATAL("out of memory in dosub");
 			tempstat = pfa->initstat;
 			pfa->initstat = 2;
