@@ -607,11 +607,11 @@ static void resize_gototab(fa *f, int state)
 	size_t orig_size = f->gototab[state].allocated;		// 2nd half of new mem is this size
 	memset(p + orig_size, 0, orig_size * sizeof(gtte));	// clean it out
 
-	f->gototab[state].allocated = new_size;			// update gotottab info
+	f->gototab[state].allocated = new_size;			// update gototab info
 	f->gototab[state].entries = p;
 }
 
-static int get_gototab(fa *f, int state, int ch) /* hide gototab inplementation */
+static int get_gototab(fa *f, int state, int ch) /* hide gototab implementation */
 {
 	gtte key;
 	gtte *item;
@@ -638,7 +638,7 @@ static int entry_cmp(const void *l, const void *r)
 	return left->ch - right->ch;
 }
 
-static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab inplementation */
+static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab implementation */
 {
 	if (f->gototab[state].inuse == 0) {
 		f->gototab[state].entries[0].ch = ch;
