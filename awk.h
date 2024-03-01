@@ -69,6 +69,7 @@ extern size_t	awk_mb_cur_max;	/* max size of a multi-byte character */
 extern char	EMPTY[];	/* this avoid -Wwritable-strings issues */
 extern char	**FS;
 extern char	**RS;
+extern char	**RT;
 extern char	**ORS;
 extern char	**OFS;
 extern char	**OFMT;
@@ -121,6 +122,7 @@ extern Cell	*nfloc;		/* NF */
 extern Cell	*ofsloc;	/* OFS */
 extern Cell	*orsloc;	/* ORS */
 extern Cell	*rsloc;		/* RS */
+extern Cell	*rtloc;		/* RT */
 extern Cell	*rstartloc;	/* RSTART */
 extern Cell	*rlengthloc;	/* RLENGTH */
 extern Cell	*subseploc;	/* SUBSEP */
