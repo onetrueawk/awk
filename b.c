@@ -852,7 +852,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 	char *buf = *pbuf;
 	int bufsize = *pbufsize;
 	int c, n, ns, s;
-	int i, j, k;
+	int i, j, k, patoff;
 
 	s = pfa->initstat;
 	patlen = 0;
@@ -864,8 +864,9 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 	 * i: origin of active substring
 	 * j: current character
 	 * k: destination of the next getc
+	 * patoff: index to start of pattern
 	 */
-	i = j = k = 0;
+	i = j = k = patoff = 0;
 
 	do {
 		/*
@@ -899,7 +900,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 			s = cgoto(pfa, s, c);
 
 		if (pfa->out[s]) {	/* final state */
-			patbeg = buf + i;
+			patoff = i;
 			patlen = j - i;
 			if (c == 0)	/* don't count $ */
 				patlen--;
@@ -921,6 +922,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 	/* adjbuf() may have relocated a resized buffer. Inform the world. */
 	*pbuf = buf;
 	*pbufsize = bufsize;
+	patbeg = buf + patoff;
 
 	if (patlen) {
 		/*
