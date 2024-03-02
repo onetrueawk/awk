@@ -849,22 +849,23 @@ int nematch(fa *f, const char *p0)	/* non-empty match, for sub */
 
 bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 {
-	char *i, *j, *k, *buf = *pbuf;
+	char *buf = *pbuf;
 	int bufsize = *pbufsize;
 	int c, n, ns, s;
+	int i, j, k;
 
 	s = pfa->initstat;
 	patlen = 0;
 
 	/*
-	 * buf <= i <= j <= k <= buf+bufsize
+	 * All indices relative into buf.
+	 * i <= j <= k <= bufsize
 	 *
 	 * i: origin of active substring
 	 * j: current character
 	 * k: destination of the next getc
 	 */
-
-	i = j = k = buf;
+	i = j = k = 0;
 
 	do {
 		/*
@@ -872,13 +873,16 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 		 * the buffer until EOF interferes.
 		 */
 		if (k - j < MAX_UTF_BYTES) {
-			if (k + MAX_UTF_BYTES > buf + bufsize) {
+			if (k + MAX_UTF_BYTES > bufsize) {
+				/* this can change the pointer of buf so
+				 * do not store other pointers to buf
+				 * if adjbuf will be called again */
 				adjbuf((char **) &buf, &bufsize,
 				    bufsize + MAX_UTF_BYTES,
 				    quantum, 0, "fnematch");
 			}
 			for (n = MAX_UTF_BYTES ; n > 0; n--) {
-				*k++ = (c = getc(f)) != EOF ? c : 0;
+				buf[k++] = (c = getc(f)) != EOF ? c : 0;
 				if (c == EOF) {
 					if (ferror(f))
 						FATAL("fnematch: getc error");
@@ -887,7 +891,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 			}
 		}
 
-		j += u8_rune(&c, j);
+		j += u8_rune(&c, buf + j);
 
 		if ((ns = get_gototab(pfa, s, c)) != 0)
 			s = ns;
@@ -895,7 +899,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 			s = cgoto(pfa, s, c);
 
 		if (pfa->out[s]) {	/* final state */
-			patbeg = i;
+			patbeg = buf + i;
 			patlen = j - i;
 			if (c == 0)	/* don't count $ */
 				patlen--;
@@ -907,7 +911,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 			break;     /* best match found */
 
 		/* no match at origin i, next i and start over */
-		i += u8_rune(&c, i);
+		i += u8_rune(&c, buf + i);
 		if (c == 0)
 			break;    /* no match */
 		j = i;
@@ -931,10 +935,10 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 		 * terminate the buffer.
 		 */
 		do
-			if (*--k && ungetc(*k, f) == EOF)
-				FATAL("unable to ungetc '%c'", *k);
-		while (k > patbeg + patlen);
-		*k = '\0';
+			if (buf[--k] && ungetc(buf[k], f) == EOF)
+				FATAL("unable to ungetc '%c'", buf[k]);
+		while (k > patbeg - buf + patlen);
+		buf[k] = '\0';
 		return true;
 	}
 	else
