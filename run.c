@@ -2501,7 +2501,7 @@ void backsub(char **pb_ptr, const char **sptr_ptr);
 Cell *dosub(Node **a, int subop)        /* sub and gsub */
 {
 	fa *pfa;
-	int tempstat;
+	int tempstat = 0;
 	char *repl;
 	Cell *x;
 
