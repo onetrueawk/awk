@@ -25,6 +25,12 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the 
 second edition of the AWK book was published in September 2023.
 
+Apr 22, 2024:
+	fixed regex engine gototab reallocation issue that was
+	introduced during the Nov 24 rewrite. Thanks to Arnold Robbins.
+	Fixed a scan bug in split in the case the separator is a single
+	character. thanks to Oguz Ismail for spotting the issue.
+
 Mar 10, 2024:
 	fixed use-after-free bug in fnematch due to adjbuf invalidating
 	the pointers to buf. thanks to github user caffe3 for spotting
