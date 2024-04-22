@@ -651,8 +651,8 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab implem
 		if (tab->inuse + 1 >= tab->allocated)
 			resize_gototab(f, state);
 
-		f->gototab[state].entries[f->gototab[state].inuse-1].ch = ch;
-		f->gototab[state].entries[f->gototab[state].inuse-1].state = val;
+		f->gototab[state].entries[f->gototab[state].inuse].ch = ch;
+		f->gototab[state].entries[f->gototab[state].inuse].state = val;
 		f->gototab[state].inuse++;
 		return val;
 	} else {
@@ -677,9 +677,9 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab implem
 	gtt *tab = & f->gototab[state];
 	if (tab->inuse + 1 >= tab->allocated)
 		resize_gototab(f, state);
-	++tab->inuse;
 	f->gototab[state].entries[tab->inuse].ch = ch;
 	f->gototab[state].entries[tab->inuse].state = val;
+	++tab->inuse;
 
 	qsort(f->gototab[state].entries,
 		f->gototab[state].inuse, sizeof(gtte), entry_cmp);
