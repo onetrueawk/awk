@@ -25,6 +25,11 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the 
 second edition of the AWK book was published in September 2023.
 
+May 4, 2024
+	Fixed a use-after-free bug with ARGV for "delete ARGV".
+	Also ENVtab is no longer global. Thanks to Benjamin Sturz
+	for spotting the ARGV issue and	Todd Miller for the fix. 
+
 May 3, 2024:
 	Remove warnings when compiling with g++. Thanks to Arnold Robbins.
 
@@ -32,7 +37,7 @@ Apr 22, 2024:
 	Fixed regex engine gototab reallocation issue that was
 	Introduced during the Nov 24 rewrite. Thanks to Arnold Robbins.
 	Fixed a scan bug in split in the case the separator is a single
-	character. thanks to Oguz Ismail for spotting the issue.
+	character. Thanks to Oguz Ismail for spotting the issue.
 
 Mar 10, 2024:
 	Fixed use-after-free bug in fnematch due to adjbuf invalidating
