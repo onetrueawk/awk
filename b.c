@@ -645,7 +645,7 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab implem
 		f->gototab[state].entries[0].state = val;
 		f->gototab[state].inuse++;
 		return val;
-	} else if (ch > f->gototab[state].entries[f->gototab[state].inuse-1].ch) {
+	} else if ((unsigned)ch > f->gototab[state].entries[f->gototab[state].inuse-1].ch) {
 		// not seen yet, insert and return
 		gtt *tab = & f->gototab[state];
 		if (tab->inuse + 1 >= tab->allocated)
@@ -869,7 +869,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 		 * Call u8_rune with at least awk_mb_cur_max ahead in
 		 * the buffer until EOF interferes.
 		 */
-		if (k - j < awk_mb_cur_max) {
+		if (k - j < (int)awk_mb_cur_max) {
 			if (k + awk_mb_cur_max > buf + bufsize) {
 				char *obuf = buf;
 				adjbuf((char **) &buf, &bufsize,
