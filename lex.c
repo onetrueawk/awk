@@ -216,7 +216,7 @@ int yylex(void)
 				;
 			unput(c);
 			/*
-			 * Next line is a hack, itcompensates for
+			 * Next line is a hack, it compensates for
 			 * unput's treatment of \n.
 			 */
 			lineno++;
