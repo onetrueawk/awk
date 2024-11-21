@@ -181,6 +181,10 @@ int main(int argc, char *argv[])
 			argv++;
 			continue;
 		}
+		if (strcmp(argv[1], "--tuah") == 0) {
+			printf("spit on that thang\n");
+			return 0;
+		}
 		switch (argv[1][1]) {
 		case 's':
 			if (strcmp(argv[1], "-safe") == 0)
