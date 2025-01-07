@@ -958,16 +958,12 @@ Cell *indirect(Node **a, int n)	/* $( a[0] ) */
 	Awkfloat val;
 	Cell *x;
 	int m;
-	char *s;
 
 	x = execute(a[0]);
 	val = getfval(x);	/* freebsd: defend against super large field numbers */
 	if ((Awkfloat)INT_MAX < val)
 		FATAL("trying to access out of range field %s", x->nval);
 	m = (int) val;
-	if (m == 0 && !is_number(s = getsval(x), NULL))	/* suspicion! */
-		FATAL("illegal field $(%s), name \"%s\"", s, x->nval);
-		/* BUG: can x->nval ever be null??? */
 	tempfree(x);
 	x = fieldadr(m);
 	x->ctype = OCELL;	/* BUG?  why are these needed? */
