@@ -25,6 +25,10 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the 
 second edition of the AWK book was published in September 2023.
 
+Jan 14, 2025
+	Fix incorrect error line number issues. unput has
+	no business managing lineno. Thanks to Ozan Yigit.
+
 Jan 05, 2025
 	Fix hex detection in is_valid_number.
 	Fix indirect field specification with non-numeric string
