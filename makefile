@@ -32,7 +32,14 @@ CFLAGS ?= -O2
 #CC = cc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
 HOSTCC ?= cc -g -Wall -pedantic -Wcast-qual
 # HOSTCC = g++ -g -Wall -pedantic -Wcast-qual
-CC ?= $(HOSTCC)  # change this is cross-compiling.
+CC ?= $(HOSTCC)  # change this if cross-compiling.
+
+# If CC is set but HOSTCC isn't, use CC for host compilation too
+ifdef CC
+ifndef HOSTCC_OVERRIDDEN
+HOSTCC = $(CC)
+endif
+endif
 # By fiat, to make our lives easier, yacc is now defined to be bison.
 # If you want something else, you're on your own.
 # YACC = yacc -d -b awkgram
@@ -49,6 +56,7 @@ SHIP = README LICENSE FIXES $(SOURCE) awkgram.tab.[ch].bak makefile  \
 a.out:	awkgram.tab.o $(OFILES)
 	$(CC) $(CFLAGS) awkgram.tab.o $(OFILES) $(ALLOC)  -lm
 
+awkgram.tab.o: awkgram.tab.c
 $(OFILES):	awk.h awkgram.tab.h proto.h
 
 awkgram.tab.c awkgram.tab.h:	awk.h proto.h awkgram.y
