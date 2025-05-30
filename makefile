@@ -43,7 +43,7 @@ endif
 # By fiat, to make our lives easier, yacc is now defined to be bison.
 # If you want something else, you're on your own.
 # YACC = yacc -d -b awkgram
-YACC ?= bison -d
+YACC = bison -d
 
 OFILES = b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o
 SOURCE = awk.h awkgram.tab.c awkgram.tab.h proto.h awkgram.y lex.c b.c main.c \
