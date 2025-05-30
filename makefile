@@ -22,32 +22,27 @@
 # THIS SOFTWARE.
 # ****************************************************************/
 
-CFLAGS = -fsanitize=address -O1 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
-CFLAGS = -g
-CFLAGS =
-CFLAGS = -O2
-
+CFLAGS ?= -fsanitize=address -O1 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
+CFLAGS ?= -g
+CFLAGS ?=
+CFLAGS ?= -O2
 # compiler options
 #CC = cc -Wall -g -Wwrite-strings
 #CC = cc -O4 -Wall -pedantic -fno-strict-aliasing
 #CC = cc -fprofile-arcs -ftest-coverage # then gcov f1.c; cat f1.c.gcov
-HOSTCC = cc -g -Wall -pedantic -Wcast-qual
+HOSTCC ?= cc -g -Wall -pedantic -Wcast-qual
 # HOSTCC = g++ -g -Wall -pedantic -Wcast-qual
-CC = $(HOSTCC)  # change this is cross-compiling.
-
+CC ?= $(HOSTCC)  # change this is cross-compiling.
 # By fiat, to make our lives easier, yacc is now defined to be bison.
 # If you want something else, you're on your own.
 # YACC = yacc -d -b awkgram
-YACC = bison -d
+YACC ?= bison -d
 
 OFILES = b.o main.o parse.o proctab.o tran.o lib.o run.o lex.o
-
 SOURCE = awk.h awkgram.tab.c awkgram.tab.h proto.h awkgram.y lex.c b.c main.c \
 	maketab.c parse.c lib.c run.c tran.c proctab.c
-
 LISTING = awk.h proto.h awkgram.y lex.c b.c main.c maketab.c parse.c \
 	lib.c run.c tran.c
-
 SHIP = README LICENSE FIXES $(SOURCE) awkgram.tab.[ch].bak makefile  \
 	 awk.1
 
