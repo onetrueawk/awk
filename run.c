@@ -1567,6 +1567,8 @@ Cell *assign(Node **a, int n)	/* a[0] = a[1], a[0] += a[1], etc. */
 		xf *= yf;
 		break;
 	case DIVEQ:
+		if ((x->tval & CON) != 0)
+			FATAL("non-constant required for left side of /=");
 		if (yf == 0)
 			FATAL("division by zero in /=");
 		xf /= yf;
