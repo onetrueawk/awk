@@ -191,9 +191,7 @@ Node *makearr(Node *p)
 		if (isfcn(cp))
 			SYNTAX( "%s is a function, not an array", cp->nval );
 		else if (!isarr(cp)) {
-			xfree(cp->sval);
-			cp->sval = (char *) makesymtab(NSYMTAB);
-			cp->tval = ARR;
+			toarray(cp);
 		}
 	}
 	return p;
@@ -232,8 +230,9 @@ Node *linkum(Node *a, Node *b)
 
 void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 {					/*   body of function, arglist */
-	Node *p;
-	int n;
+	Node *p, *temp;
+	Function *f;
+	size_t n;
 
 	if (isarr(v)) {
 		SYNTAX( "`%s' is an array name and a function name", v->nval );
@@ -244,13 +243,45 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 		return;
 	}
 
-	v->tval = FCN;
-	v->sval = (char *) st;
+	f = (Function *) malloc(sizeof(Function));
+	if (f == NULL)
+		FATAL("out of memory in defn for Function");
+	f->body = st;
+
 	n = 0;	/* count arguments */
 	for (p = vl; p; p = p->nnext)
 		n++;
-	v->fval = n;
-	DPRINTF("defining func %s (%d args)\n", v->nval, n);
+	f->nargs = n;
+
+	DPRINTF("defining func %s (%zu args)\n", v->nval, f->nargs);
+
+	if (f->nargs > 0) {
+		/* overflow can't happen, the arglist is bigger */
+		f->argnames = (char **) malloc(n * sizeof(char *));
+		if (f->argnames == NULL)
+			FATAL("out of memory in defn for argnames");
+
+		/*
+		 * Keep a private copy of each argument's name.
+		 *
+		 * Free the arglist nodes, but not their cells. The
+		 * cells belong to the global symbol table and might
+		 * be needed for a variable of the same name.
+		 */
+		n = 0;
+		for (p = vl; p; p = temp) {
+			DPRINTF("arg %zu is \"%s\"\n", n, ((Cell *)p->narg[0])->nval);
+			f->argnames[n++] = tostring(((Cell *)p->narg[0])->nval);
+			temp = p->nnext;
+			free(p);
+		}	
+	} else
+		f->argnames = NULL;
+
+	if (freeable(v))
+		free(v->sval);
+	v->sval = (char *) f;
+	v->tval = FCN;
 }
 
 int isarg(const char *s)		/* is s in argument list for current function? */

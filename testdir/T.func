@@ -194,3 +194,64 @@ $awk '
 function foo() { i = 0 }
         BEGIN { x = foo(); printf "<%s> %d\n", x, x }' >foo2
 diff foo1 foo2 || echo 'BAD: T.func (fall off end)'
+
+$awk '
+function f(x, y) {
+	x = "x"
+	y[0] = "y"
+	print x, y[0]
+}
+function g(z) {
+	print z[0]
+}
+BEGIN {
+	f(a, a)
+	g(a)
+}' 2>foo1 >/dev/null
+ret=$?
+if [ $ret -eq 0 ] || ! grep -q 'can.t read value of .* an array' foo1; then
+	echo "BAD: T.func (simultaneously scalar and array: $ret)"
+fi
+
+$awk '
+function f(f1, f2, f3) {
+	f1[0] = "*"
+	print "f: " f1[0], f2[0], f3[0]
+}
+function g(g1, g2, g3) {
+	f(g1, g1, g1)
+	print "g: " g1[0], g2[0], g3[0]
+}
+function h(h1, h2, h3) {
+	g(h1, h2, h3)
+	print "h: " h1[0], h2[0], h3[0]
+}
+function i(i1, i2, i3) {
+	print "i: " i1[0], i2[0], i3[0]
+}
+BEGIN {
+	OFS = "-"
+	f(a, a, a)
+	g(b, b, b)
+	h(c, c, c)
+	i(a, b, c)
+}' >foo2
+cat <<! >foo1
+f: *-*-*
+f: *-*-*
+g: *-*-*
+f: *-*-*
+g: *-*-*
+h: *-*-*
+i: *-*-*
+!
+diff foo1 foo2 || echo 'BAD: T.func (cousin coherency)'
+
+$awk '
+function f(x) { x[0]="updated"; exit }
+function g(y) { print y[0] }
+BEGIN { f(a) }
+END   { g(a) }
+' >foo2
+echo 'updated' >foo1
+diff foo1 foo2 || echo 'BAD: T.func (exit skips arg conversion updates)'
