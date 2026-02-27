@@ -1,5 +1,5 @@
 /****************************************************************
-Copyright (C) Lucent Technologies 1997
+Copyright (C) guanlong huang 2021
 All Rights Reserved
 
 Permission to use, copy, modify, and distribute this software and
