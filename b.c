@@ -106,6 +106,12 @@ extern int u8_nextlen(const char *s);
    This should be dynamic, but for now things work ok for a single
    code page of Unicode, which is the most likely case.
 
+   ASCII code points (0..GOTO_DIRECT-1) take a direct-indexed fast
+   path in each state's gototab, bypassing the bsearch entirely;
+   non-ASCII still goes through the sorted (codepoint, state) table.
+   This keeps the common case to a single load per input byte while
+   leaving Unicode handling unchanged.
+
    The code changes are localized in run.c and b.c.  I have added a
    handful of functions to somewhat better hide the implementation,
    but a lot more could be done.
@@ -169,6 +175,7 @@ resize_state(fa *f, int state)
 	f->posns = p3;
 
 	for (i = f->state_count; i < new_count; ++i) {
+		memset(f->gototab[i].direct, 0, sizeof(f->gototab[i].direct));
 		f->gototab[i].entries = (gtte *) calloc(NCHARS, sizeof(gtte));
 		if (f->gototab[i].entries == NULL)
 			goto out;
@@ -629,6 +636,9 @@ static int get_gototab(fa *f, int state, int ch) /* hide gototab implementation 
 	gtte key;
 	gtte *item;
 
+	if ((unsigned)ch < GOTO_DIRECT)
+		return f->gototab[state].direct[ch];
+
 	key.ch = ch;
 	key.state = 0;	/* irrelevant */
 	item = (gtte *) bsearch(& key, f->gototab[state].entries,
@@ -653,6 +663,11 @@ static int entry_cmp(const void *l, const void *r)
 
 static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab implementation */
 {
+	if ((unsigned)ch < GOTO_DIRECT) {
+		f->gototab[state].direct[ch] = val;
+		return val;
+	}
+
 	if (f->gototab[state].inuse == 0) {
 		f->gototab[state].entries[0].ch = ch;
 		f->gototab[state].entries[0].state = val;
@@ -702,6 +717,7 @@ static int set_gototab(fa *f, int state, int ch, int val) /* hide gototab implem
 
 static void clear_gototab(fa *f, int state)
 {
+	memset(f->gototab[state].direct, 0, sizeof(f->gototab[state].direct));
 	memset(f->gototab[state].entries, 0,
 		f->gototab[state].allocated * sizeof(gtte));
 	f->gototab[state].inuse = 0;
