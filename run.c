@@ -1746,7 +1746,9 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		pfa = NULL;
 
 	} else if (a[2] == NULL && CSV) {	/* CSV only if no explicit separator */
-		char *newt = (char *) malloc(strlen(s)); /* for building new string; reuse for each field */
+		char *newt = (char *) malloc(strlen(s) + 1); /* for building new string; reuse for each field */
+		if (newt == NULL)
+			FATAL("out of space in split");
 		for (;;) {
 			char *fr = newt;
 			n++;
