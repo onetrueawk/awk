@@ -133,7 +133,7 @@ function bug2(arg) {
     bot[arg]=arg;
 }
 ' 2>foo
-grep "can.t assign to foo" foo >/dev/null || echo 1>&2 "BAD: T.misc foo bug"
+grep "can.t assign to .* array" foo >/dev/null || echo 1>&2 "BAD: T.misc foo bug"
 
 
 # This should be a syntax error
