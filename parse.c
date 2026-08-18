@@ -217,6 +217,7 @@ Node *pa2stat(Node *a, Node *b, Node *c)	/* pat, pat {...} */
 Node *linkum(Node *a, Node *b)
 {
 	Node *c;
+	static Node *prev_head, *prev_tail;	/* auto-init to NULL */
 
 	if (errorflag)	/* don't link things that are wrong */
 		return a;
@@ -224,9 +225,17 @@ Node *linkum(Node *a, Node *b)
 		return(b);
 	else if (b == NULL)
 		return(a);
-	for (c = a; c->nnext != NULL; c = c->nnext)
-		;
-	c->nnext = b;
+
+	if (prev_head == a) {
+		prev_tail->nnext = b;
+		prev_tail = b;
+	} else {
+		for (c = a; c->nnext != NULL; c = c->nnext)
+			;
+		c->nnext = b;
+		prev_head = a;
+		prev_tail = b;
+	}
 	return(a);
 }
 
