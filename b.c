@@ -116,7 +116,42 @@ static int entry_cmp(const void *l, const void *r);
 static int get_gototab(fa*, int, int);
 static int set_gototab(fa*, int, int, int);
 static void clear_gototab(fa*, int);
-extern int u8_rune(int *, const char *);
+
+/* Convert (prefix of) utf8 string to utf-32 rune. */
+/* Sets *rune to the value, returns the length. */
+/* No error checking: watch out. */
+static inline int
+u8_rune(int *rune, const char *s)
+{
+	int n, ret;
+	unsigned char c;
+
+	c = s[0];
+	if (c < 128 || awk_mb_cur_max == 1) {
+		*rune = c;
+		return 1;
+	}
+
+	n = strlen(s);
+	if (n >= 2 && ((c>>5) & 0x7) == 0x6 && (s[1] & 0xC0) == 0x80) {
+		*rune = ((c & 0x1F) << 6) | (s[1] & 0x3F); /* 110xxxxx 10xxxxxx */
+		ret = 2;
+	} else if (n >= 3 && ((c>>4) & 0xF) == 0xE && (s[1] & 0xC0) == 0x80
+			  && (s[2] & 0xC0) == 0x80) {
+		*rune = ((c & 0xF) << 12) | ((s[1] & 0x3F) << 6) | (s[2] & 0x3F);
+			/* 1110xxxx 10xxxxxx 10xxxxxx */
+		ret = 3;
+	} else if (n >= 4 && ((c>>3) & 0x1F) == 0x1E && (s[1] & 0xC0) == 0x80
+			  && (s[2] & 0xC0) == 0x80 && (s[3] & 0xC0) == 0x80) {
+		*rune = ((c & 0x7) << 18) | ((s[1] & 0x3F) << 12) | ((s[2] & 0x3F) << 6) | (s[3] & 0x3F);
+			/* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+		ret = 4;
+	} else {
+		*rune = c;
+		ret = 1;
+	}
+	return ret; /* returns one byte if sequence doesn't look like utf */
+}
 
 static int *
 intalloc(size_t n, const char *f)
