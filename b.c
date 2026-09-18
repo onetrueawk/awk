@@ -34,6 +34,12 @@ THIS SOFTWARE.
 #include "awk.h"
 #include "awkgram.tab.h"
 
+/*
+ * A value no input character can equal: u8_rune() only ever yields a
+ * non-negative rune, and cgoto()'s other argument is HAT, also positive.
+ */
+#define NOT_A_CHAR      (-1)
+
 #define MAXLIN 22
 
 #define type(v)		(v)->nobj	/* badly overloaded here */
@@ -425,7 +431,7 @@ int quoted(const uschar **pp)	/* pick up next thing after a \\ */
 
 int *cclenter(const char *argp)	/* add a character class */
 {
-	int i, c, c2;
+	int i, j, c, c2;
 	int n;
 	const uschar *p = (const uschar *) argp;
 	int *bp, *retp;
@@ -481,8 +487,41 @@ int *cclenter(const char *argp)	/* add a character class */
 	/* DPRINTF("cclenter: in = |%s|, out = |%s|\n", op, buf); BUG: can't print array of int */
 	/* xfree(op);  BUG: what are we freeing here? */
 	retp = (int *) calloc(bp-buf+1, sizeof(int));
-	for (i = 0; i < bp-buf+1; i++)
-		retp[i] = buf[i];
+	if (retp == NULL)
+		FATAL("out of space for character class [%.10s...] 2", argp);
+
+	/*
+	 * Copy buf[] to retp[], dropping anything that is not a character:
+	 * NULs from \0 or a malformed \x, and values outside the Unicode
+	 * range from an oversized \u.
+	 */
+	for (i = j = 0; i < bp-buf+1; i++) {
+		if (buf[i] > 0 && buf[i] <= MAX_CODE_POINT)
+			retp[j++] = buf[i];
+	}
+	assert(retp[j] == 0);
+
+	/*
+	 * If every member was filtered out above, the result would be an
+	 * empty CCL -- which is how the parser represents the empty regular
+	 * expression (see the cclenter("") calls in primary() and
+	 * concat()), and for which first() reports a match on the empty
+	 * string.  That would make e.g. /[\0]/ match every line instead of
+	 * nothing.  To prevent that, store a value no input character can
+	 * equal, so the class matches nothing.
+	 *
+	 * (bp > buf) is what distinguishes "buf contained members and the
+	 * loop above dropped them all" from "buf was empty to begin with".
+	 * The latter covers cclenter("") and a reversed range such as
+	 * [z-a], which the range code unwinds in place; [z-a] is required
+	 * to match the empty string (T.re, T.utfre), so it has to keep
+	 * arriving here as an empty CCL.
+	 */
+	if (j == 0 && bp > buf) {
+		retp[0] = NOT_A_CHAR;
+		retp[1] = 0;
+	}
+
 	return retp;
 }
 
