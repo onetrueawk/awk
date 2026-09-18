@@ -1,0 +1,152 @@
+#!/bin/sh
+
+echo T.ccl: tests of bracket expressions
+
+# Every case below guards behavior that was wrong at some point while the
+# bracket expression code was being reworked.  A one-line note says what
+# used to happen, so a future change that reintroduces the bug is easy to
+# recognize.
+#
+# Where onetrueawk deliberately differs from gawk the note says so; do not
+# "fix" those toward gawk without reading the note first.
+
+awk=${awk-../a.out}
+
+# Equivalence classes are the one construct here whose meaning depends on the
+# locale, so run under LC_ALL=C, where POSIX makes every character its own
+# equivalence class.
+#
+LC_ALL=C
+export LC_ALL
+
+WORKDIR=$(mktemp -d /tmp/nawktest.XXXXXX)
+data=$WORKDIR/data
+err=$WORKDIR/err
+nt=0
+bad=0
+
+# Generate the data file with one printable character per line, so the set a
+# pattern selects can be compared as a single concatenated string.
+#
+for c in a b c d e f g n q x y z A B C F G 0 1 2 5 7 8 9 - = '[' ']' ':' . '\' '!'
+do
+	printf '%s\n' "$c"
+done > $data
+
+# chk <regexp> <expected> <note>
+#
+# chk checks which characters a bracket expression selects.
+#
+# <expected> is the concatenation, in file order, of the lines of $data that
+# <regexp> must select.
+#
+# stderr is kept out of the comparison so that $awk can be wrapped in a
+# checking allocator, which writes a banner there:
+#
+#    awk='env DYLD_INSERT_LIBRARIES=/usr/lib/libgmalloc.dylib ../a.out' sh T.ccl
+#
+chk() {
+	nt=`expr $nt + 1`
+	got=`$awk '/'"$1"'/ { printf "%s", $0 }' $data 2>$err`
+	status=$?
+	if [ $status -ge 128 ] ; then
+		echo "BAD: T.ccl $nt: /$1/ died on signal `expr $status - 128` ($3)"
+		bad=`expr $bad + 1`
+	elif [ "x$got" != "x$2" ] ; then
+		echo "BAD: T.ccl $nt: /$1/ selected [$got], expected [$2] ($3)"
+		sed -e 's/^/	/' -e 3q $err
+		bad=`expr $bad + 1`
+	fi
+}
+
+ALPHA=abcdefgnqxyzABCFG
+DIGIT=0125789
+PUNCT='-=[]:.\!'
+ALL=$ALPHA$DIGIT$PUNCT
+LOW='abcdABCFG'$DIGIT$PUNCT	# data chars <= \x64
+
+# Escapes that denote no character leave an empty class.  An empty CCL is
+# how the parser represents the empty regexp, so such a class must be
+# forced to match nothing rather than inheriting "matches everywhere".
+# \u110000 is one past the last code point; \u10ffff is the last one and
+# stays an ordinary member.  Only T.utfre can tell those two apart, since
+# $data holds no character above ASCII.
+#
+chk '[\0]'		''		'matched every line'
+chk '[\x]'		''		'matched every line; gawk reads it as literal x'
+chk '[\u00110000]'	''		'matched every line'
+chk '[\uffffffff]'	''		'matched every line, and overflowed a signed int'
+
+# Ranges whose left endpoint cannot be represented.
+chk '[\0-x]'	"abcdefgnqxABCFG$DIGIT$PUNCT"	'matched every line, then {-,x}'
+chk '[\0-\x05]'		''		'picked up a literal -'
+
+# A reversed range stays an empty, nullable CCL: it matches the empty
+# string.  T.re and T.utfre depend on that, so forcing an emptied class to
+# match nothing must not catch it too.  gawk rejects the pattern outright.
+#
+chk '[z-a]'		"$ALL"		'must keep matching the empty string'
+
+# The empty regexp must keep matching everywhere.
+chk ''			"$ALL"		'empty CCL must stay nullable'
+chk '()'		"$ALL"		'empty CCL must stay nullable'
+
+# A buffer boundary.  cclenter() grew buf[] only just before writing a
+# member, so a class holding exactly bufsz members left no room for the
+# terminator that follows the loop, and wrote it one element past the
+# allocation.  bufsz starts at 100 and doubles, so a range of exactly 100,
+# 200, 400 or 800 members lands on the boundary.  The overrun is silent under
+# an ordinary malloc, because the element is read straight back and the answer
+# still comes out right, so these four cases exist to give a checking
+# allocator something to fault on:
+#
+#    cc -g -O1 -fsanitize=address ...                  (portable)
+#    DYLD_INSERT_LIBRARIES=/usr/lib/libgmalloc.dylib   (macOS)
+#
+# None of them depends on the locale.
+#
+chk '[\x01-\x64]'	"$LOW"	'100 members: terminator written past buf[]'
+chk '[\x01-\xc8]'	"$ALL"	'200 members'
+chk '[\u0001-\u0190]'	"$ALL"	'400 members'
+chk '[\u0001-\u0320]'	"$ALL"	'800 members'
+
+# Range endpoints at and above the top of Unicode.  MAX_CODE_POINT is
+# U+10ffff, the last code point there is.  Both endpoints are clamped, and
+# the fact that a clamp happened is remembered, so a class left with no
+# members by one matches nothing instead of inheriting the empty regexp's
+# "matches everywhere".
+#
+chk '[\u1-\uffffffff]'	"$ALL"	'expanded INT_MAX members: 6.4 GB, and bufsz overflowed'
+chk '[\u1-\u0110000]'	"$ALL"	'right endpoint is one past MAX_CODE_POINT'
+chk '[\u1-\u010ffff]'	"$ALL"	'right endpoint is exactly MAX_CODE_POINT'
+chk '[\x21-\uffffff]'	"$ALL"	'expanded 16.7M members only to discard 15.6M'
+
+# The next four cover all four ways an endpoint can be out of range.  The
+# two reversed ones matter most: they leave the range branch through the
+# early "empty; ignore" continue, so the clamp -- which is also where the
+# endpoint-was-not-a-character flag gets set -- has to run before that test.
+#
+chk '[\u110000-\u110001]'	''	'left endpoint over MAX_CODE_POINT left a literal -'
+chk '[\u110001-\u110002]'	''	'left endpoint two past MAX_CODE_POINT, not one'
+chk '[\u00110000-z]'	''	'clamped left endpoint made the range reversed, hence nullable'
+chk '[\u110001-\u110000]'	''	'reversed and both over MAX_CODE_POINT: clamping must precede the c > c2 test'
+chk '[\u10ffff-\u10ffff]'	''	'degenerate range at MAX_CODE_POINT; T.utfre has the positive side'
+chk '[\u10ffff-\u110000]'	''	'right endpoint clamped away; T.utfre has the positive side'
+
+# Several ranges in one bracket expression.  The "an endpoint was not a
+# character" flag is per-expression, but it is only consulted when every
+# member was filtered out, so a range that does contribute members overrides
+# it whichever order the ranges appear in.
+#
+chk '[\u110000-\u110001\u1-\u10ffff]'	"$ALL"	'a bad range must not poison a good one'
+chk '[\u1-\u10ffff\u110000-\u110001]'	"$ALL"	'a range spanning everything, then a bad one'
+chk '[\u110000-\u110001x-z]'	xyz	'bad range, then a good one'
+chk '[x-z\u110000-\u110001]'	xyz	'x-z first, then a bad range'
+chk '[a-c\u110000-\u110001]'	abc	'a bad range must not add a stray -'
+chk '[\u110000-\u110001\u110002-\u110003]'	''	'every range bad, so match nothing'
+chk '[z-a\u110000-\u110001]'	''	'a bad range poisons an otherwise nullable one'
+
+rm -rf $WORKDIR
+
+echo "	$nt tests"
+test $bad -eq 0
