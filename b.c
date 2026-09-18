@@ -454,7 +454,7 @@ int *cclenter(const char *argp)	/* add a character class */
 					continue;
 				}
 				while (c < c2) {
-					if (i >= bufsz) {
+					if (i + 1 >= bufsz) {
 						bufsz *= 2;
 						buf = (int *) realloc(buf, bufsz * sizeof(int));
 						if (buf == NULL)
@@ -467,7 +467,7 @@ int *cclenter(const char *argp)	/* add a character class */
 				continue;
 			}
 		}
-		if (i >= bufsz) {
+		if (i + 1 >= bufsz) {
 			bufsz *= 2;
 			buf = (int *) realloc(buf, bufsz * sizeof(int));
 			if (buf == NULL)
