@@ -353,9 +353,9 @@ void freetr(Node *p)	/* free parse tree */
 /* to be seen literally;  \056 is not a metacharacter. */
 
 int hexstr(const uschar **pp, int max)	/* find and eval hex string at pp, return new p */
-{			/* only pick up one 8-bit byte (2 chars) */
+{
 	const uschar *p;
-	int n = 0;
+	unsigned long n = 0;
 	int i;
 
 	for (i = 0, p = *pp; i < max && isxdigit(*p); i++, p++) {
@@ -363,11 +363,18 @@ int hexstr(const uschar **pp, int max)	/* find and eval hex string at pp, return
 			n = 16 * n + *p - '0';
 		else if (*p >= 'a' && *p <= 'f')
 			n = 16 * n + *p - 'a' + 10;
-		else if (*p >= 'A' && *p <= 'F')
+		else
 			n = 16 * n + *p - 'A' + 10;
 	}
 	*pp = p;
-	return n;
+
+	/*
+	 * n is unsigned so that \u, which allows 8 digits, cannot overflow.
+	 * Cap the result so that narrowing it to int is value-preserving
+	 * rather than implementation-defined.  Anything above MAX_CODE_POINT
+	 * is discarded by cclenter().
+	 */
+	return (n > INT_MAX) ? INT_MAX : (int) n;
 }
 
 
@@ -431,6 +438,7 @@ int quoted(const uschar **pp)	/* pick up next thing after a \\ */
 
 int *cclenter(const char *argp)	/* add a character class */
 {
+	bool nonchar = false; /* set if a range endpoint was not a character */
 	int i, j, c, c2;
 	int n;
 	const uschar *p = (const uschar *) argp;
@@ -444,9 +452,10 @@ int *cclenter(const char *argp)	/* add a character class */
 	for (i = 0; *p != 0; ) {
 		n = u8_rune(&c, (const char *) p);
 		p += n;
+
 		if (c == '\\') {
 			c = quoted(&p);
-		} else if (c == '-' && i > 0 && bp[-1] != 0) {
+		} else if (c == '-' && i > 0) {
 			if (*p != 0) {
 				c = bp[-1];
 				/* c2 = *p++; */
@@ -454,6 +463,21 @@ int *cclenter(const char *argp)	/* add a character class */
 				p += n;
 				if (c2 == '\\')
 					c2 = quoted(&p); /* BUG: sets p, has to be u8 size */
+
+				/*
+				 * Nothing above MAX_CODE_POINT can ever be matched,
+				 * so clamp rather than expanding millions of members
+				 * that could cause bufsz to overflow.
+				 */
+				if (c > MAX_CODE_POINT) {
+					c = MAX_CODE_POINT;
+					nonchar = true;
+				}
+				if (c2 > MAX_CODE_POINT) {
+					c2 = MAX_CODE_POINT;
+					nonchar = true;
+				}
+
 				if (c > c2) {	/* empty; ignore */
 					bp--;
 					i--;
@@ -486,7 +510,7 @@ int *cclenter(const char *argp)	/* add a character class */
 	*bp = 0;
 	/* DPRINTF("cclenter: in = |%s|, out = |%s|\n", op, buf); BUG: can't print array of int */
 	/* xfree(op);  BUG: what are we freeing here? */
-	retp = (int *) calloc(bp-buf+1, sizeof(int));
+	retp = (int *) calloc(bp-buf+2, sizeof(int));
 	if (retp == NULL)
 		FATAL("out of space for character class [%.10s...] 2", argp);
 
@@ -517,7 +541,7 @@ int *cclenter(const char *argp)	/* add a character class */
 	 * to match the empty string (T.re, T.utfre), so it has to keep
 	 * arriving here as an empty CCL.
 	 */
-	if (j == 0 && bp > buf) {
+	if (j == 0 && (bp > buf || nonchar)) {
 		retp[0] = NOT_A_CHAR;
 		retp[1] = 0;
 	}
