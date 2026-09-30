@@ -54,6 +54,7 @@ bool	CSV = false;	/* true for csv input */
 bool	safe = false;	/* true => "safe" mode */
 
 size_t	awk_mb_cur_max = 1;
+bool	utf8_mode = false;
 
 static noreturn void fpecatch(int n
 #ifdef SA_SIGINFO
@@ -131,6 +132,53 @@ getarg(int *argc, char ***argv, const char *msg)
 	}
 }
 
+/*
+ * Probe the current locale's decoder to see if its encoding is utf-8.
+ * Use U+4E00 as it is three bytes long (0xE4 0xB8 0x80) and only
+ * utf-8 can decode all three to a single wide character.  Any code
+ * point from U+0800 to U+FFFF would work, except the utf-16 surrogates
+ * (U+D800-U+DFFF), which have no utf-8 encoding.  U+4E00 is an
+ * ordinary character, away from the edge cases U+0800 and U+FFFF.
+ *
+ * In a sample of locales, mbtowc() returns the following
+ * for the utf-8 bytes of U+0800, U+4E00, and U+FFFF:
+ *
+ *	                         macOS                 glibc
+ *	locale            U+0800 U+4E00 U+FFFF  U+0800 U+4E00 U+FFFF
+ *	*.UTF-8, *.utf8      3      3      3       3      3      3
+ *	en_US, de_DE         3      3      3       1      1      1
+ *	zh_CN, zh_TW         3      3      3      -1      2      2
+ *	C, POSIX             1      1      1      -1     -1     -1
+ *	*.GBK, *.GB18030     2      2      2       2      2      2
+ *	*.SJIS               2      2      2       2      2     -1
+ *	*.eucJP, *.eucKR     2      2      2      -1      2      2
+ *	*.Big5              -1      2      2      -1      2      2
+ *	*.ISO8859-*          1      1      1       1      1      1
+ *
+ * en_US, de_DE, zh_CN, and zh_TW are all utf-8 on macOS, but on glibc
+ * en_US and de_DE are ISO 8859-1, zh_CN is GB2312, and zh_TW is Big5.
+ * Where mbtowc() returns 2, the first two bytes form one double byte
+ * character, and where it returns -1, the decoder rejects the bytes.
+ * Every double byte locale returns 2 for U+4E00, but some return -1
+ * for U+0800 or U+FFFF.  The longer euc forms require a different first
+ * byte (0x8F for euc-JP's three bytes and 0x8E for euc-TW's four bytes).
+ *
+ * nl_langinfo(CODESET) is not used because the codeset of a utf-8
+ * locale is not always "UTF-8": on macOS it is "" for en_US and
+ * "UTF-8@latin" for sr_RS.UTF-8@latin.  What matters here is whether
+ * the C library decodes utf-8, not what the locale calls its encoding.
+ */
+static bool locale_is_utf8(void)
+{
+	wchar_t wc;
+	int rc;
+
+	rc = mbtowc(&wc, "\xe4\xb8\x80", 3);
+	mbtowc(NULL, NULL, 0); /* reset */
+
+	return (rc == 3);
+}
+
 int main(int argc, char *argv[])
 {
 	const char *fs = NULL;
@@ -139,6 +187,7 @@ int main(int argc, char *argv[])
 	setlocale(LC_CTYPE, "");
 	setlocale(LC_NUMERIC, "C"); /* for parsing cmdline & prog */
 	awk_mb_cur_max = MB_CUR_MAX;
+	utf8_mode = locale_is_utf8();
 	cmdname = argv[0];
 	if (argc == 1) {
 		fprintf(stderr,

@@ -604,7 +604,7 @@ int u8_isutf(const char *s)
 
 	len = u8_rune(&rune, s);
 
-	if (len == 1 && awk_mb_cur_max > 1 && (unsigned char) s[0] >= 128)
+	if (len == 1 && utf8_mode && (unsigned char) s[0] >= 128)
 		return 0;
 
 	return len;
@@ -620,7 +620,7 @@ int u8_rune(int *rune, const char *s)
 	unsigned char c;
 
 	c = s[0];
-	if (c < 128 || awk_mb_cur_max == 1) {
+	if (c < 128 || !utf8_mode) {
 		*rune = c;
 		return 1;
 	}
@@ -685,7 +685,7 @@ int u8_strlen(const char *s)
 	totlen = 0;
 	for (i = 0; i < n; i += len) {
 		c = s[i];
-		if (c < 128 || awk_mb_cur_max == 1) {
+		if (c < 128 || !utf8_mode) {
 			len = 1;
 		} else {
 			len = u8_nextlen(&s[i]);
