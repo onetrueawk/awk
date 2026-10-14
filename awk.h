@@ -250,10 +250,13 @@ typedef struct gtte { /* gototab entry */
 	unsigned int state;
 } gtte;
 
+#define GOTO_DIRECT	128	/* size of ASCII direct-index fast path */
+
 typedef struct gtt {	/* gototab */
 	size_t	allocated;
 	size_t	inuse;
 	gtte	*entries;
+	int	direct[GOTO_DIRECT];	/* fast path for ASCII; 0 == miss */
 } gtt;
 
 typedef struct fa {
