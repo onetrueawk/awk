@@ -66,6 +66,10 @@ extern int	recsize;	/* size of current record, orig RECSIZE */
 
 extern size_t	awk_mb_cur_max;	/* max size of a multi-byte character */
 
+#define	MAX_CODE_POINT	0x10ffff	/* utf-8 stops here */
+#define	SURROGATE_FIRST	0xd800		/* utf-16's, with no utf-8 form of */
+#define	SURROGATE_LAST	0xdfff		/* their own */
+
 extern char	EMPTY[];	/* this avoid -Wwritable-strings issues */
 extern char	**FS;
 extern char	**RS;

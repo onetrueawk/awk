@@ -25,6 +25,25 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the 
 second edition of the AWK book was published in September 2023.
 
+Sep 24, 2026
+	u8_rune() no longer accepts a sequence that encodes no
+	character: one above the last code point, a utf-16 surrogate, or
+	an overlong form.  Each is returned a byte at a time, as any
+	other byte that is not utf-8 always has been.  An overlong NUL
+	decoded as a rune 0, which the regular expression code reads as
+	the end of the string, so no pattern could match past one while
+	index() and substr() read through it.  length() and a match also
+	disagreed about such a record: on a, C0 80, b, length() counted
+	three characters where /./ matched two.
+
+	u8_isutf() and u8_rune() no longer call strlen() to learn
+	whether two, three or four bytes are available.  That cost a
+	pass over the rest of the record for every character decoded,
+	which made length(), split(), substr(), a match and gsub() all
+	quadratic in the length of a multibyte record.
+
+	New tests in testdir/T.utf8bad.
+
 Apr 26, 2026
 	regex fixes: limit the repetition count to 255 like
 	POSIX does to prevent signed integer overflow.
