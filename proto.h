@@ -140,7 +140,6 @@ extern	void	WARNING(const char *, ...)
 extern	void	error(void);
 extern	void	eprint(void);
 extern	void	bclass(int);
-extern	double	errcheck(double, const char *);
 extern	int	isclvar(const char *);
 extern	bool	is_valid_number(const char *s, bool trailing_stuff_ok,
 				bool *no_trailing, double *result);
@@ -198,3 +197,8 @@ extern	FILE	*popen(const char *, const char *);
 extern	int	pclose(FILE *);
 
 extern  const char	*flags2str(int flags);
+
+extern	double	exp_errcheck(double);
+extern	double	log_errcheck(double);
+extern	double	pow_errcheck(double, double);
+extern	double	sqrt_errcheck(double);
