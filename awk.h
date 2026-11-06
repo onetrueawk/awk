@@ -66,6 +66,10 @@ extern int	recsize;	/* size of current record, orig RECSIZE */
 
 extern size_t	awk_mb_cur_max;	/* max size of a multi-byte character */
 
+#define	MAX_CODE_POINT	0x10ffff	/* utf-8 stops here */
+#define	SURROGATE_FIRST	0xd800		/* utf-16's, with no utf-8 form of */
+#define	SURROGATE_LAST	0xdfff		/* their own */
+
 extern char	EMPTY[];	/* this avoid -Wwritable-strings issues */
 extern char	**FS;
 extern char	**RS;
@@ -259,10 +263,13 @@ typedef struct gtte { /* gototab entry */
 	unsigned int state;
 } gtte;
 
+#define GOTO_DIRECT	128	/* size of ASCII direct-index fast path */
+
 typedef struct gtt {	/* gototab */
 	size_t	allocated;
 	size_t	inuse;
 	gtte	*entries;
+	int	direct[GOTO_DIRECT];	/* fast path for ASCII; 0 == miss */
 } gtt;
 
 typedef struct fa {

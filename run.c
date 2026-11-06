@@ -25,7 +25,6 @@ THIS SOFTWARE.
 #define DEBUG
 #include <stdio.h>
 #include <ctype.h>
-#include <errno.h>
 #include <wctype.h>
 #include <fcntl.h>
 #include <setjmp.h>
@@ -595,30 +594,20 @@ Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
  * Limited checking! This is a potential security hole.
  */
 
+int u8_rune(int *, const char *);
+
 /* is s the beginning of a valid utf-8 string? */
 /* return length 1..4 if yes, 0 if no */
 int u8_isutf(const char *s)
 {
-	int n, ret;
-	unsigned char c;
+	int rune, len;
 
-	c = s[0];
-	if (c < 128 || awk_mb_cur_max == 1)
-		return 1; /* what if it's 0? */
+	len = u8_rune(&rune, s);
 
-	n = strlen(s);
-	if (n >= 2 && ((c>>5) & 0x7) == 0x6 && (s[1] & 0xC0) == 0x80) {
-		ret = 2; /* 110xxxxx 10xxxxxx */
-	} else if (n >= 3 && ((c>>4) & 0xF) == 0xE && (s[1] & 0xC0) == 0x80
-			 && (s[2] & 0xC0) == 0x80) {
-		ret = 3; /* 1110xxxx 10xxxxxx 10xxxxxx */
-	} else if (n >= 4 && ((c>>3) & 0x1F) == 0x1E && (s[1] & 0xC0) == 0x80
-			 && (s[2] & 0xC0) == 0x80 && (s[3] & 0xC0) == 0x80) {
-		ret = 4; /* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-	} else {
-		ret = 0;
-	}
-	return ret;
+	if (len == 1 && awk_mb_cur_max > 1 && (unsigned char) s[0] >= 128)
+		return 0;
+
+	return len;
 }
 
 /* Convert (prefix of) utf8 string to utf-32 rune. */
@@ -626,7 +615,8 @@ int u8_isutf(const char *s)
 /* No error checking: watch out. */
 int u8_rune(int *rune, const char *s)
 {
-	int n, ret;
+	static const int minrune[] = { 0, 0, 0x80, 0x800, 0x10000 };
+	int ret;
 	unsigned char c;
 
 	c = s[0];
@@ -635,16 +625,20 @@ int u8_rune(int *rune, const char *s)
 		return 1;
 	}
 
-	n = strlen(s);
-	if (n >= 2 && ((c>>5) & 0x7) == 0x6 && (s[1] & 0xC0) == 0x80) {
+	/*
+	 * No continuation byte can be a NUL, so a sequence that runs into the
+	 * end of the string fails one of the tests below rather than reading
+	 * past the terminator.
+	 */
+	if (((c>>5) & 0x7) == 0x6 && (s[1] & 0xC0) == 0x80) {
 		*rune = ((c & 0x1F) << 6) | (s[1] & 0x3F); /* 110xxxxx 10xxxxxx */
 		ret = 2;
-	} else if (n >= 3 && ((c>>4) & 0xF) == 0xE && (s[1] & 0xC0) == 0x80
+	} else if (((c>>4) & 0xF) == 0xE && (s[1] & 0xC0) == 0x80
 			  && (s[2] & 0xC0) == 0x80) {
 		*rune = ((c & 0xF) << 12) | ((s[1] & 0x3F) << 6) | (s[2] & 0x3F);
 			/* 1110xxxx 10xxxxxx 10xxxxxx */
 		ret = 3;
-	} else if (n >= 4 && ((c>>3) & 0x1F) == 0x1E && (s[1] & 0xC0) == 0x80
+	} else if (((c>>3) & 0x1F) == 0x1E && (s[1] & 0xC0) == 0x80
 			  && (s[2] & 0xC0) == 0x80 && (s[3] & 0xC0) == 0x80) {
 		*rune = ((c & 0x7) << 18) | ((s[1] & 0x3F) << 12) | ((s[2] & 0x3F) << 6) | (s[3] & 0x3F);
 			/* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
@@ -653,6 +647,20 @@ int u8_rune(int *rune, const char *s)
 		*rune = c;
 		ret = 1;
 	}
+
+	/*
+	 * The four byte form can encode 21 bits, but utf-8 stops at
+	 * MAX_CODE_POINT, the surrogates belong to utf-16, and an overlong
+	 * form encodes a value that a shorter form already covers.  None of
+	 * those is a character, so just hand back the first byte.
+	 */
+	if (*rune > MAX_CODE_POINT ||
+	    (*rune >= SURROGATE_FIRST && *rune <= SURROGATE_LAST) ||
+	    *rune < minrune[ret]) {
+		*rune = c;
+		ret = 1;
+	}
+
 	return ret; /* returns one byte if sequence doesn't look like utf */
 }
 
@@ -1480,10 +1488,8 @@ Cell *arith(Node **a, int n)	/* a[0] + a[1], etc.  also -a[0] */
 	case POWER:
 		if (j >= 0 && modf(j, &v) == 0.0)	/* pos integer exponent */
 			i = ipow(i, (int) j);
-               else {
-			errno = 0;
-			i = errcheck(pow(i, j), "pow");
-               }
+               else
+			i = pow_errcheck(i, j);
 		break;
 	default:	/* can't happen */
 		FATAL("illegal arithmetic operator %d", n);
@@ -1579,10 +1585,8 @@ Cell *assign(Node **a, int n)	/* a[0] = a[1], a[0] += a[1], etc. */
 	case POWEQ:
 		if (yf >= 0 && modf(yf, &v) == 0.0)	/* pos integer exponent */
 			xf = ipow(xf, (int) yf);
-               else {
-			errno = 0;
-			xf = errcheck(pow(xf, yf), "pow");
-               }
+               else
+			xf = pow_errcheck(xf, yf);
 		break;
 	default:
 		FATAL("illegal assignment operator %d", n);
@@ -1746,7 +1750,9 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 		pfa = NULL;
 
 	} else if (a[2] == NULL && CSV) {	/* CSV only if no explicit separator */
-		char *newt = (char *) malloc(strlen(s)); /* for building new string; reuse for each field */
+		char *newt = (char *) malloc(strlen(s) + 1); /* for building new string; reuse for each field */
+		if (newt == NULL)
+			FATAL("out of space in split");
 		for (;;) {
 			char *fr = newt;
 			n++;
@@ -1978,7 +1984,6 @@ static char *nawk_convert(const char *s, int (*fun_c)(int),
 	size_t n       = 0;
 	wchar_t wc;
 	const size_t sz = awk_mb_cur_max;
-	int unused;
 
 	if (sz == 1) {
 		buf = tostring(s);
@@ -1992,14 +1997,7 @@ static char *nawk_convert(const char *s, int (*fun_c)(int),
 		buf = tostringN(s, strlen(s) * sz + 1);
 
 		(void) mbtowc(NULL, NULL, 0);	/* reset internal state */
-		/*
-		 * Reset internal state here too.
-		 * Assign result to avoid a compiler warning. (Casting to void
-		 * doesn't work.)
-		 * Increment said variable to avoid a different warning.
-		 */
-		unused = wctomb(NULL, L'\0');
-		unused++;
+		(void) wctomb(NULL, L'\0');	/* reset internal state */
 
 		ps   = s;
 		pbuf = buf;
@@ -2079,18 +2077,15 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 			u = u8_strlen(getsval(x));
 		break;
 	case FLOG:
-		errno = 0;
-		u = errcheck(log(getfval(x)), "log");
+		u = log_errcheck(getfval(x));
 		break;
 	case FINT:
 		modf(getfval(x), &u); break;
 	case FEXP:
-		errno = 0;
-		u = errcheck(exp(getfval(x)), "exp");
+		u = exp_errcheck(getfval(x));
 		break;
 	case FSQRT:
-		errno = 0;
-		u = errcheck(sqrt(getfval(x)), "sqrt");
+		u = sqrt_errcheck(getfval(x));
 		break;
 	case FSIN:
 		u = sin(getfval(x)); break;
