@@ -25,30 +25,55 @@ THIS SOFTWARE.
 This file lists all bug fixes, changes, etc., made since the 
 second edition of the AWK book was published in September 2023.
 
-Sep 24, 2026
-	u8_rune() no longer accepts a sequence that encodes no
-	character: one above the last code point, a utf-16 surrogate, or
-	an overlong form.  Each is returned a byte at a time, as any
-	other byte that is not utf-8 always has been.  An overlong NUL
-	decoded as a rune 0, which the regular expression code reads as
-	the end of the string, so no pattern could match past one while
-	index() and substr() read through it.  length() and a match also
-	disagreed about such a record: on a, C0 80, b, length() counted
-	three characters where /./ matched two.
+Nov 6, 2026
+	Parser speed improvement: In parse.c:linkum, cache the previous
+	linked list's head and tail, to avoid chasing down the list all
+	the time. Thanks to Arnold Robbins.
+
+	Fix echo command in T.misc. Thanks to Tim van der Molen.
+
+	Split: allocate space for null terminator: If the string to
+	be split doesn't contain a comma, the entire string will be
+	written to the buffer, including the NUL terminator. Allocated
+	size did not take the NUL terminator into account.
+	Thanks to Frank Denis and the Swival Security Scanner.
+
+	Silence unused variable warning under gcc16. Note that this
+	will still generate a warning with earlier versions of gcc.
+	Thanks to Michael Forney.
+
+	Regexp engine speedup: added ascii fast path to gototab to
+	avoid bsearch, so get_gototab and set_gototab return in a
+	single load on the common path. Thanks to Yhirose.
+
+	Improve detection of errors from math functions by checking
+	for floating point exceptions. Thanks to Tim van der Molen.
+
+	u8_rune() and u8_isutf() fixes. u8_rune() no longer accepts a
+	sequence that encodes no character: one above the last code point,
+	a utf-16 surrogate, or an overlong form. each is returned a byte
+	at a time, as any non-utf-8 byte has always been. An overlong
+	NUL decoded as a rune 0, which the regexp code reads as the end
+	of the string, so no pattern could match past one while index()
+	and substr() read through it. length() and a match also disagreed
+	about such a record: on a, C0 80, b, length() counted three
+	characters where /./ matched two.
 
 	u8_isutf() and u8_rune() no longer call strlen() to learn
-	whether two, three or four bytes are available.  That cost a
-	pass over the rest of the record for every character decoded,
-	which made length(), split(), substr(), a match and gsub() all
-	quadratic in the length of a multibyte record.
+	whether two, three or four bytes are available. That cost a
+	pass over the rest of the record for every decoded character,
+	which made length(), split(), substr(), a match and gsub()
+	all run in quadratic time in the length of a multibyte record.
 
 	New tests in testdir/T.utf8bad.
+        Thanks to Greg Becker.
+
 
 Apr 26, 2026
 	regex fixes: limit the repetition count to 255 like
 	POSIX does to prevent signed integer overflow.
 	prevent a crash when the repetition is the first atom parsed
-	Thanks to Renaud Allard an Todd Miller.
+	Thanks to Renaud Allard and Todd Miller.
 
 Dec 24, 2025
 	Previously changed and broken rand() implementation
