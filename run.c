@@ -1997,7 +1997,9 @@ static char *nawk_convert(const char *s, int (*fun_c)(int),
 		buf = tostringN(s, strlen(s) * sz + 1);
 
 		(void) mbtowc(NULL, NULL, 0);	/* reset internal state */
-		(void) wctomb(NULL, L'\0');	/* reset internal state */
+		// junk assignment and increment avoids warnings on GLIBC. Bleah.
+		int junk = wctomb(NULL, L'\0');	/* reset internal state */
+		++junk;
 
 		ps   = s;
 		pbuf = buf;
