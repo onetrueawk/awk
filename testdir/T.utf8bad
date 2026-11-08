@@ -1,0 +1,120 @@
+#!/bin/sh
+
+echo T.utf8bad: tests of ill-formed utf-8 sequences
+
+# Three classes of byte sequence look like utf-8 but encode nothing: a value
+# above MAX_CODE_POINT, one of the utf-16 surrogates, and an overlong form
+# encoding a value that a shorter form already covers.  u8_rune() returns a
+# single byte for each, the same answer it has always given for input that is
+# not utf-8 at all, so they are counted and matched byte by byte.
+#
+# The overlong forms are the ones that broke awk.  C0 80 decodes to rune 0, and
+# the regular expression code reads rune 0 as the end of the string.  A pattern
+# could therefore not match anything past such a sequence, while index() and
+# substr() looked straight through it.  The first chk below is that case.
+#
+# gawk reports these as bytes too, though it also warns; the counts below
+# agree with it.
+
+awk=${awk-../a.out}
+
+nt=0
+bad=0
+
+# chk <octal-input> <expr> <expected> <note>
+#	<expr> runs against a record built from <octal-input>.
+chk() {
+	nt=`expr $nt + 1`
+	got=`printf "$1\n" | $awk "{ printf \"%s\", $2 }" 2>&1`
+	if [ "x$got" != "x$3" ]; then
+		echo "BAD: T.utf8bad $nt: $2 on $1 gave [$got], expected [$3] ($4)"
+		bad=`expr $bad + 1`
+	fi
+}
+
+# Every case here is about how a multibyte decoder treats a sequence, so a
+# UTF-8 locale is needed.  In the C locale each byte is a character of its own:
+# the ill-formed cases would then pass for the wrong reason and the well formed
+# ones would fail.  The familiar names come first so that the choice is the same
+# on every host that has them, since locale(1) lists in no particular order.  A
+# name that is not installed needs no guard: the locale then stays C, where the
+# two bytes below measure two characters, and the probe drops it.
+#
+utf8=
+for loc in en_US.UTF-8 en_US.utf8 de_DE.UTF-8 de_DE.utf8 \
+    `locale -a 2>/dev/null | grep -iE '\.utf-?8$'`
+do
+	n=`printf '\303\251\n' | LC_ALL=$loc $awk '{ print length($0) }' 2>/dev/null`
+	if [ "x$n" = x1 ]
+	then
+		utf8=$loc
+		break
+	fi
+done
+
+if [ -z "$utf8" ]
+then
+	echo "	T.utf8bad: no UTF-8 locale, tests skipped"
+	exit 0
+fi
+
+LC_ALL=$utf8
+export LC_ALL
+
+### The bug: a pattern has to see past an ill-formed sequence.  With C0 80
+# decoded as rune 0 this printed 0, while index() found the b all along.
+chk 'a\300\200b'	'($0 ~ /b/) index($0, "b") length($0)'	'144' \
+	'a pattern must match after an overlong NUL'
+chk 'a\300\200b'	'gsub(/./, "+") " " $0'		'4 ++++' \
+	'and every byte of it is one character to .'
+
+### length() and gsub(/./) once used separate decoders, so they could disagree
+# about what a character is; they must give the same count.
+chk '\367\277\277\277'	'length($0) " " gsub(/./, "+")'	'4 4' \
+	'above MAX_CODE_POINT: the two decoders must agree'
+chk '\355\240\200'	'length($0) " " gsub(/./, "+")'	'3 3' \
+	'a surrogate: the two decoders must agree'
+chk '\300\257'		'length($0) " " gsub(/./, "+")'	'2 2' \
+	'an overlong form: the two decoders must agree'
+
+### Above MAX_CODE_POINT.  The four byte form can encode 21 bits, but utf-8
+# stops at U+10FFFF.
+chk '\367\277\277\277'	'length($0)'	'4'	'F7 BF BF BF encodes 0x1fffff'
+chk '\364\220\200\200'	'length($0)'	'4'	'F4 90 80 80 is U+110000, one past the end'
+chk '\364\217\277\277'	'length($0)'	'1'	'F4 8F BF BF is U+10FFFF, the last character'
+
+### The utf-16 surrogates, U+D800 through U+DFFF, have no utf-8 form.
+chk '\355\240\200'	'length($0)'	'3'	'ED A0 80 encodes U+D800'
+chk '\355\277\277'	'length($0)'	'3'	'ED BF BF encodes U+DFFF'
+chk '\355\237\277'	'length($0)'	'1'	'ED 9F BF is U+D7FF, just below'
+chk '\356\200\200'	'length($0)'	'1'	'EE 80 80 is U+E000, just above'
+
+### Overlong forms: only the shortest sequence that holds the value is valid.
+chk '\300\200'		'length($0)'	'2'	'C0 80 is an overlong NUL'
+chk '\300\257'		'length($0)'	'2'	'C0 AF is an overlong /'
+chk '\301\277'		'length($0)'	'2'	'C1 BF is an overlong U+7F'
+chk '\340\200\257'	'length($0)'	'3'	'E0 80 AF is an overlong /'
+chk '\340\237\277'	'length($0)'	'3'	'E0 9F BF is an overlong U+7FF'
+chk '\360\200\200\257'	'length($0)'	'4'	'F0 80 80 AF is an overlong /'
+chk '\360\217\277\277'	'length($0)'	'4'	'F0 8F BF BF is an overlong U+FFFF'
+
+### The shortest form at each boundary stays a single character.
+chk '\302\200'		'length($0)'	'1'	'C2 80 is U+0080, the shortest two byte form'
+chk '\337\277'		'length($0)'	'1'	'DF BF is U+07FF, the largest two byte form'
+chk '\340\240\200'	'length($0)'	'1'	'E0 A0 80 is U+0800, the shortest three byte form'
+chk '\357\277\277'	'length($0)'	'1'	'EF BF BF is U+FFFF, the largest three byte form'
+chk '\360\220\200\200'	'length($0)'	'1'	'F0 90 80 80 is U+10000, the shortest four byte form'
+
+### A lead byte with no continuation, and a continuation with no lead: both
+# were already returned one byte at a time, and must stay that way.
+chk '\303'		'length($0)'	'1'	'a truncated two byte form'
+chk '\200'		'length($0)'	'1'	'a stray continuation byte'
+chk '\370\200\200\200\200'	'length($0)'	'5'	'F8 has no four byte form'
+
+### An ill-formed sequence must not pass for the character it used to alias.
+chk 'x\300\257y'	'($0 ~ /\//)'	'0'	'an overlong / must not match a pattern for /'
+chk 'x\355\240\200y'	'($0 ~ /[\ud800]/)'	'0'	'a surrogate must not match a class naming it'
+chk 'x\364\220\200\200y'	'($0 ~ /[\u110000]/)'	'0'	'a value past the last code point must not match a class naming it'
+
+echo "	$nt tests"
+test $bad -eq 0
