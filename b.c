@@ -126,7 +126,7 @@ static void clear_gototab(fa*, int);
 /* Convert (prefix of) utf8 string to utf-32 rune. */
 /* Sets *rune to the value, returns the length. */
 /* No error checking: watch out. */
-static inline int
+int
 u8_rune(int *rune, const char *s)
 {
 	int n, ret;
