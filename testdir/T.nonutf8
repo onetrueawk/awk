@@ -1,0 +1,56 @@
+echo T.nonutf8: no utf-8 decoding where the locale is not utf-8
+
+awk=${awk-../a.out}
+
+# u8_rune() decodes utf-8 whatever the locale is, so in a multibyte locale
+# that is not utf-8 any byte pair that happens to be well-formed utf-8 was
+# read as one character while every other byte stood alone.  1920 of
+# GB18030's two byte characters are such pairs.  awk does not decode these
+# encodings, and counting their bytes is what it has always done for the
+# rest of them, so fusing some pairs and not others left length(), substr()
+# and /./ disagreeing about the same record.
+#
+# FreeBSD and macOS ship such a locale; glibc installs none by default, and
+# one is enough to run the test:
+#
+#    localedef -c --no-warnings=ascii -i ja_JP -f SHIFT_JIS ja_JP.SJIS
+
+# Search for a locale whose characters are two or three bytes wide.  Each
+# name is tried twice because glibc lowercases the codeset when it compiles
+# a locale, where FreeBSD and macOS keep it as written.
+#
+avail=`locale -a 2>/dev/null | tr '\n' ' '`
+for loc in ja_JP.SJIS ja_JP.sjis ja_JP.eucJP ja_JP.eucjp zh_CN.GB18030 \
+	   zh_CN.gb18030 ko_KR.eucKR ko_KR.euckr zh_TW.Big5 zh_TW.big5 SKIP
+do
+	case " $avail " in
+	*" $loc "*)
+		break ;;
+	esac
+done
+
+if [ "$loc" = "SKIP" ] ; then
+	echo '	T.nonutf8: no multibyte non-utf-8 locale installed, test skipped'
+	exit 0
+fi
+
+# C2 A1 is well-formed utf-8 for U+00A1, so awk used to report one character
+# here.  The answer is two under every one of these encodings: euc-JP,
+# GB18030, Big5 and euc-KR each spell one character with the pair, which awk
+# does not decode and so counts as bytes, and Shift-JIS spells two halfwidth
+# katakana, one byte apiece.
+#
+printf '\302\241\n' > foo1
+echo 2 > foo2
+
+LC_ALL=$loc $awk '{ print length($0) }' foo1 > foo3
+diff foo2 foo3 || echo "BAD: T.nonutf8 (C2 A1 decoded as one character under $loc)"
+
+# A record of the locale's own bytes comes back byte for byte.  awk does not
+# decode these encodings, so passing the data through unharmed is the whole
+# of what it can promise.
+#
+printf '\244\242\302\241\260\241\n' > foo1
+
+LC_ALL=$loc $awk '{ print }' foo1 > foo3
+diff foo1 foo3 || echo "BAD: T.nonutf8 (a record did not survive under $loc)"

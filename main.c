@@ -54,6 +54,7 @@ bool	CSV = false;	/* true for csv input */
 bool	safe = false;	/* true => "safe" mode */
 
 size_t	awk_mb_cur_max = 1;
+bool	utf8_mode = false;
 
 static noreturn void fpecatch(int n
 #ifdef SA_SIGINFO
@@ -131,6 +132,33 @@ getarg(int *argc, char ***argv, const char *msg)
 	}
 }
 
+/*
+ * Ask the current locale's decoder if its encoding is utf-8.  Use U+4E00 as
+ * it is three bytes long and no other encoding a locale can use consumes
+ * all three.  Any code point from U+0800 to U+FFFF gives the same verdict,
+ * except utf-16 surrogates (U+D800-U+DFFF) which have no utf-8 encoding.
+ *
+ *	- Shift-JIS, Big5, GB18030 and the euc pairs decode the first two
+ *	  bytes as a complete character and stop there,
+ *	- euc-JP's three byte form needs 0x8F in the first byte,
+ *	- euc-TW's four byte form needs 0x8E in the first byte,
+ *	- a single byte encoding cannot consume more than one byte.
+ *
+ * nl_langinfo(CODESET) is not used because codeset names vary between
+ * systems ("UTF-8", "utf8", "UTF8"), and what matters here is whether
+ * the C library decodes utf-8, not what the locale calls its encoding.
+ */
+static bool locale_is_utf8(void)
+{
+	wchar_t wc;
+	int rc;
+
+	rc = mbtowc(&wc, "\xe4\xb8\x80", 3);
+	mbtowc(NULL, NULL, 0); /* reset */
+
+	return (rc == 3);
+}
+
 int main(int argc, char *argv[])
 {
 	const char *fs = NULL;
@@ -139,6 +167,7 @@ int main(int argc, char *argv[])
 	setlocale(LC_CTYPE, "");
 	setlocale(LC_NUMERIC, "C"); /* for parsing cmdline & prog */
 	awk_mb_cur_max = MB_CUR_MAX;
+	utf8_mode = locale_is_utf8();
 	cmdname = argv[0];
 	if (argc == 1) {
 		fprintf(stderr,
