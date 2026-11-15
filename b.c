@@ -879,6 +879,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 	char *i, *j, *k, *buf = *pbuf;
 	int bufsize = *pbufsize;
 	int c, n, ns, s;
+	size_t lookahead;
 
 	s = pfa->initstat;
 	patlen = 0;
@@ -893,16 +894,24 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 
 	i = j = k = buf;
 
+	/*
+	 * u8_rune() reads a utf-8 sequence of at most four bytes regardless
+	 * of the current locale, so we must ensure there are always at
+	 * least four valid bytes in the buffer up until the buffer is NUL
+	 * terminated at EOF.
+	 */
+	lookahead = (awk_mb_cur_max < 4) ? 4 : awk_mb_cur_max;
+
 	do {
 		/*
-		 * Call u8_rune with at least awk_mb_cur_max ahead in
-		 * the buffer until EOF interferes.
+		 * Call u8_rune with at least lookahead bytes in the buffer
+		 * until EOF.
 		 */
-		if (k - j < (int)awk_mb_cur_max) {
-			if (k + awk_mb_cur_max > buf + bufsize) {
+		if (k - j < (int)lookahead) {
+			if (k + lookahead > buf + bufsize) {
 				char *obuf = buf;
 				adjbuf((char **) &buf, &bufsize,
-				    bufsize + awk_mb_cur_max,
+				    bufsize + lookahead,
 				    quantum, 0, "fnematch");
 
 				/* buf resized, maybe moved. update pointers */
@@ -916,7 +925,7 @@ bool fnematch(fa *pfa, FILE *f, char **pbuf, int *pbufsize, int quantum)
 						patbeg = buf + (patbeg - obuf);
 				}
 			}
-			for (n = awk_mb_cur_max ; n > 0; n--) {
+			for (n = lookahead; n > 0; n--) {
 				*k++ = (c = getc(f)) != EOF ? c : 0;
 				if (c == EOF) {
 					if (ferror(f))

@@ -1,0 +1,46 @@
+echo T.rslookahead: a record separator wider than a locale character
+
+awk=${awk-../a.out}
+
+# u8_rune() reads a utf-8 sequence of at most four bytes regardless of the
+# locale, so fnematch() has to keep four bytes of lookahead.  Where it kept
+# awk_mb_cur_max instead and that was less than four, a four byte record
+# separator was decoded from bytes past the logical end of the buffer and
+# never matched, so the whole file came back as one record.  The locales
+# that can show it are the multibyte ones that are not utf-8: MB_CUR_MAX is
+# 2 in ja_JP.SJIS and 3 in ja_JP.eucJP.
+#
+# FreeBSD and macOS ship such a locale; glibc installs none by default, and
+# one is enough to run the test:
+#
+#    localedef -c --no-warnings=ascii -i ja_JP -f SHIFT_JIS ja_JP.SJIS
+
+# Search for a locale whose characters are two or three bytes wide.  Each
+# name is tried twice because glibc lowercases the codeset when it compiles
+# a locale, where FreeBSD and macOS keep it as written.
+#
+avail=`locale -a 2>/dev/null | tr '\n' ' '`
+for loc in ja_JP.SJIS ja_JP.sjis ja_JP.eucJP ja_JP.eucjp SKIP
+do
+	case " $avail " in
+	*" $loc "*)
+		break ;;
+	esac
+done
+
+if [ "$loc" = "SKIP" ] ; then
+	echo '	T.rslookahead: no multibyte non-utf-8 locale installed, test skipped'
+	exit 0
+fi
+
+# The four byte record separator comes first in the file, so the two records
+# are the empty one before it and the "a" after it.  Putting it first is
+# what makes a lookahead of three bytes too few as well as two: fnematch()
+# fills two or three bytes, then u8_rune() asks for all four of them at the
+# very first character it decodes.
+#
+printf '\360\220\200\200a\n' > foo1	# U+10000, a
+echo 2 > foo2
+
+LC_ALL=$loc $awk 'BEGIN { RS = "\360\220\200\200" } END { print NR }' foo1 > foo3
+diff foo2 foo3 || echo "BAD: T.rslookahead (the separator did not match under $loc)"

@@ -65,6 +65,7 @@ extern bool	safe;		/* false => unsafe, true => safe */
 extern int	recsize;	/* size of current record, orig RECSIZE */
 
 extern size_t	awk_mb_cur_max;	/* max size of a multi-byte character */
+extern bool	utf8_mode;	/* true if LC_CTYPE's encoding is utf-8 */
 
 #define	MAX_CODE_POINT	0x10ffff	/* utf-8 stops here */
 #define	SURROGATE_FIRST	0xd800		/* utf-16's, with no utf-8 form of */
