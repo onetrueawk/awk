@@ -1250,9 +1250,14 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				prec = u8_strlen(t);
 			pad = wid>prec ? wid - prec : 0;  // has to be >= 0
 			int i, k, n;
+
+			n = u8_char2byte(t, prec);
+			if (pad > INT_MAX - (p - buf) - n - 1)
+				FATAL("formatted string too long");
+			adjbuf(&buf, &bufsize, (p - buf) + pad + n + 1,
+			    0, &p, "format utf8 string");
 			
 			if (ljust) { // print prec chars from t, then pad blanks
-				n = u8_char2byte(t, prec);
 				for (k = 0; k < n; k++) {
 					//putchar(t[k]);
 					*p++ = t[k];
@@ -1266,7 +1271,6 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 					//printf(" ");
 					*p++ = ' ';
 				}
-				n = u8_char2byte(t, prec);
 				for (k = 0; k < n; k++) {
 					//putchar(t[k]);
 					*p++ = t[k];
@@ -1352,6 +1356,11 @@ int format(char **pbuf, int *pbufsize, const char *s, Node *a)	/* printf-like co
 				prec = 1;
 			pad = wid>prec ? wid - prec : 0;  // has to be >= 0
 			int i;
+
+			if (pad > INT_MAX - (p - buf) - n - 1)
+				FATAL("formatted string too long");
+			adjbuf(&buf, &bufsize, (p - buf) + pad + n + 1,
+			    0, &p, "format utf8 string");
 
 			if (ljust) { // print one char from t, then pad blanks
 				for (i = 0; i < n; i++)
